@@ -1,0 +1,233 @@
+# Default Comment Library
+# Sensible boilerplate for common inspection findings
+# Inspector can override with custom.yaml
+
+version: "1.0"
+
+# Section-level conclusions
+conclusions:
+  good:
+    text: "No obvious defects were noted. No requirement of immediate attention or further investigation."
+  minor:
+    text: "Minor maintenance items noted as described. No requirement of immediate attention."
+  attention:
+    text: "Items noted require attention. Recommend addressing within the next 3-6 months."
+  urgent:
+    text: "Significant defects noted. Immediate attention and specialist assessment recommended."
+
+# Site and Ground
+site_ground:
+  good_condition:
+    match: ["good", "ok", "fine", "no issues"]
+    text: "Site and ground conditions are satisfactory with no obvious defects observed."
+  
+  retaining_wall_timber_good:
+    match: ["timber retaining", "wooden retaining"]
+    text: "Timber retaining wall in serviceable condition. Monitor for signs of deterioration."
+  
+  retaining_wall_leaning:
+    match: ["leaning", "tilting", "bowing"]
+    text: "Retaining wall showing signs of movement. Engineering assessment recommended to determine stability."
+  
+  drainage_pooling:
+    match: ["pooling", "standing water", "poor drainage"]
+    text: "Evidence of water pooling observed. Recommend improving drainage to direct water away from building."
+  
+  driveway_cracked:
+    match: ["cracked driveway", "driveway crack"]
+    text: "Cracks observed in driveway surface. Monitor for progression. Repair or reseal as preventive maintenance."
+
+# Exterior
+exterior:
+  roof:
+    good:
+      match: ["good condition", "no issues", "ok"]
+      text: "Roof cladding in good condition with no visible defects. Flashings and penetrations appear well-sealed."
+    
+    rust_minor:
+      match: ["surface rust", "minor rust", "some rust"]
+      text: "Minor surface rust observed on roofing. Cosmetic at this stage. Monitor and consider treatment within 2-3 years."
+    
+    rust_significant:
+      match: ["heavy rust", "rusted through", "significant rust"]
+      text: "Significant rust deterioration observed on roofing. Weathertightness may be compromised. Professional assessment and likely replacement recommended."
+    
+    tiles_cracked:
+      match: ["cracked tile", "broken tile", "damaged tile"]
+      text: "Cracked/damaged roof tiles observed. Replacement recommended to maintain weathertightness."
+    
+    tiles_missing:
+      match: ["missing tile", "tiles missing"]
+      text: "Missing roof tiles noted. Immediate replacement recommended to prevent water ingress."
+    
+    moss_lichen:
+      match: ["moss", "lichen", "algae", "growth"]
+      text: "Moss/lichen growth present on roof surface. Recommend professional cleaning and treatment to extend roof life."
+  
+  gutters:
+    good:
+      match: ["good", "clear", "ok"]
+      text: "Gutters and downpipes in good working condition."
+    
+    blocked:
+      match: ["blocked", "debris", "leaves", "clogged"]
+      text: "Debris accumulation in gutters. Recommend cleaning to ensure proper drainage."
+    
+    rust:
+      match: ["rust", "corroded"]
+      text: "Rust/corrosion observed in gutters. Monitor for leaks. Consider replacement when deterioration progresses."
+    
+    sagging:
+      match: ["sagging", "drooping", "falling"]
+      text: "Gutter sagging observed. Brackets may need adjustment or replacement to ensure proper water flow."
+    
+    leaking:
+      match: ["leaking", "leak", "dripping"]
+      text: "Gutter leaks observed at joints. Repair or reseal required to prevent water damage to fascia."
+  
+  cladding:
+    good:
+      match: ["good", "ok", "no issues"]
+      text: "Cladding in good condition. All penetrations appear well-sealed."
+    
+    paint_peeling:
+      match: ["peeling", "flaking", "paint coming off"]
+      text: "Paint peeling/flaking observed on cladding. Repaint recommended to protect substrate."
+    
+    crack:
+      match: ["crack", "cracked"]
+      text: "Cracks observed in cladding. Monitor for progression. Seal and repaint to prevent moisture ingress."
+    
+    rot:
+      match: ["rot", "rotting", "soft", "decay"]
+      text: "Timber decay/rot observed. Affected sections require replacement. Investigate cause of moisture exposure."
+    
+    gap:
+      match: ["gap", "gaps", "separation"]
+      text: "Gaps observed in cladding joints. Re-seal required to maintain weathertightness."
+  
+  joinery:
+    good:
+      match: ["good", "ok", "working"]
+      text: "Windows and doors in good operational condition. Hardware functioning correctly."
+    
+    stiff:
+      match: ["stiff", "hard to open", "difficult"]
+      text: "Window/door operation stiff. Lubrication or adjustment recommended."
+    
+    seal_failed:
+      match: ["foggy", "condensation", "seal failed", "misted"]
+      text: "Double glazing seal failure evident (condensation between panes). Replacement of affected units recommended."
+    
+    rotten_frame:
+      match: ["rotten", "rot", "soft frame"]
+      text: "Timber rot observed in window/door frame. Replacement recommended to maintain weathertightness and security."
+
+# Interior
+interior:
+  general:
+    good:
+      match: ["good", "ok", "fine", "no issues"]
+      text: "Interior presents well with no obvious defects observed."
+    
+    wall_crack:
+      match: ["crack", "cracked wall"]
+      text: "Crack observed in wall lining. Likely cosmetic due to minor settlement. Monitor for progression."
+    
+    ceiling_stain:
+      match: ["stain", "water stain", "mark"]
+      text: "Staining observed on ceiling. May indicate previous or current water leak. Investigate source and monitor."
+    
+    floor_squeaky:
+      match: ["squeak", "squeaky", "creaking"]
+      text: "Floor squeaking noted. Common in timber-framed construction. Can be remedied by securing flooring to joists if desired."
+  
+  moisture:
+    good:
+      match: ["dry", "no moisture", "normal"]
+      text: "Non-invasive moisture testing conducted. No elevated readings obtained."
+    
+    elevated:
+      match: ["elevated", "high", "moisture detected", "wet"]
+      text: "Elevated moisture readings detected. Further invasive investigation recommended to determine source and extent."
+
+# Bathroom specific
+bathroom:
+  good:
+    match: ["good", "ok", "no issues"]
+    text: "Bathroom in good condition. Fixtures operational. No moisture issues detected."
+  
+  grout_deteriorated:
+    match: ["grout", "grout cracked", "grout missing"]
+    text: "Grout deterioration observed. Re-grouting recommended to maintain waterproofing integrity."
+  
+  sealant_mould:
+    match: ["mould", "mold", "black", "mildew"]
+    text: "Mould growth on sealant. Replace sealant and improve ventilation to prevent recurrence."
+  
+  leak_under_sink:
+    match: ["leak under sink", "dripping", "wet under"]
+    text: "Leak observed under sink. Plumber required to repair. Check for any damage to cabinetry."
+  
+  fan_not_working:
+    match: ["fan not working", "no ventilation", "extractor broken"]
+    text: "Extraction fan not operational. Repair or replacement required to manage moisture and prevent mould."
+  
+  toilet_loose:
+    match: ["loose toilet", "wobbly", "rocks"]
+    text: "Toilet loose on floor. Re-secure to prevent damage to seal and potential leaks."
+
+# Kitchen specific
+kitchen:
+  good:
+    match: ["good", "ok", "no issues"]
+    text: "Kitchen in good condition with fixtures operational."
+  
+  rangehood_noisy:
+    match: ["noisy", "loud", "rattling"]
+    text: "Rangehood operating noisily. Service or replacement may be required."
+  
+  cabinet_damage:
+    match: ["damaged cabinet", "swollen", "water damage"]
+    text: "Water damage to cabinetry observed. Replace affected components and address source of moisture."
+
+# Service systems
+services:
+  electrical:
+    good:
+      match: ["good", "ok", "working"]
+      text: "Electrical system appears in good working order. Switchboard tidy and correctly labelled."
+    
+    old_wiring:
+      match: ["old wiring", "dated", "outdated"]
+      text: "Older style wiring observed. Recommend electrical inspection to confirm safety and capacity."
+    
+    no_rcd:
+      match: ["no rcd", "no safety switch"]
+      text: "No RCD (residual current device) protection observed. Recommend upgrade for improved safety."
+  
+  plumbing:
+    good:
+      match: ["good", "ok", "no leaks"]
+      text: "Visible plumbing in serviceable condition with no leaks observed."
+    
+    low_pressure:
+      match: ["low pressure", "weak", "slow"]
+      text: "Low water pressure noted. May indicate supply issue or pipe restriction. Plumber assessment recommended."
+    
+    hot_water_old:
+      match: ["old cylinder", "dated", "rusty cylinder"]
+      text: "Hot water cylinder showing age. Monitor for performance. Budget for replacement within 3-5 years."
+  
+  smoke_alarms:
+    working:
+      match: ["working", "ok", "good"]
+      text: "Smoke alarms present and operational."
+    
+    expired:
+      match: ["expired", "old", "needs replacement"]
+      text: "Smoke alarms past recommended replacement date. Replace as a safety priority."
+    
+    missing:
+      match: ["missing", "none", "not installed"]
+      text: "Smoke alarms not present in required locations. Installation required for Building Code compliance."

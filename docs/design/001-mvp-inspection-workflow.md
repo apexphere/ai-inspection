@@ -19,7 +19,13 @@ The report writing is tedious and time-consuming. A guided workflow during inspe
 A WhatsApp-based assistant that:
 1. **Guides** the inspector through a checklist during the inspection
 2. **Captures** photos, notes, and readings in a structured way
-3. **Generates** a PDF report from the collected data
+3. **Generates** a professional PDF report from the collected data
+
+### Target Standard
+
+NZS4306:2005 — Residential Property Inspection (New Zealand)
+
+Report structure based on real inspection template from Eastern Building Surveyors.
 
 ---
 
@@ -309,19 +315,49 @@ MVP: Start with Pandoc. Upgrade if styling needs are more complex.
 
 ---
 
+## Comment Library
+
+The system includes a boilerplate comment library for professional report text.
+
+### How It Works
+
+1. Inspector sends notes: *"rust on gutters north side"*
+2. System matches keywords to comment library
+3. Report uses professional boilerplate: *"Rust/corrosion observed in gutters. Monitor for leaks. Consider replacement when deterioration progresses."*
+4. Inspector can override with custom text if needed
+
+### Structure
+
+```
+config/comments/
+├── defaults.yaml    # Built-in sensible defaults
+└── custom.yaml      # Inspector's own boilerplate (added later)
+```
+
+### Match Priority
+
+1. Custom comments (inspector's own library)
+2. Default comments (sensible boilerplate)
+3. AI-generated (from inspector's notes if no match)
+
+Custom comments override defaults. This allows the inspector to feed in their preferred wording later without changing the system.
+
+---
+
 ## MVP Scope
 
 ### In Scope (v0.1)
 
-- [ ] Single default checklist (residential)
+- [ ] Single default checklist (NZ PPI based on real template)
 - [ ] Start/end inspection flow
 - [ ] Section-by-section guidance
 - [ ] Photo capture with section tagging
 - [ ] Text notes with section tagging
 - [ ] Basic navigation (next, back, skip)
 - [ ] Progress tracking
+- [ ] Comment library with defaults
 - [ ] Markdown report generation
-- [ ] PDF conversion via Pandoc
+- [ ] PDF conversion (matching real template structure)
 
 ### Out of Scope (Future)
 
