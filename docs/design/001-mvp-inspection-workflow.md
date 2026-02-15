@@ -353,7 +353,11 @@ Records a finding (note + optional photos) for the current or specified section.
   inspection_id: string;
   section?: string;          // Section ID (default: current section)
   text: string;              // Inspector's note
-  photos?: string[];         // Photo URLs/paths
+  photos?: Array<{           // Photo files
+    data: string;            // Base64 encoded file data
+    filename?: string;
+    mime_type?: string;
+  }>;
   severity?: "info" | "minor" | "major" | "urgent";
 }
 ```
@@ -670,27 +674,19 @@ Custom comments override defaults. This allows the inspector to feed in their pr
 
 ## Open Questions
 
-1. ~~**Photo handling**~~ ✅ — Photos passed to MCP server via `inspection_add_finding`, stored by backend.
+All resolved for MVP:
 
-2. **Session timeout** — What if inspector doesn't say "done"? Auto-complete after X hours? Or leave as draft?
+1. ~~**Photo handling**~~ ✅ — WhatsApp sends file → OpenClaw receives → passes to MCP server → server stores.
 
-3. **Multiple inspections** — If he starts a new inspection before finishing the current one, what happens? 
-   - Option A: Save draft, switch to new
-   - Option B: Force complete/cancel first
-   - Option C: Allow multiple active (track by ID)
+2. ~~**Session timeout**~~ ✅ — Inspection state in MCP database, not conversation. If conversation restarts, agent calls `inspection_status` to resume. Idempotent.
+
+3. ~~**Multiple inspections**~~ ✅ — Not a real scenario. One inspector, one site at a time. One active inspection.
 
 4. ~~**Report delivery**~~ ✅ — PDF returned via MCP tool, OpenClaw sends via WhatsApp.
 
-5. **Inspector identity** — MVP assumes single user. Config for inspector name/credentials. Multi-inspector = future.
+5. ~~**Inspector identity**~~ ✅ — Single user MVP. Inspector name in config.
 
-6. **Photo URLs** — How does OpenClaw pass photos to MCP? 
-   - WhatsApp photos → OpenClaw receives as attachment → passes URL/path to MCP server
-   - Need to verify OpenClaw's handling of inbound media
-
-7. **MCP hosting** — Where does MCP server run?
-   - Same machine as OpenClaw (localhost)
-   - Separate server (needs network config)
-   - MVP: localhost
+6. ~~**MCP hosting**~~ ✅ — Localhost for MVP. Same machine as OpenClaw.
 
 ---
 
