@@ -1,0 +1,17 @@
+# Inspection data (contains user data)
+data/inspections/*
+!data/inspections/.gitkeep
+
+# Generated reports
+*.pdf
+
+# Node modules (if we add any tooling)
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# OS
+.DS_Store

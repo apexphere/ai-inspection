@@ -1,0 +1,83 @@
+# Default Residential Building Inspection Checklist
+# This checklist can be customized per inspector needs
+
+name: Residential Building Inspection
+version: "1.0"
+
+sections:
+  - id: exterior
+    name: Exterior
+    prompt: "Check the roof, gutters, cladding, and external walls. Send photos of any issues."
+    items:
+      - Roof condition
+      - Gutters and downpipes
+      - Cladding/weatherboards
+      - External joinery
+      - Decks and balconies
+
+  - id: subfloor
+    name: Subfloor
+    prompt: "Check for moisture, ventilation, and pile condition. What are you seeing?"
+    items:
+      - Access and clearance
+      - Moisture levels
+      - Ventilation
+      - Piles and bearers
+      - Insulation
+
+  - id: interior
+    name: Interior
+    prompt: "Check walls, ceilings, floors, and doors throughout the house."
+    items:
+      - Walls and ceilings
+      - Floors
+      - Doors and windows
+      - Built-in fixtures
+
+  - id: kitchen
+    name: Kitchen
+    prompt: "Check under the sink, rangehood, and cabinetry condition."
+    items:
+      - Sink and plumbing
+      - Rangehood/ventilation
+      - Cabinetry condition
+      - Benchtops
+      - Appliance spaces
+
+  - id: bathroom
+    name: Bathroom
+    prompt: "Check for leaks, ventilation, and tile condition. Note any moisture issues."
+    items:
+      - Shower/bath condition
+      - Toilet
+      - Vanity and plumbing
+      - Ventilation
+      - Tiles and waterproofing
+
+  - id: electrical
+    name: Electrical
+    prompt: "Check switchboard, outlets, and visible wiring. Note any safety concerns."
+    items:
+      - Switchboard
+      - Power outlets
+      - Light switches
+      - Visible wiring
+      - Smoke alarms
+
+  - id: plumbing
+    name: Plumbing
+    prompt: "Check hot water system, pipes, and drainage."
+    items:
+      - Hot water system
+      - Visible pipework
+      - Water pressure
+      - Drainage
+
+  - id: roof_space
+    name: Roof Space
+    prompt: "Check framing, insulation, and ventilation. Look for signs of leaks."
+    items:
+      - Roof framing
+      - Insulation
+      - Ventilation
+      - Signs of leaks
