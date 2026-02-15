@@ -1,15 +1,12 @@
 /**
- * Checklist Service - Issues #3, #5
+ * Checklist Service - Issue #3
  * 
  * Loads and manages inspection checklists from config files.
  */
 
 import { readFileSync, readdirSync, existsSync } from 'fs';
-import { join, basename, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { join, basename } from 'path';
 import { parse as parseYaml } from 'yaml';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // ============================================================================
 // Types
@@ -57,8 +54,7 @@ class ChecklistService {
 
   constructor(configPath?: string) {
     // Default to config/checklists relative to project root
-    const projectRoot = join(__dirname, '..', '..', '..');
-    this.configPath = configPath || join(projectRoot, 'config', 'checklists');
+    this.configPath = configPath || join(process.cwd(), 'config', 'checklists');
   }
 
   /**
@@ -172,32 +168,6 @@ class ChecklistService {
     const checklist = this.getChecklist(checklistId);
     if (!checklist) return null;
     return checklist.sections.find(s => s.id === sectionId) || null;
-  }
-
-  /**
-   * Get section index
-   */
-  getSectionIndex(checklistId: string, sectionId: string): number {
-    const checklist = this.getChecklist(checklistId);
-    if (!checklist) return -1;
-    return checklist.sections.findIndex(s => s.id === sectionId);
-  }
-
-  /**
-   * Get section by index
-   */
-  getSectionByIndex(checklistId: string, index: number): ChecklistItem | null {
-    const checklist = this.getChecklist(checklistId);
-    if (!checklist || index < 0 || index >= checklist.sections.length) return null;
-    return checklist.sections[index];
-  }
-
-  /**
-   * Get total section count
-   */
-  getSectionCount(checklistId: string): number {
-    const checklist = this.getChecklist(checklistId);
-    return checklist?.sections.length || 0;
   }
 
   /**

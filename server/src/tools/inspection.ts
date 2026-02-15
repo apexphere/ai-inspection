@@ -1,5 +1,5 @@
 /**
- * Inspection Tools - Issues #3, #5
+ * Inspection Tools - Issue #3
  * 
  * MCP tools for starting and managing inspections.
  * - inspection_start: Create a new inspection session
@@ -8,14 +8,14 @@
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { StorageService } from "../storage/index.js";
+import { mockStorage, InspectionMetadata } from "../storage/mock-storage.js";
 import { checklistService } from "../services/checklist.js";
 
 // ============================================================================
 // Tool Registration
 // ============================================================================
 
-export function registerInspectionTools(server: McpServer, storage: StorageService): void {
+export function registerInspectionTools(server: McpServer): void {
   // -------------------------------------------------------------------------
   // inspection_start
   // -------------------------------------------------------------------------
@@ -28,7 +28,7 @@ export function registerInspectionTools(server: McpServer, storage: StorageServi
       inspector_name: z.string().optional().describe("Name of the inspector"),
       checklist: z.string().optional().describe("Checklist ID (default: 'nz-ppi')"),
       metadata: z.object({
-        property_type: z.string().optional().describe("Type of property"),
+        property_type: z.string().optional().describe("Type of property (e.g., 'residential', 'commercial')"),
         bedrooms: z.number().optional().describe("Number of bedrooms"),
         bathrooms: z.number().optional().describe("Number of bathrooms"),
         year_built: z.number().optional().describe("Year the property was built"),
@@ -68,16 +68,18 @@ export function registerInspectionTools(server: McpServer, storage: StorageServi
           };
         }
 
-        // Create the inspection using real storage
-        const inspection = storage.createInspection({
+        // Get all sections for status tracking
+        const allSections = checklistService.getAllSections(checklistId);
+
+        // Create the inspection
+        const inspection = await mockStorage.createInspection({
           address,
           client_name,
           inspector_name,
-        });
-
-        // Set current section
-        storage.updateInspection(inspection.id, {
-          current_section: firstSection.id,
+          checklist_id: checklistId,
+          metadata: metadata as InspectionMetadata | undefined,
+          first_section: firstSection.id,
+          sections: allSections,
         });
 
         // Build response
@@ -129,7 +131,7 @@ export function registerInspectionTools(server: McpServer, storage: StorageServi
     async ({ inspection_id }) => {
       try {
         // Get inspection
-        const inspection = storage.getInspection(inspection_id);
+        const inspection = await mockStorage.getInspection(inspection_id);
         
         if (!inspection) {
           return {
@@ -144,48 +146,28 @@ export function registerInspectionTools(server: McpServer, storage: StorageServi
           };
         }
 
-        // Get findings for this inspection
-        const findings = storage.getFindings(inspection_id);
-        const photos = storage.getPhotos(inspection_id);
-
-        // Get checklist info (default to nz-ppi if not stored)
-        const checklistId = 'nz-ppi'; // TODO: Store checklist ID with inspection
-        const checklist = checklistService.getChecklist(checklistId);
-        const sections = checklist?.sections || [];
+        // Get section statuses
+        const sectionStatuses = await mockStorage.getSectionStatuses(inspection_id);
         
-        // Build section statuses
-        const sectionStatuses = sections.map(section => {
-          const sectionFindings = findings.filter(f => f.section === section.id);
-          const isCurrentSection = inspection.current_section === section.id;
-          
-          // Determine status based on findings and position
-          let status: string = 'pending';
-          if (isCurrentSection) {
-            status = 'in_progress';
-          } else if (sectionFindings.length > 0) {
-            status = 'completed';
-          }
-
-          return {
-            id: section.id,
-            name: section.name,
-            status,
-            findings_count: sectionFindings.length,
-          };
-        });
-
         // Calculate progress
         const completedSections = sectionStatuses.filter(s => 
           s.status === 'completed' || s.status === 'skipped'
         ).length;
         const totalSections = sectionStatuses.length;
         
-        // Get current section details
-        const currentSection = sections.find(s => s.id === inspection.current_section);
-        const currentSectionStatus = sectionStatuses.find(s => s.id === inspection.current_section);
+        // Get counts
+        const totalFindings = await mockStorage.getFindingsCount(inspection_id);
+        const totalPhotos = await mockStorage.getPhotosCount(inspection_id);
 
-        // Determine if can complete (at least 50% done)
-        const canComplete = completedSections >= Math.ceil(totalSections * 0.5);
+        // Determine if inspection can be completed
+        const canComplete = completedSections >= Math.ceil(totalSections * 0.5); // At least 50% done
+
+        // Get current section details
+        const currentSectionStatus = sectionStatuses.find(s => s.id === inspection.current_section);
+        const checklistSection = checklistService.getSection(
+          inspection.checklist_id, 
+          inspection.current_section
+        );
 
         // Build response
         const response = {
@@ -195,22 +177,27 @@ export function registerInspectionTools(server: McpServer, storage: StorageServi
           inspector_name: inspection.inspector_name,
           started_at: inspection.started_at,
           status: inspection.status,
-          current_section: currentSection ? {
+          current_section: {
             id: inspection.current_section,
-            name: currentSection.name,
+            name: currentSectionStatus?.name || inspection.current_section,
             status: currentSectionStatus?.status || 'in_progress',
             findings_count: currentSectionStatus?.findings_count || 0,
-            prompt: currentSection.prompt,
-            items: currentSection.items,
-          } : null,
-          sections: sectionStatuses,
+            prompt: checklistSection?.prompt,
+            items: checklistSection?.items,
+          },
+          sections: sectionStatuses.map(s => ({
+            id: s.id,
+            name: s.name,
+            status: s.status,
+            findings_count: s.findings_count,
+          })),
           progress: {
             completed: completedSections,
             total: totalSections,
-            percentage: totalSections > 0 ? Math.round((completedSections / totalSections) * 100) : 0,
+            percentage: Math.round((completedSections / totalSections) * 100),
           },
-          total_findings: findings.length,
-          total_photos: photos.length,
+          total_findings: totalFindings,
+          total_photos: totalPhotos,
           can_complete: canComplete,
         };
 
