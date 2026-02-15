@@ -1,0 +1,144 @@
+# NZ Pre-Purchase Inspection Checklist (NZS4306:2005)
+# Based on real inspection report structure from Eastern Building Surveyors
+
+name: Pre-Purchase Inspection (NZ)
+version: "1.0"
+standard: NZS4306:2005
+
+metadata:
+  required:
+    - job_number
+    - date
+    - address
+    - client_name
+    - inspector_name
+    - weather
+  optional:
+    - property_type
+    - year_built
+    - bedrooms
+    - bathrooms
+    - garaging
+    - ccc_status
+
+sections:
+  - id: site_ground
+    name: Site and Ground Condition
+    report_section: 6
+    prompt: "Let's start with site and ground. Check topography, boundaries, retaining walls, access paths, and garden/landscaping. What are you seeing?"
+    items:
+      - Topography and boundaries
+      - Retaining walls and fencing
+      - Access paths and driveway
+      - Garden and landscaping
+      - Drainage around site
+
+  - id: exterior
+    name: Exterior of Building
+    report_section: 7
+    prompt: "Moving to exterior. Check the roof, cladding, windows/doors, and foundation. Send photos of any issues."
+    items:
+      - Roof condition and installation
+      - Gutters and downpipes
+      - Cladding system and weathertightness
+      - Windows and doors (joinery)
+      - Foundation condition
+      - Decks and balconies
+      - External fixtures
+
+  - id: interior
+    name: Interior of Building
+    report_section: 8
+    prompt: "Now the interior. I'll walk you through each room. Starting with main living areas - check walls, ceilings, floors, doors, windows. Note any damage or issues."
+    subareas:
+      - id: living
+        name: Living Areas
+        prompt: "Check living room, dining, family room. Look at walls, ceilings, flooring, doors and windows."
+        items:
+          - Walls and ceiling condition
+          - Flooring condition
+          - Internal doors
+          - Windows operation
+          - Built-in fixtures
+      
+      - id: kitchen
+        name: Kitchen
+        prompt: "Kitchen now. Check under the sink, rangehood, cabinetry, benchtops, appliance spaces."
+        items:
+          - Sink and plumbing
+          - Rangehood/ventilation
+          - Cabinetry condition
+          - Benchtops
+          - Appliance spaces
+      
+      - id: bedrooms
+        name: Bedrooms
+        prompt: "Bedrooms next. Check walls, floors, wardrobes, windows in each bedroom."
+        items:
+          - Walls and ceilings
+          - Flooring
+          - Wardrobes/storage
+          - Windows
+      
+      - id: bathrooms
+        name: Bathrooms
+        prompt: "Bathroom inspection. Check shower/bath, toilet, vanity, ventilation, tiles. Look for moisture issues."
+        items:
+          - Shower/bath condition
+          - Toilet
+          - Vanity and plumbing
+          - Ventilation (fan)
+          - Tiles and waterproofing
+          - Moisture readings
+      
+      - id: laundry
+        name: Laundry
+        prompt: "Laundry area. Check tub, taps, drainage, ventilation."
+        items:
+          - Tub and taps
+          - Drainage
+          - Ventilation
+          - Floor condition
+      
+      - id: garage
+        name: Garage
+        prompt: "Garage now. Check door operation, floor, walls, any storage or utilities."
+        items:
+          - Garage door operation
+          - Floor condition
+          - Walls and ceiling
+          - Utilities/services
+
+      - id: attic
+        name: Roof Space/Attic
+        prompt: "If accessible, check the roof space. Look at framing, insulation, ventilation, any signs of leaks."
+        items:
+          - Roof framing
+          - Insulation
+          - Ventilation
+          - Signs of leaks
+          - Electrical/services
+
+  - id: services
+    name: Service Systems
+    report_section: 9
+    prompt: "Service systems check. Look at switchboard, power points, hot water, plumbing, drainage, smoke alarms."
+    items:
+      - Switchboard condition
+      - Power outlets
+      - Light switches and fixtures
+      - Smoke alarms
+      - Hot water system
+      - Plumbing (visible pipes)
+      - Water pressure
+      - Drainage
+      - Ventilation systems
+      - Heat pump/HVAC
+      - Gas system (if applicable)
+      - Internet/data cabling
+
+conclusions:
+  no_issues: "No obvious defects were noted. No requirement of immediate attention or further investigation."
+  minor_issues: "Minor maintenance items noted. No requirement of immediate attention."
+  issues_found: "Defects noted as described above. Further investigation recommended."
+  major_issues: "Significant defects noted. Immediate attention and specialist assessment recommended."
