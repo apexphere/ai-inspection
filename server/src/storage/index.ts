@@ -1,10 +1,15 @@
 /**
- * Storage layer for inspections and media.
+ * Storage Module
  * 
- * Components to implement:
- * - Database connection (SQLite for MVP)
- * - File storage for photos
- * - Inspection state persistence
+ * Data persistence layer for inspections and media.
+ * Currently using mock storage - will be replaced by SQLite in #2.
  */
 
-export {};
+export { mockStorage, MockStorage } from './mock-storage.js';
+export type { 
+  Inspection, 
+  Finding, 
+  Photo, 
+  SectionStatus,
+  InspectionMetadata,
+} from './mock-storage.js';
