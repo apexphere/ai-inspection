@@ -16,6 +16,7 @@ export interface InspectionMetadata {
   bedrooms?: number;
   bathrooms?: number;
   year_built?: number;
+  weather?: string;
 }
 
 export interface Inspection {

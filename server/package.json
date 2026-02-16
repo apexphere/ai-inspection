@@ -13,20 +13,26 @@
     "test": "vitest run",
     "test:watch": "vitest"
   },
-  "keywords": ["mcp", "inspection", "ai"],
+  "keywords": [
+    "mcp",
+    "inspection",
+    "ai"
+  ],
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
+    "handlebars": "^4.7.8",
+    "puppeteer": "^24.37.3",
     "yaml": "^2.4.0",
     "zod": "^3.24.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
-    "tsx": "^4.0.0",
-    "typescript": "^5.7.0",
-    "eslint": "^9.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^9.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.7.0",
     "vitest": "^2.0.0"
   },
   "engines": {

@@ -1,10 +1,16 @@
 /**
- * PDF report generation.
+ * PDF Module - Issue #7
  * 
- * Components to implement:
- * - Report template (based on NZS4306:2005)
- * - Photo embedding
- * - Section formatting
+ * PDF report generation for inspections.
  */
 
-export {};
+export { 
+  ReportGenerator, 
+  getReportGenerator,
+  type ReportData,
+  type ReportInspection,
+  type ReportFinding,
+  type ReportPhoto,
+  type ReportSection,
+  type GeneratedReport,
+} from './report-generator.js';
