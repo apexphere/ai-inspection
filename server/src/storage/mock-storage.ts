@@ -195,6 +195,49 @@ class MockStorage {
   }
 
   /**
+   * Update section status
+   */
+  async updateSectionStatus(
+    inspection_id: string,
+    section_id: string,
+    status: 'pending' | 'in_progress' | 'completed' | 'skipped'
+  ): Promise<boolean> {
+    const statuses = this.sectionStatuses.get(inspection_id);
+    if (!statuses) return false;
+
+    const section = statuses.find(s => s.id === section_id);
+    if (!section) return false;
+
+    section.status = status;
+    return true;
+  }
+
+  /**
+   * Get section index in the inspection
+   */
+  async getSectionIndex(inspection_id: string, section_id: string): Promise<number> {
+    const statuses = this.sectionStatuses.get(inspection_id) || [];
+    return statuses.findIndex(s => s.id === section_id);
+  }
+
+  /**
+   * Get section by index
+   */
+  async getSectionByIndex(inspection_id: string, index: number): Promise<SectionStatus | null> {
+    const statuses = this.sectionStatuses.get(inspection_id) || [];
+    if (index < 0 || index >= statuses.length) return null;
+    return statuses[index];
+  }
+
+  /**
+   * Get total section count
+   */
+  async getSectionCount(inspection_id: string): Promise<number> {
+    const statuses = this.sectionStatuses.get(inspection_id) || [];
+    return statuses.length;
+  }
+
+  /**
    * Clear all data (for testing)
    */
   clear(): void {
