@@ -35,12 +35,69 @@ The server exposes the following MCP tools:
 
 | Tool | Description |
 |------|-------------|
-| `start_inspection` | Start a new inspection at an address |
-| `add_finding` | Record a finding/issue |
-| `add_photo` | Attach a photo to a section |
-| `go_to_section` | Navigate checklist sections |
-| `get_status` | Get inspection progress |
-| `complete_inspection` | Finish and generate report |
+| `inspection_start` | Start a new inspection at an address |
+| `inspection_add_finding` | Record a finding/issue with optional photos |
+| `inspection_navigate` | Navigate between checklist sections |
+| `inspection_status` | Get inspection progress and state |
+| `inspection_suggest_next` | Get guidance on what to check next |
+| `inspection_complete` | Finish inspection and generate report |
+| `inspection_get_report` | Retrieve a generated report |
+
+### Tool Details
+
+#### `inspection_start`
+Creates a new inspection session.
+
+**Parameters:**
+- `address` (required): Property address
+- `client_name` (required): Client name
+- `inspector_name` (optional): Inspector name
+- `checklist` (optional): Checklist ID (default: "nz-ppi")
+- `metadata` (optional): Property metadata (type, bedrooms, bathrooms, year_built)
+
+#### `inspection_add_finding`
+Records a finding during the inspection.
+
+**Parameters:**
+- `inspection_id` (required): Active inspection ID
+- `text` (required): Description of the finding
+- `section` (optional): Section ID (defaults to current section)
+- `photos` (optional): Array of base64-encoded photos
+- `severity` (optional): "info" | "minor" | "major" | "urgent"
+
+#### `inspection_navigate`
+Moves to a different section.
+
+**Parameters:**
+- `inspection_id` (required): Active inspection ID
+- `action` (required): "next", "back", "skip", or a section ID
+
+#### `inspection_status`
+Gets current inspection state.
+
+**Parameters:**
+- `inspection_id` (required): Inspection ID
+
+#### `inspection_suggest_next`
+Gets guidance for the current section.
+
+**Parameters:**
+- `inspection_id` (required): Active inspection ID
+
+#### `inspection_complete`
+Finalizes inspection and generates PDF.
+
+**Parameters:**
+- `inspection_id` (required): Inspection ID
+- `summary_notes` (optional): Overall notes
+- `weather` (optional): Weather conditions
+
+#### `inspection_get_report`
+Retrieves a generated report.
+
+**Parameters:**
+- `inspection_id` (required): Inspection ID
+- `format` (optional): "pdf" | "markdown" (default: "pdf")
 
 ## Development
 
