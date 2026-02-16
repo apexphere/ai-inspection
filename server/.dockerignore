@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Build output (rebuilt in container)
+dist/
+
+# Development files
+*.log
+.env
+.env.local
+.env*.local
+
+# Test data
+.test-data/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
