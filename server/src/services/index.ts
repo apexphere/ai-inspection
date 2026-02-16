@@ -1,10 +1,6 @@
 /**
  * Business logic services for the inspection workflow.
- * 
- * Services to implement:
- * - InspectionService: Manage inspection lifecycle
- * - ChecklistService: Handle checklist navigation
- * - FindingService: Process and categorize findings
  */
 
-export {};
+export { checklistService, ChecklistService } from './checklist.js';
+export type { Checklist, ChecklistItem, ChecklistSubarea } from './checklist.js';
