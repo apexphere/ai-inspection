@@ -1,14 +1,18 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { registerTools } from "./tools/index.js";
+import { StorageService } from "./storage/index.js";
 
 const server = new McpServer({
   name: "ai-inspection",
   version: "0.1.0",
 });
 
-// Register all tools
-registerTools(server);
+// Initialize storage service
+const storage = new StorageService();
+
+// Register all tools with storage
+registerTools(server, storage);
 
 // Start server with stdio transport
 async function main() {
