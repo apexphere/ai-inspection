@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { registerInspectionTools } from "./inspection.js";
+import { registerFindingTools } from "./finding.js";
 
 /**
  * Register all MCP tools with the server.
@@ -9,42 +10,11 @@ export function registerTools(server: McpServer): void {
   // Register inspection_start and inspection_status tools (Issue #3)
   registerInspectionTools(server);
 
+  // Register inspection_add_finding tool (Issue #4)
+  registerFindingTools(server);
+
   // Stub tools for future implementation
   // These will be replaced as their respective issues are completed
-
-  // Tool: Add a finding to the current inspection (Issue #4)
-  server.tool(
-    "inspection_add_finding",
-    "Record a finding or issue during the inspection",
-    {
-      inspection_id: z.string().describe("ID of the active inspection"),
-      section: z.string().optional().describe("Section ID (default: current section)"),
-      text: z.string().describe("Description of the finding"),
-      photos: z.array(z.object({
-        data: z.string().describe("Base64 encoded photo data"),
-        filename: z.string().optional(),
-        mime_type: z.string().optional(),
-      })).optional().describe("Photos to attach"),
-      severity: z.enum(["info", "minor", "major", "urgent"]).optional().describe("Severity level"),
-    },
-    async ({ inspection_id, section, text, photos, severity }) => {
-      // TODO: Implement in #4
-      return {
-        content: [
-          {
-            type: "text" as const,
-            text: JSON.stringify({
-              stub: true,
-              message: `Finding would be added: ${text} (${severity || "info"})`,
-              inspection_id,
-              section,
-              photos_count: photos?.length || 0,
-            }, null, 2),
-          },
-        ],
-      };
-    }
-  );
 
   // Tool: Navigate to a section (Issue #5)
   server.tool(
