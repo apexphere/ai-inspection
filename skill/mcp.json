@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "ai-inspection": {
+      "command": "node",
+      "args": ["server/dist/index.js"],
+      "cwd": "${SKILL_DIR}/..",
+      "env": {
+        "NODE_ENV": "production",
+        "DATA_DIR": "${SKILL_DIR}/../data"
+      }
+    }
+  }
+}
