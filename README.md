@@ -27,7 +27,6 @@ npm run build
 ### 2. Install the Skill
 
 ```bash
-# Symlink for development:
 ln -sf $(pwd)/skill ~/.openclaw/skills/building-inspection
 ```
 
@@ -45,13 +44,17 @@ mcpServers:
       DATA_DIR: /path/to/ai-inspection/data
 ```
 
-### 4. Restart & Test
+### 4. Restart OpenClaw
 
 ```bash
 openclaw gateway restart
 ```
 
-Then message your agent:
+OpenClaw spawns the MCP server automatically when needed (stdio-based).
+
+### 5. Test
+
+Message your agent:
 > "Start an inspection at 123 Test Street for John Smith"
 
 ## MCP Tools
@@ -104,9 +107,20 @@ ai-inspection/
 
 ```bash
 cd server
-npm test          # Run all tests (27 tests)
+npm test            # Run all tests (27 tests)
 npm run test:watch  # Watch mode
 ```
+
+### Local Development
+
+Run the server directly for debugging:
+
+```bash
+cd server
+npm run dev    # Watch mode with auto-reload
+```
+
+The server communicates via stdio (JSON-RPC), so you won't see output directly — use tests or OpenClaw to interact with it.
 
 ## Docker
 
