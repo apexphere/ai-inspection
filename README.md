@@ -27,32 +27,18 @@ npm run build
 ### 2. Install the Skill
 
 ```bash
-ln -sf $(pwd)/skill ~/.openclaw/skills/building-inspection
+ln -sf $(pwd)/skill ~/.openclaw/workspace/skills/building-inspection
 ```
 
-### 3. Configure OpenClaw
+The skill includes `mcp.json` — OpenClaw auto-loads MCP server config from there.
 
-Add to `~/.openclaw/config.yaml`:
-
-```yaml
-mcpServers:
-  ai-inspection:
-    command: node
-    args:
-      - /path/to/ai-inspection/server/dist/index.js
-    env:
-      DATA_DIR: /path/to/ai-inspection/data
-```
-
-### 4. Restart OpenClaw
+### 3. Restart OpenClaw
 
 ```bash
 openclaw gateway restart
 ```
 
-OpenClaw spawns the MCP server automatically when needed (stdio-based).
-
-### 5. Test
+### 4. Test
 
 Message your agent:
 > "Start an inspection at 123 Test Street for John Smith"
