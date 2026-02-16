@@ -18,6 +18,42 @@ npm run build
 npm start
 ```
 
+## Docker
+
+### Using docker-compose (recommended)
+
+```bash
+# From project root
+docker-compose up -d
+
+# View logs
+docker-compose logs -f ai-inspection
+
+# Stop
+docker-compose down
+```
+
+### Manual Docker build
+
+```bash
+# Build image
+docker build -t ai-inspection-server ./server
+
+# Run container
+docker run -d \
+  --name ai-inspection \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/config:/app/config:ro \
+  -p 3100:3100 \
+  ai-inspection-server
+```
+
+### Data Persistence
+
+Data is stored in mounted volumes:
+- `./data/` — SQLite database and photos
+- `./config/` — Checklists and templates (read-only)
+
 ## Project Structure
 
 ```
