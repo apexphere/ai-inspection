@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pre-Purchase Inspection Report</title>
+  <style>
+    /* Base styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 11pt;
+      line-height: 1.5;
+      color: #333;
+    }
+    
+    /* Page setup for PDF */
+    @page {
+      size: A4;
+      margin: 20mm 15mm 25mm 15mm;
+    }
+    
+    @page :first {
+      margin-top: 0;
+    }
+    
+    /* Cover page */
+    .cover-page {
+      page-break-after: always;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+      color: white;
+      margin: -20mm -15mm 0 -15mm;
+      padding: 40mm 20mm;
+    }
+    
+    .cover-page h1 {
+      font-size: 28pt;
+      font-weight: 700;
+      margin-bottom: 10mm;
+      letter-spacing: 2px;
+    }
+    
+    .cover-page .subtitle {
+      font-size: 14pt;
+      opacity: 0.9;
+      margin-bottom: 20mm;
+    }
+    
+    .cover-page .address {
+      font-size: 18pt;
+      font-weight: 600;
+      margin-bottom: 15mm;
+      padding: 5mm 10mm;
+      border: 2px solid rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.1);
+    }
+    
+    .cover-page .details {
+      font-size: 12pt;
+      margin-top: 10mm;
+    }
+    
+    .cover-page .details div {
+      margin: 3mm 0;
+    }
+    
+    .cover-page .job-number {
+      font-size: 14pt;
+      font-weight: 600;
+      margin-top: 15mm;
+      padding: 3mm 8mm;
+      background: rgba(255,255,255,0.2);
+      border-radius: 4px;
+    }
+    
+    /* Header and footer */
+    .page-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 15mm;
+      padding: 5mm 15mm;
+      background: #f8f9fa;
+      border-bottom: 1px solid #ddd;
+      font-size: 9pt;
+      color: #666;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .page-footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 15mm;
+      padding: 5mm 15mm;
+      border-top: 1px solid #ddd;
+      font-size: 9pt;
+      color: #666;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    /* Content area */
+    .content {
+      padding-top: 5mm;
+    }
+    
+    /* Section styles */
+    .section {
+      page-break-inside: avoid;
+      margin-bottom: 8mm;
+    }
+    
+    .section-title {
+      font-size: 14pt;
+      font-weight: 700;
+      color: #1e3a5f;
+      padding: 3mm 0;
+      border-bottom: 2px solid #1e3a5f;
+      margin-bottom: 5mm;
+    }
+    
+    .section-number {
+      display: inline-block;
+      width: 8mm;
+      height: 8mm;
+      background: #1e3a5f;
+      color: white;
+      text-align: center;
+      line-height: 8mm;
+      border-radius: 50%;
+      margin-right: 3mm;
+      font-size: 10pt;
+    }
+    
+    /* Summary box */
+    .summary-box {
+      background: #f8f9fa;
+      border-left: 4px solid #1e3a5f;
+      padding: 5mm;
+      margin: 5mm 0;
+    }
+    
+    .summary-box h3 {
+      font-size: 12pt;
+      color: #1e3a5f;
+      margin-bottom: 3mm;
+    }
+    
+    /* Info table */
+    .info-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 5mm 0;
+    }
+    
+    .info-table th,
+    .info-table td {
+      padding: 2mm 3mm;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .info-table th {
+      width: 40%;
+      color: #666;
+      font-weight: 500;
+    }
+    
+    .info-table td {
+      font-weight: 600;
+    }
+    
+    /* Finding item */
+    .finding {
+      margin: 4mm 0;
+      padding: 3mm;
+      border-left: 3px solid #ddd;
+    }
+    
+    .finding.severity-info {
+      border-left-color: #17a2b8;
+    }
+    
+    .finding.severity-minor {
+      border-left-color: #ffc107;
+    }
+    
+    .finding.severity-major {
+      border-left-color: #fd7e14;
+    }
+    
+    .finding.severity-urgent {
+      border-left-color: #dc3545;
+    }
+    
+    .finding-text {
+      margin-bottom: 2mm;
+    }
+    
+    .finding-severity {
+      display: inline-block;
+      font-size: 8pt;
+      padding: 1mm 2mm;
+      border-radius: 2px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    
+    .severity-info .finding-severity {
+      background: #d1ecf1;
+      color: #0c5460;
+    }
+    
+    .severity-minor .finding-severity {
+      background: #fff3cd;
+      color: #856404;
+    }
+    
+    .severity-major .finding-severity {
+      background: #ffe5d0;
+      color: #a05000;
+    }
+    
+    .severity-urgent .finding-severity {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    
+    /* Conclusion box */
+    .conclusion {
+      background: #e8f4f8;
+      border: 1px solid #bee5eb;
+      padding: 4mm;
+      margin-top: 5mm;
+      border-radius: 3px;
+    }
+    
+    .conclusion-good {
+      background: #d4edda;
+      border-color: #c3e6cb;
+    }
+    
+    .conclusion-attention {
+      background: #fff3cd;
+      border-color: #ffeeba;
+    }
+    
+    .conclusion-urgent {
+      background: #f8d7da;
+      border-color: #f5c6cb;
+    }
+    
+    .conclusion strong {
+      color: #1e3a5f;
+    }
+    
+    /* Photos section */
+    .photos-section {
+      page-break-before: always;
+    }
+    
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 5mm;
+      margin: 5mm 0;
+    }
+    
+    .photo-item {
+      page-break-inside: avoid;
+    }
+    
+    .photo-item img {
+      width: 100%;
+      height: auto;
+      border: 1px solid #ddd;
+    }
+    
+    .photo-caption {
+      font-size: 9pt;
+      color: #666;
+      text-align: center;
+      padding: 2mm;
+      background: #f8f9fa;
+    }
+    
+    /* Disclaimer */
+    .disclaimer {
+      font-size: 9pt;
+      color: #666;
+      margin-top: 10mm;
+      padding: 5mm;
+      background: #f8f9fa;
+      border: 1px solid #eee;
+    }
+    
+    .disclaimer h4 {
+      color: #333;
+      margin-bottom: 3mm;
+    }
+    
+    /* Signature section */
+    .signature-section {
+      margin-top: 15mm;
+      page-break-inside: avoid;
+    }
+    
+    .signature-line {
+      border-bottom: 1px solid #333;
+      width: 60mm;
+      margin: 10mm 0 2mm 0;
+    }
+    
+    .signature-label {
+      font-size: 9pt;
+      color: #666;
+    }
+    
+    /* Page breaks */
+    .page-break {
+      page-break-after: always;
+    }
+    
+    /* Print adjustments */
+    @media print {
+      .cover-page {
+        margin: 0;
+        padding: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Cover Page -->
+  <div class="cover-page">
+    <h1>PRE-PURCHASE<br>INSPECTION REPORT</h1>
+    <div class="subtitle">NZS 4306:2005 Compliant</div>
+    <div class="address">{{address}}</div>
+    <div class="details">
+      <div><strong>Client:</strong> {{client_name}}</div>
+      <div><strong>Date:</strong> {{date}}</div>
+      <div><strong>Inspector:</strong> {{inspector_name}}</div>
+    </div>
+    <div class="job-number">Job #{{job_number}}</div>
+  </div>
+
+  <!-- Report Information -->
+  <div class="content">
+    <div class="section">
+      <h2 class="section-title"><span class="section-number">1</span>Report Information</h2>
+      <table class="info-table">
+        <tr><th>Job Number</th><td>{{job_number}}</td></tr>
+        <tr><th>Property Address</th><td>{{address}}</td></tr>
+        <tr><th>Client Name</th><td>{{client_name}}</td></tr>
+        <tr><th>Inspection Date</th><td>{{date}}</td></tr>
+        <tr><th>Inspector</th><td>{{inspector_name}}</td></tr>
+        <tr><th>Weather Conditions</th><td>{{weather}}</td></tr>
+      </table>
+    </div>
+
+    <!-- Building Description -->
+    <div class="section">
+      <h2 class="section-title"><span class="section-number">2</span>Building Description</h2>
+      <table class="info-table">
+        <tr><th>Property Type</th><td>{{property_type}}</td></tr>
+        <tr><th>Year Built</th><td>{{year_built}}</td></tr>
+        <tr><th>Bedrooms</th><td>{{bedrooms}}</td></tr>
+        <tr><th>Bathrooms</th><td>{{bathrooms}}</td></tr>
+      </table>
+    </div>
+
+    <!-- Executive Summary -->
+    <div class="section">
+      <h2 class="section-title"><span class="section-number">3</span>Summary of Inspection</h2>
+      <div class="summary-box">
+        <h3>Executive Summary</h3>
+        <p>{{executive_summary}}</p>
+      </div>
+      
+      {{#if urgent_findings}}
+      <div class="summary-box" style="border-left-color: #dc3545;">
+        <h3>⚠️ Items Requiring Immediate Attention</h3>
+        <ul>
+          {{#each urgent_findings}}
+          <li>{{this.section}}: {{this.text}}</li>
+          {{/each}}
+        </ul>
+      </div>
+      {{/if}}
+      
+      {{#if major_findings}}
+      <div class="summary-box" style="border-left-color: #fd7e14;">
+        <h3>Items Requiring Attention</h3>
+        <ul>
+          {{#each major_findings}}
+          <li>{{this.section}}: {{this.text}}</li>
+          {{/each}}
+        </ul>
+      </div>
+      {{/if}}
+    </div>
+
+    <!-- Section Findings -->
+    {{#each sections}}
+    <div class="section">
+      <h2 class="section-title"><span class="section-number">{{add @index 4}}</span>{{this.name}}</h2>
+      
+      {{#if this.findings.length}}
+        {{#each this.findings}}
+        <div class="finding severity-{{this.severity}}">
+          <div class="finding-text">{{this.text}}</div>
+          {{#if this.matched_comment}}
+          <div class="finding-text" style="color: #666; font-style: italic;">{{this.matched_comment}}</div>
+          {{/if}}
+          <span class="finding-severity">{{this.severity}}</span>
+        </div>
+        {{/each}}
+      {{else}}
+        <p>No defects or issues observed in this area.</p>
+      {{/if}}
+      
+      <div class="conclusion {{this.conclusion_class}}">
+        <strong>Conclusion:</strong> {{this.conclusion}}
+      </div>
+    </div>
+    {{/each}}
+
+    <!-- Limitations -->
+    <div class="section">
+      <h2 class="section-title"><span class="section-number">L</span>Limitations & Disclaimer</h2>
+      <div class="disclaimer">
+        <h4>Scope of Inspection</h4>
+        <p>This report is a visual inspection only and is limited to those areas that were readily accessible and visible at the time of inspection. The inspection does not include areas that are concealed, inaccessible, or require specialist testing.</p>
+        
+        <h4>Exclusions</h4>
+        <p>This inspection does not cover: structural engineering assessments, geotechnical reports, pest inspections, asbestos testing, electrical compliance certificates, plumbing compliance certificates, or any specialist trade assessments unless specifically stated.</p>
+        
+        <h4>Recommendations</h4>
+        <p>Where defects or potential issues have been identified, we recommend obtaining quotes from qualified tradespeople before settlement. This report is for the exclusive use of the named client and may not be relied upon by third parties.</p>
+      </div>
+    </div>
+
+    <!-- Signature -->
+    <div class="signature-section">
+      <h2 class="section-title"><span class="section-number">S</span>Inspector Certification</h2>
+      <p>I certify that this inspection was carried out in accordance with NZS 4306:2005 and represents my professional assessment of the property at the time of inspection.</p>
+      <div class="signature-line"></div>
+      <div class="signature-label">{{inspector_name}}</div>
+      <div class="signature-label">Date: {{date}}</div>
+    </div>
+  </div>
+
+  <!-- Photos Appendix -->
+  {{#if photos.length}}
+  <div class="photos-section">
+    <div class="section">
+      <h2 class="section-title"><span class="section-number">A</span>Appendix: Inspection Photographs</h2>
+      <div class="photo-grid">
+        {{#each photos}}
+        <div class="photo-item">
+          <img src="{{this.path}}" alt="{{this.caption}}">
+          <div class="photo-caption">Photo {{add @index 1}}: {{this.caption}}</div>
+        </div>
+        {{/each}}
+      </div>
+    </div>
+  </div>
+  {{/if}}
+
+</body>
+</html>
