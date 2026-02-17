@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        workspace: [mcp, api]
+        workspace: [api, server, web, shared]
       fail-fast: false
 
     steps:
@@ -34,10 +34,15 @@ jobs:
         if: matrix.workspace == 'api'
         run: npm run db:generate --workspace=api
 
+      - name: Build shared (for dependents)
+        if: matrix.workspace == 'web'
+        run: npm run build --workspace=shared
+
       - name: Type check (${{ matrix.workspace }})
         run: npm run typecheck --workspace=${{ matrix.workspace }}
 
       - name: Lint (${{ matrix.workspace }})
+        if: matrix.workspace != 'shared'
         run: npm run lint --workspace=${{ matrix.workspace }}
         continue-on-error: true
 
@@ -45,6 +50,7 @@ jobs:
         run: npm run build --workspace=${{ matrix.workspace }}
 
       - name: Test (${{ matrix.workspace }})
+        if: matrix.workspace == 'api' || matrix.workspace == 'server'
         run: npm run test --workspace=${{ matrix.workspace }}
 
   docker-build:
@@ -53,9 +59,9 @@ jobs:
     strategy:
       matrix:
         include:
-          - workspace: mcp
-            context: ./mcp
-            tag: ai-inspection-mcp:test
+          - workspace: server
+            context: ./server
+            tag: ai-inspection-server:test
           - workspace: api
             context: ./api
             tag: ai-inspection-api:test
