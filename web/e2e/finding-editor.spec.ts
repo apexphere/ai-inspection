@@ -1,20 +1,25 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
+
+/**
+ * Helper to navigate to first inspection detail page
+ */
+async function navigateToInspectionDetail(page: import('@playwright/test').Page): Promise<boolean> {
+  await page.goto('/inspections');
+  await page.waitForLoadState('networkidle');
+
+  const inspectionLink = page.locator('a[href^="/inspections/"]').first();
+  if (await inspectionLink.isVisible()) {
+    await inspectionLink.click();
+    await page.waitForLoadState('networkidle');
+    return true;
+  }
+  return false;
+}
 
 test.describe('Finding Editor', () => {
-  test.beforeEach(async ({ page }) => {
-    // Navigate to an inspection with findings
-    await page.goto('/inspections');
-    await page.waitForLoadState('networkidle');
+  test('should show edit button on finding hover', async ({ authenticatedPage: page }) => {
+    await navigateToInspectionDetail(page);
 
-    // Click on the first inspection
-    const inspectionLink = page.locator('a[href^="/inspections/"]').first();
-    if (await inspectionLink.isVisible()) {
-      await inspectionLink.click();
-      await page.waitForLoadState('networkidle');
-    }
-  });
-
-  test('should show edit button on finding hover', async ({ page }) => {
     // Find a finding card
     const findingCard = page.locator('.group').first();
 
@@ -28,7 +33,9 @@ test.describe('Finding Editor', () => {
     }
   });
 
-  test('should open editor modal when clicking edit', async ({ page }) => {
+  test('should open editor modal when clicking edit', async ({ authenticatedPage: page }) => {
+    await navigateToInspectionDetail(page);
+
     const findingCard = page.locator('.group').first();
 
     if (await findingCard.isVisible()) {
@@ -52,7 +59,9 @@ test.describe('Finding Editor', () => {
     }
   });
 
-  test('should close editor when clicking cancel', async ({ page }) => {
+  test('should close editor when clicking cancel', async ({ authenticatedPage: page }) => {
+    await navigateToInspectionDetail(page);
+
     const findingCard = page.locator('.group').first();
 
     if (await findingCard.isVisible()) {
@@ -74,7 +83,9 @@ test.describe('Finding Editor', () => {
     }
   });
 
-  test('should show severity dropdown with all options', async ({ page }) => {
+  test('should show severity dropdown with all options', async ({ authenticatedPage: page }) => {
+    await navigateToInspectionDetail(page);
+
     const findingCard = page.locator('.group').first();
 
     if (await findingCard.isVisible()) {
@@ -98,7 +109,9 @@ test.describe('Finding Editor', () => {
     }
   });
 
-  test('should show delete confirmation when clicking delete', async ({ page }) => {
+  test('should show delete confirmation when clicking delete', async ({ authenticatedPage: page }) => {
+    await navigateToInspectionDetail(page);
+
     const findingCard = page.locator('.group').first();
 
     if (await findingCard.isVisible()) {
@@ -118,7 +131,9 @@ test.describe('Finding Editor', () => {
     }
   });
 
-  test('should show photo upload button', async ({ page }) => {
+  test('should show photo upload button', async ({ authenticatedPage: page }) => {
+    await navigateToInspectionDetail(page);
+
     const findingCard = page.locator('.group').first();
 
     if (await findingCard.isVisible()) {
