@@ -5,6 +5,7 @@ import { healthRouter } from './routes/health.js';
 import { inspectionsRouter } from './routes/inspections.js';
 import { findingsRouter } from './routes/findings.js';
 import { photosRouter } from './routes/photos.js';
+import { reportsRouter } from './routes/reports.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -19,6 +20,7 @@ app.use('/health', healthRouter);
 app.use('/api/inspections', inspectionsRouter);
 app.use('/api', findingsRouter);
 app.use('/api', photosRouter);
+app.use('/api', reportsRouter);
 
 // Error handling
 app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
