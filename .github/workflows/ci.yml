@@ -13,10 +13,6 @@ concurrency:
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
-    
-    defaults:
-      run:
-        working-directory: ./server
 
     steps:
       - uses: actions/checkout@v4
@@ -26,23 +22,22 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
-          cache-dependency-path: server/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
-      - name: Type check
-        run: npm run typecheck
+      - name: Type check (mcp)
+        run: npm run typecheck --workspace=mcp
 
-      - name: Lint
-        run: npm run lint
-        continue-on-error: true  # Warning only initially
+      - name: Lint (mcp)
+        run: npm run lint --workspace=mcp
+        continue-on-error: true
 
-      - name: Build
-        run: npm run build
+      - name: Build (mcp)
+        run: npm run build --workspace=mcp
 
-      - name: Test
-        run: npm test --if-present
+      - name: Test (mcp)
+        run: npm run test --workspace=mcp
 
   docker-build:
     runs-on: ubuntu-latest
@@ -57,8 +52,8 @@ jobs:
       - name: Build Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./server
+          context: ./mcp
           push: false
-          tags: ai-inspection-server:test
+          tags: ai-inspection-mcp:test
           cache-from: type=gha
           cache-to: type=gha,mode=max

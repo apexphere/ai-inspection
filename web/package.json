@@ -1,0 +1,9 @@
+{
+  "name": "@ai-inspection/web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Web UI (Next.js)",
+  "scripts": {},
+  "dependencies": {},
+  "devDependencies": {}
+}
