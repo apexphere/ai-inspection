@@ -1,14 +1,12 @@
 /**
- * Inspection Tools - Issue #3
+ * Inspection Tools
  * 
- * MCP tools for starting and managing inspections.
- * - inspection_start: Create a new inspection session
- * - inspection_status: Get current inspection state
+ * MCP tools for starting and managing inspections via API.
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { mockStorage, InspectionMetadata } from "../storage/mock-storage.js";
+import { inspectionApi, navigationApi } from "../api/client.js";
 import { checklistService } from "../services/checklist.js";
 
 // ============================================================================
@@ -28,7 +26,7 @@ export function registerInspectionTools(server: McpServer): void {
       inspector_name: z.string().optional().describe("Name of the inspector"),
       checklist: z.string().optional().describe("Checklist ID (default: 'nz-ppi')"),
       metadata: z.object({
-        property_type: z.string().optional().describe("Type of property (e.g., 'residential', 'commercial')"),
+        property_type: z.string().optional().describe("Type of property"),
         bedrooms: z.number().optional().describe("Number of bedrooms"),
         bathrooms: z.number().optional().describe("Number of bathrooms"),
         year_built: z.number().optional().describe("Year the property was built"),
@@ -68,26 +66,37 @@ export function registerInspectionTools(server: McpServer): void {
           };
         }
 
-        // Get all sections for status tracking
-        const allSections = checklistService.getAllSections(checklistId);
-
-        // Create the inspection
-        const inspection = await mockStorage.createInspection({
+        // Create inspection via API
+        const result = await inspectionApi.create({
           address,
-          client_name,
-          inspector_name,
-          checklist_id: checklistId,
-          metadata: metadata as InspectionMetadata | undefined,
-          first_section: firstSection.id,
-          sections: allSections,
+          clientName: client_name,
+          inspectorName: inspector_name,
+          checklistId,
+          currentSection: firstSection.id,
+          metadata,
         });
+
+        if (!result.ok || !result.data) {
+          return {
+            content: [{
+              type: "text" as const,
+              text: JSON.stringify({
+                error: "Failed to create inspection",
+                details: result.error,
+              }, null, 2),
+            }],
+            isError: true,
+          };
+        }
+
+        const inspection = result.data;
 
         // Build response
         const response = {
           inspection_id: inspection.id,
           status: "started",
           address: inspection.address,
-          client_name: inspection.client_name,
+          client_name: inspection.clientName,
           checklist: checklistId,
           first_section: {
             id: firstSection.id,
@@ -130,15 +139,15 @@ export function registerInspectionTools(server: McpServer): void {
     },
     async ({ inspection_id }) => {
       try {
-        // Get inspection
-        const inspection = await mockStorage.getInspection(inspection_id);
-        
-        if (!inspection) {
+        // Get status via API
+        const result = await navigationApi.getStatus(inspection_id);
+
+        if (!result.ok || !result.data) {
           return {
             content: [{
               type: "text" as const,
               text: JSON.stringify({
-                error: "Inspection not found",
+                error: result.error?.error || "Failed to get inspection status",
                 inspection_id,
               }, null, 2),
             }],
@@ -146,59 +155,32 @@ export function registerInspectionTools(server: McpServer): void {
           };
         }
 
-        // Get section statuses
-        const sectionStatuses = await mockStorage.getSectionStatuses(inspection_id);
-        
-        // Calculate progress
-        const completedSections = sectionStatuses.filter(s => 
-          s.status === 'completed' || s.status === 'skipped'
-        ).length;
-        const totalSections = sectionStatuses.length;
-        
-        // Get counts
-        const totalFindings = await mockStorage.getFindingsCount(inspection_id);
-        const totalPhotos = await mockStorage.getPhotosCount(inspection_id);
+        const status = result.data;
 
-        // Determine if inspection can be completed
-        const canComplete = completedSections >= Math.ceil(totalSections * 0.5); // At least 50% done
-
-        // Get current section details
-        const currentSectionStatus = sectionStatuses.find(s => s.id === inspection.current_section);
-        const checklistSection = checklistService.getSection(
-          inspection.checklist_id, 
-          inspection.current_section
-        );
-
-        // Build response
+        // Build response matching original format
         const response = {
-          inspection_id: inspection.id,
-          address: inspection.address,
-          client_name: inspection.client_name,
-          inspector_name: inspection.inspector_name,
-          started_at: inspection.started_at,
-          status: inspection.status,
+          inspection_id: status.inspectionId,
+          address: status.address,
+          client_name: status.clientName,
+          inspector_name: status.inspectorName,
+          status: status.status,
           current_section: {
-            id: inspection.current_section,
-            name: currentSectionStatus?.name || inspection.current_section,
-            status: currentSectionStatus?.status || 'in_progress',
-            findings_count: currentSectionStatus?.findings_count || 0,
-            prompt: checklistSection?.prompt,
-            items: checklistSection?.items,
+            id: status.currentSection.id,
+            name: status.currentSection.name,
+            status: 'in_progress',
+            findings_count: status.currentSection.findingsCount,
+            prompt: status.currentSection.prompt,
+            items: status.currentSection.items,
           },
-          sections: sectionStatuses.map(s => ({
+          sections: status.sections.map(s => ({
             id: s.id,
             name: s.name,
-            status: s.status,
-            findings_count: s.findings_count,
+            status: s.hasFindings ? 'completed' : 'pending',
+            findings_count: s.findingsCount,
           })),
-          progress: {
-            completed: completedSections,
-            total: totalSections,
-            percentage: Math.round((completedSections / totalSections) * 100),
-          },
-          total_findings: totalFindings,
-          total_photos: totalPhotos,
-          can_complete: canComplete,
+          progress: status.progress,
+          total_findings: status.totalFindings,
+          can_complete: status.canComplete,
         };
 
         return {
