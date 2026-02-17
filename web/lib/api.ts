@@ -1,8 +1,36 @@
 /**
- * API Client - Issue #34, #35
+ * API Client - Issue #34, #35, #42
  *
  * Centralized HTTP client for backend API communication.
+ * Types imported from @ai-inspection/shared.
  */
+
+import type {
+  InspectionResponse,
+  InspectionDetailResponse,
+  FindingResponse,
+  PhotoResponse,
+  CreateInspectionInput,
+  CreateFindingInput,
+  UpdateFindingInput,
+  InspectionStatus,
+  FindingSeverity,
+} from '@ai-inspection/shared';
+
+// Re-export types for convenience
+export type {
+  InspectionStatus,
+  FindingSeverity,
+  CreateInspectionInput,
+  CreateFindingInput,
+  UpdateFindingInput,
+};
+
+// Alias response types with simpler names for client code
+export type Inspection = InspectionResponse;
+export type InspectionDetail = InspectionDetailResponse;
+export type Finding = FindingResponse;
+export type Photo = PhotoResponse;
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -58,65 +86,6 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
 }
 
 // ============================================================================
-// Types (aligned with API schema)
-// ============================================================================
-
-export type InspectionStatus = 'STARTED' | 'IN_PROGRESS' | 'COMPLETED';
-export type FindingSeverity = 'INFO' | 'MINOR' | 'MAJOR' | 'URGENT';
-
-export interface Inspection {
-  id: string;
-  address: string;
-  clientName: string;
-  inspectorName: string | null;
-  checklistId: string;
-  status: InspectionStatus;
-  currentSection: string;
-  metadata: Record<string, unknown> | null;
-  createdAt: string;
-  updatedAt: string;
-  completedAt: string | null;
-}
-
-export interface Finding {
-  id: string;
-  inspectionId: string;
-  section: string;
-  text: string;
-  severity: FindingSeverity;
-  matchedComment: string | null;
-  createdAt: string;
-  updatedAt: string;
-  photos: Photo[];
-}
-
-export interface Photo {
-  id: string;
-  findingId: string;
-  filename: string;
-  path: string;
-  mimeType: string;
-}
-
-export interface InspectionDetail extends Inspection {
-  findings: Finding[];
-}
-
-export interface CreateInspectionInput {
-  address: string;
-  clientName: string;
-  inspectorName?: string;
-  checklistId: string;
-}
-
-export interface CreateFindingInput {
-  section: string;
-  text: string;
-  severity?: FindingSeverity;
-  matchedComment?: string;
-}
-
-// ============================================================================
 // API Methods
 // ============================================================================
 
@@ -147,7 +116,7 @@ export const api = {
     create: (inspectionId: string, data: CreateFindingInput): Promise<Finding> =>
       request(`/inspections/${inspectionId}/findings`, { method: 'POST', body: data }),
 
-    update: (inspectionId: string, findingId: string, data: Partial<CreateFindingInput>): Promise<Finding> =>
+    update: (inspectionId: string, findingId: string, data: UpdateFindingInput): Promise<Finding> =>
       request(`/inspections/${inspectionId}/findings/${findingId}`, {
         method: 'PATCH',
         body: data,
