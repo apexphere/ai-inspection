@@ -2,8 +2,8 @@
 
 import { useEffect, useState, use, useCallback } from 'react';
 import Link from 'next/link';
-import { api, InspectionDetail, ApiError } from '@/lib/api';
-import { StatusBadge, LoadingPage, ErrorPage, SectionList } from '@/components';
+import { api, InspectionDetail, Finding, ApiError } from '@/lib/api';
+import { StatusBadge, LoadingPage, ErrorPage, SectionList, FindingEditor } from '@/components';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -15,6 +15,7 @@ export default function InspectionDetailPage({ params }: PageProps): React.React
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
+  const [editingFinding, setEditingFinding] = useState<Finding | null>(null);
 
   const fetchInspection = useCallback(async (): Promise<void> => {
     try {
@@ -54,6 +55,34 @@ export default function InspectionDetailPage({ params }: PageProps): React.React
     } finally {
       setGenerating(false);
     }
+  };
+
+  const handleEditFinding = (finding: Finding): void => {
+    setEditingFinding(finding);
+  };
+
+  const handleSaveFinding = (updatedFinding: Finding): void => {
+    if (!inspection) return;
+
+    // Update the finding in the inspection state
+    setInspection({
+      ...inspection,
+      findings: inspection.findings.map((f) =>
+        f.id === updatedFinding.id ? updatedFinding : f
+      ),
+    });
+    setEditingFinding(null);
+  };
+
+  const handleDeleteFinding = (): void => {
+    if (!inspection || !editingFinding) return;
+
+    // Remove the finding from the inspection state
+    setInspection({
+      ...inspection,
+      findings: inspection.findings.filter((f) => f.id !== editingFinding.id),
+    });
+    setEditingFinding(null);
   };
 
   useEffect(() => {
@@ -97,7 +126,10 @@ export default function InspectionDetailPage({ params }: PageProps): React.React
         {/* Findings */}
         <div className="lg:col-span-2">
           <h2 className="text-lg font-medium text-gray-900 mb-4">Findings</h2>
-          <SectionList findings={inspection.findings} />
+          <SectionList
+            findings={inspection.findings}
+            onEditFinding={handleEditFinding}
+          />
         </div>
 
         {/* Sidebar */}
@@ -184,6 +216,17 @@ export default function InspectionDetailPage({ params }: PageProps): React.React
           </div>
         </div>
       </div>
+
+      {/* Finding Editor Modal */}
+      {editingFinding && (
+        <FindingEditor
+          finding={editingFinding}
+          inspectionId={id}
+          onSave={handleSaveFinding}
+          onDelete={handleDeleteFinding}
+          onCancel={() => setEditingFinding(null)}
+        />
+      )}
     </div>
   );
 }

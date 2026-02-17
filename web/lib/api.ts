@@ -162,6 +162,21 @@ export const api = {
     generate: (inspectionId: string): Promise<{ url: string }> =>
       request(`/inspections/${inspectionId}/report`, { method: 'POST' }),
   },
+
+  // Photos
+  photos: {
+    upload: (findingId: string, base64Data: string, mimeType?: string): Promise<Photo> =>
+      request(`/findings/${findingId}/photos`, {
+        method: 'POST',
+        body: { base64Data, mimeType },
+      }),
+
+    delete: (photoId: string): Promise<void> =>
+      request(`/photos/${photoId}`, { method: 'DELETE' }),
+
+    getUrl: (photoId: string): string =>
+      `${API_URL}/photos/${photoId}`,
+  },
 };
 
 export { ApiError };

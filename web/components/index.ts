@@ -3,3 +3,6 @@ export { LoadingSpinner, LoadingPage } from './loading';
 export { ErrorMessage, ErrorPage } from './error';
 export { FindingCard } from './finding-card';
 export { SectionView, SectionList } from './section-view';
+export { SeveritySelect } from './severity-select';
+export { PhotoUploader } from './photo-uploader';
+export { FindingEditor } from './finding-editor';
