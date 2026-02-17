@@ -1,9 +1,12 @@
 import { test, expect } from '@playwright/test';
+import { login } from './fixtures';
 
 test.describe('Finding Editor', () => {
   test.beforeEach(async ({ page }) => {
-    // Navigate to an inspection with findings
-    await page.goto('/inspections');
+    // Login first
+    await login(page);
+    
+    // Wait for inspections list to load
     await page.waitForLoadState('networkidle');
 
     // Click on the first inspection

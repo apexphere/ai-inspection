@@ -1,24 +1,18 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 test.describe('Inspections List', () => {
-  test('should display inspections list page', async ({ page }) => {
-    await page.goto('/inspections');
-
-    // Should show the page title
+  test('should display inspections list page', async ({ authenticatedPage: page }) => {
+    // Already at /inspections after login
     await expect(page.getByRole('heading', { name: 'Inspections' })).toBeVisible();
   });
 
-  test('should show loading state initially', async ({ page }) => {
-    await page.goto('/inspections');
-
-    // Should show loading indicator or content
+  test('should show loading state initially', async ({ authenticatedPage: page }) => {
+    // Should show content
     const content = page.locator('main');
     await expect(content).toBeVisible();
   });
 
-  test('should navigate to inspection detail when clicking an inspection', async ({ page }) => {
-    await page.goto('/inspections');
-
+  test('should navigate to inspection detail when clicking an inspection', async ({ authenticatedPage: page }) => {
     // Wait for the list to load
     await page.waitForLoadState('networkidle');
 
@@ -38,9 +32,7 @@ test.describe('Inspections List', () => {
 });
 
 test.describe('Inspection Detail', () => {
-  test('should display inspection details', async ({ page }) => {
-    // Navigate to inspections first
-    await page.goto('/inspections');
+  test('should display inspection details', async ({ authenticatedPage: page }) => {
     await page.waitForLoadState('networkidle');
 
     // Click on the first inspection if exists
@@ -62,8 +54,7 @@ test.describe('Inspection Detail', () => {
     }
   });
 
-  test('should show findings grouped by section', async ({ page }) => {
-    await page.goto('/inspections');
+  test('should show findings grouped by section', async ({ authenticatedPage: page }) => {
     await page.waitForLoadState('networkidle');
 
     const inspectionLink = page.locator('a[href^="/inspections/"]').first();
@@ -77,8 +68,7 @@ test.describe('Inspection Detail', () => {
     }
   });
 
-  test('should navigate back to list', async ({ page }) => {
-    await page.goto('/inspections');
+  test('should navigate back to list', async ({ authenticatedPage: page }) => {
     await page.waitForLoadState('networkidle');
 
     const inspectionLink = page.locator('a[href^="/inspections/"]').first();
