@@ -1,5 +1,5 @@
 /**
- * API Client - Issue #34
+ * API Client - Issue #34, #35
  *
  * Centralized HTTP client for backend API communication.
  */
@@ -58,37 +58,62 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
 }
 
 // ============================================================================
-// Inspection Types
+// Types (aligned with API schema)
 // ============================================================================
+
+export type InspectionStatus = 'STARTED' | 'IN_PROGRESS' | 'COMPLETED';
+export type FindingSeverity = 'INFO' | 'MINOR' | 'MAJOR' | 'URGENT';
 
 export interface Inspection {
   id: string;
-  propertyAddress: string;
-  inspectorName: string;
-  status: 'draft' | 'in_progress' | 'completed';
+  address: string;
+  clientName: string;
+  inspectorName: string | null;
+  checklistId: string;
+  status: InspectionStatus;
+  currentSection: string;
+  metadata: Record<string, unknown> | null;
   createdAt: string;
   updatedAt: string;
-}
-
-export interface InspectionDetail extends Inspection {
-  checklistId: string;
-  findings: Finding[];
+  completedAt: string | null;
 }
 
 export interface Finding {
   id: string;
   inspectionId: string;
-  sectionId: string;
-  itemId: string;
-  status: 'pass' | 'fail' | 'na' | 'pending';
-  notes?: string;
-  photos: string[];
+  section: string;
+  text: string;
+  severity: FindingSeverity;
+  matchedComment: string | null;
+  createdAt: string;
+  updatedAt: string;
+  photos: Photo[];
+}
+
+export interface Photo {
+  id: string;
+  findingId: string;
+  filename: string;
+  path: string;
+  mimeType: string;
+}
+
+export interface InspectionDetail extends Inspection {
+  findings: Finding[];
 }
 
 export interface CreateInspectionInput {
-  propertyAddress: string;
-  inspectorName: string;
+  address: string;
+  clientName: string;
+  inspectorName?: string;
   checklistId: string;
+}
+
+export interface CreateFindingInput {
+  section: string;
+  text: string;
+  severity?: FindingSeverity;
+  matchedComment?: string;
 }
 
 // ============================================================================
@@ -116,11 +141,20 @@ export const api = {
 
   // Findings
   findings: {
-    update: (inspectionId: string, findingId: string, data: Partial<Finding>): Promise<Finding> =>
+    list: (inspectionId: string): Promise<Finding[]> =>
+      request(`/inspections/${inspectionId}/findings`),
+
+    create: (inspectionId: string, data: CreateFindingInput): Promise<Finding> =>
+      request(`/inspections/${inspectionId}/findings`, { method: 'POST', body: data }),
+
+    update: (inspectionId: string, findingId: string, data: Partial<CreateFindingInput>): Promise<Finding> =>
       request(`/inspections/${inspectionId}/findings/${findingId}`, {
         method: 'PATCH',
         body: data,
       }),
+
+    delete: (inspectionId: string, findingId: string): Promise<void> =>
+      request(`/inspections/${inspectionId}/findings/${findingId}`, { method: 'DELETE' }),
   },
 
   // Reports
