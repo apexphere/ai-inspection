@@ -6,6 +6,7 @@ import { inspectionsRouter } from './routes/inspections.js';
 import { findingsRouter } from './routes/findings.js';
 import { photosRouter } from './routes/photos.js';
 import { reportsRouter } from './routes/reports.js';
+import { navigationRouter } from './routes/navigation.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,6 +22,7 @@ app.use('/api/inspections', inspectionsRouter);
 app.use('/api', findingsRouter);
 app.use('/api', photosRouter);
 app.use('/api', reportsRouter);
+app.use('/api', navigationRouter);
 
 // Error handling
 app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
