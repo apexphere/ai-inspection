@@ -1,80 +1,13 @@
 /**
- * Finding Tools - Issue #4
+ * Finding Tools
  * 
- * MCP tool for recording findings during inspection.
- * - inspection_add_finding: Record a finding with optional photos
+ * MCP tool for recording findings during inspection via API.
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { mockStorage } from "../storage/mock-storage.js";
+import { inspectionApi, findingsApi, photosApi } from "../api/client.js";
 import { commentLibrary } from "../services/comments.js";
-import { randomUUID } from "crypto";
-import { writeFileSync, mkdirSync, existsSync } from "fs";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-
-// ============================================================================
-// Photo Storage
-// ============================================================================
-
-interface PhotoInput {
-  data: string;
-  filename?: string;
-  mime_type?: string;
-}
-
-interface StoredPhoto {
-  id: string;
-  filename: string;
-  path: string;
-  mime_type: string;
-}
-
-/**
- * Store a base64-encoded photo to disk.
- */
-function storePhoto(
-  inspectionId: string,
-  findingId: string,
-  photo: PhotoInput,
-  index: number
-): StoredPhoto {
-  // Default values
-  const mimeType = photo.mime_type || 'image/jpeg';
-  const extension = mimeType.split('/')[1] || 'jpg';
-  const filename = photo.filename || `photo_${index + 1}.${extension}`;
-  
-  // Create photo directory
-  const projectRoot = join(__dirname, '..', '..', '..');
-  const photoDir = join(projectRoot, 'data', 'photos', inspectionId, findingId);
-  
-  if (!existsSync(photoDir)) {
-    mkdirSync(photoDir, { recursive: true });
-  }
-  
-  // Decode and save
-  const id = randomUUID();
-  const filePath = join(photoDir, `${id}_${filename}`);
-  
-  // Handle base64 with or without data URI prefix
-  let base64Data = photo.data;
-  if (base64Data.includes(',')) {
-    base64Data = base64Data.split(',')[1];
-  }
-  
-  const buffer = Buffer.from(base64Data, 'base64');
-  writeFileSync(filePath, buffer);
-  
-  return {
-    id,
-    filename,
-    path: filePath,
-    mime_type: mimeType,
-  };
-}
 
 // ============================================================================
 // Tool Registration
@@ -101,53 +34,85 @@ export function registerFindingTools(server: McpServer): void {
     },
     async ({ inspection_id, section, text, photos, severity }) => {
       try {
-        // Get inspection
-        const inspection = await mockStorage.getInspection(inspection_id);
+        // Get inspection to determine current section if not specified
+        let findingSection = section;
         
-        if (!inspection) {
+        if (!findingSection) {
+          const inspectionResult = await inspectionApi.get(inspection_id);
+          if (!inspectionResult.ok || !inspectionResult.data) {
+            return {
+              content: [{
+                type: "text" as const,
+                text: JSON.stringify({
+                  error: inspectionResult.error?.error || "Inspection not found",
+                  inspection_id,
+                }, null, 2),
+              }],
+              isError: true,
+            };
+          }
+          findingSection = inspectionResult.data.currentSection;
+        }
+
+        // Match against comment library
+        const matchResult = commentLibrary.match(text, findingSection);
+
+        // Map severity to API enum
+        const severityMap: Record<string, 'INFO' | 'MINOR' | 'MAJOR' | 'URGENT'> = {
+          'info': 'INFO',
+          'minor': 'MINOR',
+          'major': 'MAJOR',
+          'urgent': 'URGENT',
+        };
+
+        // Create finding via API
+        const findingResult = await findingsApi.create(inspection_id, {
+          section: findingSection,
+          text,
+          severity: severityMap[severity || 'info'],
+          matchedComment: matchResult.matched ? matchResult.comment : undefined,
+        });
+
+        if (!findingResult.ok || !findingResult.data) {
           return {
             content: [{
               type: "text" as const,
               text: JSON.stringify({
-                error: "Inspection not found",
-                inspection_id,
+                error: findingResult.error?.error || "Failed to create finding",
+                details: findingResult.error,
               }, null, 2),
             }],
             isError: true,
           };
         }
 
-        // Use current section if not specified
-        const findingSection = section || inspection.current_section;
+        const finding = findingResult.data;
 
-        // Match against comment library
-        const matchResult = commentLibrary.match(text, findingSection);
-
-        // Add finding to storage
-        const finding = await mockStorage.addFinding({
-          inspection_id,
-          section: findingSection,
-          text,
-          severity: severity || 'info',
-          matched_comment: matchResult.matched ? matchResult.comment : undefined,
-        });
-
-        // Store photos if provided
-        const storedPhotos: StoredPhoto[] = [];
+        // Upload photos if provided
+        const uploadedPhotos: Array<{ id: string; filename: string }> = [];
         if (photos && photos.length > 0) {
-          for (let i = 0; i < photos.length; i++) {
-            const stored = storePhoto(inspection_id, finding.id, photos[i], i);
-            storedPhotos.push(stored);
+          for (const photo of photos) {
+            const photoResult = await photosApi.upload(finding.id, {
+              base64Data: photo.data,
+              mimeType: photo.mime_type,
+            });
+
+            if (photoResult.ok && photoResult.data) {
+              uploadedPhotos.push({
+                id: photoResult.data.id,
+                filename: photoResult.data.filename,
+              });
+            }
           }
         }
 
         // Build response
         const response: Record<string, unknown> = {
           finding_id: finding.id,
-          section: findingSection,
-          severity: finding.severity,
+          section: finding.section,
+          severity: finding.severity.toLowerCase(),
           text: finding.text,
-          photos_stored: storedPhotos.length,
+          photos_stored: uploadedPhotos.length,
           message: `Finding recorded in ${findingSection}.`,
         };
 
@@ -159,11 +124,8 @@ export function registerFindingTools(server: McpServer): void {
         }
 
         // Include photo details if any
-        if (storedPhotos.length > 0) {
-          response.photos = storedPhotos.map(p => ({
-            id: p.id,
-            filename: p.filename,
-          }));
+        if (uploadedPhotos.length > 0) {
+          response.photos = uploadedPhotos;
         }
 
         return {
