@@ -131,10 +131,67 @@ npm run dev    # Watch mode with auto-reload
 
 The server communicates via stdio (JSON-RPC), so you won't see output directly — use tests or OpenClaw to interact with it.
 
-## Docker
+## Local Development
+
+### Full Stack (API + DB + Web)
 
 ```bash
-docker-compose up --build
+# Start backend services (API + PostgreSQL)
+docker-compose up -d api db
+
+# Wait for healthy state
+docker-compose ps
+
+# Run database migrations
+docker-compose exec api npx prisma migrate deploy
+
+# In another terminal, start the web UI
+cd web && npm run dev
+```
+
+**Services:**
+- **API:** http://localhost:3000
+- **Web:** http://localhost:3001 (or Next.js default port)
+- **PostgreSQL:** localhost:5432
+
+### API Only
+
+```bash
+# Start API + DB
+docker-compose up api db
+
+# API available at http://localhost:3000
+# Health check: http://localhost:3000/health
+```
+
+### Database Access
+
+```bash
+# Connect to PostgreSQL
+docker-compose exec db psql -U inspection -d inspection
+
+# Run Prisma Studio (DB GUI)
+cd api && npx prisma studio
+```
+
+### Stopping Services
+
+```bash
+docker-compose down          # Stop containers
+docker-compose down -v       # Stop and remove volumes (deletes data!)
+```
+
+## Docker Services
+
+| Service | Port | Purpose |
+|---------|------|---------|
+| `api` | 3000 | Express backend with Prisma |
+| `db` | 5432 | PostgreSQL 16 database |
+| `mcp` | 3100 | MCP server for OpenClaw |
+
+```bash
+docker-compose up --build    # Build and start all services
+docker-compose up api db     # Start only API + database
 ```
 
 ## Documentation
