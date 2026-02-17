@@ -8,7 +8,7 @@ RUN apk add --no-cache python3 make g++
 
 # Install dependencies
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 
 # Copy source and build
 COPY tsconfig.json ./
@@ -25,7 +25,7 @@ RUN apk add --no-cache python3 make g++
 
 # Copy package files and install production deps
 COPY package*.json ./
-RUN npm ci --omit=dev && \
+RUN npm install --omit=dev && \
     # Rebuild better-sqlite3 for this platform
     npm rebuild better-sqlite3 && \
     # Clean up build tools
