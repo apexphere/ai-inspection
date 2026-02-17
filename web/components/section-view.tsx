@@ -8,12 +8,14 @@ interface SectionViewProps {
   section: string;
   findings: Finding[];
   defaultOpen?: boolean;
+  onEditFinding?: (finding: Finding) => void;
 }
 
 export function SectionView({
   section,
   findings,
   defaultOpen = true,
+  onEditFinding,
 }: SectionViewProps): React.ReactElement {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
@@ -60,7 +62,11 @@ export function SectionView({
             <p className="text-sm text-gray-500 italic">No findings in this section</p>
           ) : (
             findings.map((finding) => (
-              <FindingCard key={finding.id} finding={finding} />
+              <FindingCard
+                key={finding.id}
+                finding={finding}
+                onEdit={onEditFinding ? () => onEditFinding(finding) : undefined}
+              />
             ))
           )}
         </div>
@@ -71,9 +77,10 @@ export function SectionView({
 
 interface SectionListProps {
   findings: Finding[];
+  onEditFinding?: (finding: Finding) => void;
 }
 
-export function SectionList({ findings }: SectionListProps): React.ReactElement {
+export function SectionList({ findings, onEditFinding }: SectionListProps): React.ReactElement {
   // Group findings by section
   const sections = findings.reduce<Record<string, Finding[]>>((acc, finding) => {
     const section = finding.section;
@@ -102,6 +109,7 @@ export function SectionList({ findings }: SectionListProps): React.ReactElement 
           section={section}
           findings={sections[section]}
           defaultOpen={index === 0}
+          onEditFinding={onEditFinding}
         />
       ))}
     </div>
