@@ -1,6 +1,6 @@
 # Design: CI/CD Pipeline with Test Environment
 
-**Status:** Draft  
+**Status:** Ready for Approval  
 **Requirement:** #71  
 **Author:** Archer  
 **Date:** 2026-02-18
@@ -283,11 +283,11 @@ After design approval, break into:
 
 ---
 
-## Open Questions
+## Decisions (Resolved)
 
-1. **MCP deployment?** — MCP is OpenClaw skill, not deployed separately. Confirm skip.
-2. **Preview environments?** — Deploy PR branches to preview URLs? (nice-to-have)
-3. **Staging vs Test?** — One test env for now, add staging later?
+1. **MCP deployment** — ✅ Local only for now. Defer remote deployment.
+2. **Preview environments** — ✅ No. Single test env on `develop` branch. Keep it simple.
+3. **Staging** — ✅ Defer. One test environment for now, add staging later when needed.
 
 ---
 
