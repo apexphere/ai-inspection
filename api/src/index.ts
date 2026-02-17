@@ -3,6 +3,8 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { healthRouter } from './routes/health.js';
 import { inspectionsRouter } from './routes/inspections.js';
+import { findingsRouter } from './routes/findings.js';
+import { photosRouter } from './routes/photos.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -10,11 +12,13 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(helmet());
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' })); // Increased limit for base64 photos
 
 // Routes
 app.use('/health', healthRouter);
 app.use('/api/inspections', inspectionsRouter);
+app.use('/api', findingsRouter);
+app.use('/api', photosRouter);
 
 // Error handling
 app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
