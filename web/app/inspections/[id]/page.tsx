@@ -1,75 +1,76 @@
-import Link from "next/link";
+'use client';
+
+import { useEffect, useState, use, useCallback } from 'react';
+import Link from 'next/link';
+import { api, InspectionDetail, ApiError } from '@/lib/api';
+import { StatusBadge, LoadingPage, ErrorPage, SectionList } from '@/components';
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-// Placeholder data until API is connected
-const mockInspection = {
-  id: "1",
-  propertyAddress: "123 Main Street, Auckland",
-  inspectorName: "John Smith",
-  status: "in_progress" as const,
-  checklistId: "pre-purchase",
-  createdAt: "2026-02-17T10:00:00Z",
-  updatedAt: "2026-02-17T12:30:00Z",
-  findings: [
-    {
-      id: "f1",
-      sectionId: "exterior",
-      itemId: "roof",
-      status: "pass" as const,
-      notes: "Roof in good condition, minor wear on north side",
-    },
-    {
-      id: "f2",
-      sectionId: "exterior",
-      itemId: "gutters",
-      status: "fail" as const,
-      notes: "Gutters blocked with debris, recommend cleaning",
-    },
-    {
-      id: "f3",
-      sectionId: "interior",
-      itemId: "walls",
-      status: "pending" as const,
-    },
-  ],
-};
+export default function InspectionDetailPage({ params }: PageProps): React.ReactElement {
+  const { id } = use(params);
+  const [inspection, setInspection] = useState<InspectionDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [generating, setGenerating] = useState(false);
 
-const statusColors = {
-  draft: "bg-gray-100 text-gray-800",
-  in_progress: "bg-yellow-100 text-yellow-800",
-  completed: "bg-green-100 text-green-800",
-};
+  const fetchInspection = useCallback(async (): Promise<void> => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await api.inspections.get(id);
+      setInspection(data);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        if (err.status === 404) {
+          setError('Inspection not found');
+        } else {
+          setError(err.message);
+        }
+      } else {
+        setError('Failed to load inspection');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
 
-const statusLabels = {
-  draft: "Draft",
-  in_progress: "In Progress",
-  completed: "Completed",
-};
+  const handleGenerateReport = async (): Promise<void> => {
+    if (!inspection) return;
 
-const findingStatusColors = {
-  pass: "bg-green-100 text-green-800",
-  fail: "bg-red-100 text-red-800",
-  na: "bg-gray-100 text-gray-800",
-  pending: "bg-yellow-100 text-yellow-800",
-};
+    try {
+      setGenerating(true);
+      const result = await api.reports.generate(inspection.id);
+      // Open report in new tab
+      window.open(result.url, '_blank');
+    } catch (err) {
+      if (err instanceof ApiError) {
+        alert(`Failed to generate report: ${err.message}`);
+      } else {
+        alert('Failed to generate report');
+      }
+    } finally {
+      setGenerating(false);
+    }
+  };
 
-const findingStatusLabels = {
-  pass: "Pass",
-  fail: "Fail",
-  na: "N/A",
-  pending: "Pending",
-};
+  useEffect(() => {
+    fetchInspection();
+  }, [fetchInspection]);
 
-export default async function InspectionDetailPage({
-  params,
-}: PageProps): Promise<React.ReactElement> {
-  const { id } = await params;
-  
-  // TODO: Fetch from API
-  const inspection = { ...mockInspection, id };
+  if (loading) {
+    return <LoadingPage />;
+  }
+
+  if (error || !inspection) {
+    return <ErrorPage message={error || 'Inspection not found'} retry={fetchInspection} />;
+  }
+
+  const findingsCount = inspection.findings.length;
+  const criticalCount = inspection.findings.filter((f) => f.severity === 'CRITICAL').length;
+  const warningCount = inspection.findings.filter((f) => f.severity === 'WARNING').length;
 
   return (
     <div>
@@ -80,80 +81,85 @@ export default async function InspectionDetailPage({
         >
           ← Back to Inspections
         </Link>
-        <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              {inspection.propertyAddress}
-            </h1>
-            <p className="text-gray-500">
-              Inspector: {inspection.inspectorName} • Checklist:{" "}
-              {inspection.checklistId}
+            <h1 className="text-2xl font-bold text-gray-900">{inspection.address}</h1>
+            <p className="text-gray-500 mt-1">
+              Client: {inspection.clientName}
+              {inspection.inspectorName && ` • Inspector: ${inspection.inspectorName}`}
             </p>
           </div>
-          <span
-            className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${statusColors[inspection.status]}`}
-          >
-            {statusLabels[inspection.status]}
-          </span>
+          <StatusBadge status={inspection.status} />
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Findings */}
         <div className="lg:col-span-2">
-          <div className="bg-white shadow rounded-lg overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-medium text-gray-900">Findings</h2>
-            </div>
-            <ul className="divide-y divide-gray-200">
-              {inspection.findings.map((finding) => (
-                <li key={finding.id} className="px-6 py-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-900 capitalize">
-                        {finding.sectionId} / {finding.itemId}
-                      </p>
-                      {finding.notes && (
-                        <p className="text-sm text-gray-500 mt-1">
-                          {finding.notes}
-                        </p>
-                      )}
-                    </div>
-                    <span
-                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${findingStatusColors[finding.status]}`}
-                    >
-                      {findingStatusLabels[finding.status]}
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <h2 className="text-lg font-medium text-gray-900 mb-4">Findings</h2>
+          <SectionList findings={inspection.findings} />
         </div>
 
-        {/* Actions sidebar */}
+        {/* Sidebar */}
         <div className="space-y-6">
+          {/* Actions */}
           <div className="bg-white shadow rounded-lg p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Actions</h3>
             <div className="space-y-3">
               <button
-                className="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
-                disabled
+                onClick={handleGenerateReport}
+                disabled={generating || inspection.status !== 'COMPLETED'}
+                className="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Generate Report
+                {generating ? 'Generating...' : 'Generate Report'}
               </button>
-              <button
-                className="w-full px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
-                disabled
-              >
-                Edit Inspection
-              </button>
+              {inspection.status !== 'COMPLETED' && (
+                <p className="text-xs text-gray-500 text-center">
+                  Complete the inspection to generate a report
+                </p>
+              )}
             </div>
           </div>
 
+          {/* Summary */}
+          <div className="bg-white shadow rounded-lg p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Summary</h3>
+            <dl className="space-y-3 text-sm">
+              <div className="flex justify-between">
+                <dt className="text-gray-500">Total Findings</dt>
+                <dd className="font-medium text-gray-900">{findingsCount}</dd>
+              </div>
+              {criticalCount > 0 && (
+                <div className="flex justify-between">
+                  <dt className="text-red-600">Critical</dt>
+                  <dd className="font-medium text-red-600">{criticalCount}</dd>
+                </div>
+              )}
+              {warningCount > 0 && (
+                <div className="flex justify-between">
+                  <dt className="text-yellow-600">Warnings</dt>
+                  <dd className="font-medium text-yellow-600">{warningCount}</dd>
+                </div>
+              )}
+              <div className="pt-3 border-t border-gray-200">
+                <div className="flex justify-between">
+                  <dt className="text-gray-500">Current Section</dt>
+                  <dd className="font-medium text-gray-900 capitalize">
+                    {inspection.currentSection.replace(/-/g, ' ')}
+                  </dd>
+                </div>
+              </div>
+            </dl>
+          </div>
+
+          {/* Details */}
           <div className="bg-white shadow rounded-lg p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Details</h3>
             <dl className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <dt className="text-gray-500">Checklist</dt>
+                <dd className="text-gray-900">{inspection.checklistId}</dd>
+              </div>
               <div className="flex justify-between">
                 <dt className="text-gray-500">Created</dt>
                 <dd className="text-gray-900">
@@ -166,18 +172,18 @@ export default async function InspectionDetailPage({
                   {new Date(inspection.updatedAt).toLocaleDateString()}
                 </dd>
               </div>
-              <div className="flex justify-between">
-                <dt className="text-gray-500">Findings</dt>
-                <dd className="text-gray-900">{inspection.findings.length}</dd>
-              </div>
+              {inspection.completedAt && (
+                <div className="flex justify-between">
+                  <dt className="text-gray-500">Completed</dt>
+                  <dd className="text-gray-900">
+                    {new Date(inspection.completedAt).toLocaleDateString()}
+                  </dd>
+                </div>
+              )}
             </dl>
           </div>
         </div>
       </div>
-
-      <p className="mt-8 text-sm text-gray-500 text-center">
-        💡 Using mock data — connect API to see real inspection
-      </p>
     </div>
   );
 }
