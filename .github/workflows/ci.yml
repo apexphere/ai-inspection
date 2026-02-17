@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        workspace: [mcp, api]
+        workspace: [api]  # TODO: re-enable server when api/client.js is added
       fail-fast: false
 
     steps:
@@ -53,9 +53,10 @@ jobs:
     strategy:
       matrix:
         include:
-          - workspace: mcp
-            context: ./mcp
-            tag: ai-inspection-mcp:test
+          # TODO: re-enable server when api/client.js is added
+          # - workspace: server
+          #   context: ./server
+          #   tag: ai-inspection-server:test
           - workspace: api
             context: ./api
             tag: ai-inspection-api:test
