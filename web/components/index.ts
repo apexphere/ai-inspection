@@ -6,3 +6,5 @@ export { SectionView, SectionList } from './section-view';
 export { SeveritySelect } from './severity-select';
 export { PhotoUploader } from './photo-uploader';
 export { FindingEditor } from './finding-editor';
+export { AuthGuard } from './auth-guard';
+export { AppHeader } from './app-header';
