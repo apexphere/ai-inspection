@@ -56,6 +56,7 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
 
   const config: RequestInit = {
     method,
+    credentials: 'include', // Send cookies for authentication
     headers: {
       'Content-Type': 'application/json',
       ...headers,
@@ -93,58 +94,58 @@ export const api = {
   // Inspections
   inspections: {
     list: (): Promise<Inspection[]> =>
-      request('/inspections'),
+      request('/api/inspections'),
 
     get: (id: string): Promise<InspectionDetail> =>
-      request(`/inspections/${id}`),
+      request(`/api/inspections/${id}`),
 
     create: (data: CreateInspectionInput): Promise<Inspection> =>
-      request('/inspections', { method: 'POST', body: data }),
+      request('/api/inspections', { method: 'POST', body: data }),
 
     update: (id: string, data: Partial<CreateInspectionInput>): Promise<Inspection> =>
-      request(`/inspections/${id}`, { method: 'PATCH', body: data }),
+      request(`/api/inspections/${id}`, { method: 'PATCH', body: data }),
 
     delete: (id: string): Promise<void> =>
-      request(`/inspections/${id}`, { method: 'DELETE' }),
+      request(`/api/inspections/${id}`, { method: 'DELETE' }),
   },
 
   // Findings
   findings: {
     list: (inspectionId: string): Promise<Finding[]> =>
-      request(`/inspections/${inspectionId}/findings`),
+      request(`/api/inspections/${inspectionId}/findings`),
 
     create: (inspectionId: string, data: CreateFindingInput): Promise<Finding> =>
-      request(`/inspections/${inspectionId}/findings`, { method: 'POST', body: data }),
+      request(`/api/inspections/${inspectionId}/findings`, { method: 'POST', body: data }),
 
     update: (inspectionId: string, findingId: string, data: UpdateFindingInput): Promise<Finding> =>
-      request(`/inspections/${inspectionId}/findings/${findingId}`, {
+      request(`/api/inspections/${inspectionId}/findings/${findingId}`, {
         method: 'PATCH',
         body: data,
       }),
 
     delete: (inspectionId: string, findingId: string): Promise<void> =>
-      request(`/inspections/${inspectionId}/findings/${findingId}`, { method: 'DELETE' }),
+      request(`/api/inspections/${inspectionId}/findings/${findingId}`, { method: 'DELETE' }),
   },
 
   // Reports
   reports: {
     generate: (inspectionId: string): Promise<{ url: string }> =>
-      request(`/inspections/${inspectionId}/report`, { method: 'POST' }),
+      request(`/api/inspections/${inspectionId}/report`, { method: 'POST' }),
   },
 
   // Photos
   photos: {
     upload: (findingId: string, base64Data: string, mimeType?: string): Promise<Photo> =>
-      request(`/findings/${findingId}/photos`, {
+      request(`/api/findings/${findingId}/photos`, {
         method: 'POST',
         body: { base64Data, mimeType },
       }),
 
     delete: (photoId: string): Promise<void> =>
-      request(`/photos/${photoId}`, { method: 'DELETE' }),
+      request(`/api/photos/${photoId}`, { method: 'DELETE' }),
 
     getUrl: (photoId: string): string =>
-      `${API_URL}/photos/${photoId}`,
+      `${API_URL}/api/photos/${photoId}`,
   },
 };
 

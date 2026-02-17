@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import Link from "next/link";
 import "./globals.css";
+import { AuthProvider } from "@/lib/auth";
+import { AppHeader } from "@/components/app-header";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,32 +19,6 @@ export const metadata: Metadata = {
   description: "AI-powered building inspection assistant",
 };
 
-function Header(): React.ReactElement {
-  return (
-    <header className="border-b border-gray-200 bg-white">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
-          <div className="flex items-center gap-8">
-            <Link href="/" className="flex items-center gap-2">
-              <span className="text-xl font-bold text-gray-900">
-                🔍 AI Inspection
-              </span>
-            </Link>
-            <nav className="hidden md:flex items-center gap-6">
-              <Link
-                href="/inspections"
-                className="text-sm font-medium text-gray-600 hover:text-gray-900"
-              >
-                Inspections
-              </Link>
-            </nav>
-          </div>
-        </div>
-      </div>
-    </header>
-  );
-}
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -54,10 +29,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 min-h-screen`}
       >
-        <Header />
-        <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          {children}
-        </main>
+        <AuthProvider>
+          <AppHeader />
+          <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+            {children}
+          </main>
+        </AuthProvider>
       </body>
     </html>
   );
