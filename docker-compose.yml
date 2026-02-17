@@ -1,16 +1,55 @@
 services:
-  ai-inspection:
+  api:
+    build: ./api
+    container_name: ai-inspection-api
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://inspection:inspection@db:5432/inspection
+      - PHOTO_DIR=/app/photos
+    volumes:
+      - photos:/app/photos
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/health').then(r => process.exit(r.ok ? 0 : 1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  db:
+    image: postgres:16-alpine
+    container_name: ai-inspection-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=inspection
+      - POSTGRES_PASSWORD=inspection
+      - POSTGRES_DB=inspection
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U inspection -d inspection"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  mcp:
     build:
-      context: ./server
+      context: ./mcp
       dockerfile: Dockerfile
-    container_name: ai-inspection-server
+    container_name: ai-inspection-mcp
     restart: unless-stopped
     ports:
       - "${MCP_PORT:-3100}:3100"
     volumes:
-      # Persist SQLite database and photos
       - ./data:/app/data
-      # Mount config files (checklists, templates)
       - ./config:/app/config:ro
     environment:
       - NODE_ENV=production
@@ -24,4 +63,5 @@ services:
       start_period: 10s
 
 volumes:
-  data:
+  pgdata:
+  photos:

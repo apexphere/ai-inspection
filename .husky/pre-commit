@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# Run typecheck and lint on mcp workspace
+cd mcp
+
+echo "🔍 Running typecheck..."
+npm run typecheck || exit 1
+
+echo "🧹 Running lint..."
+npm run lint || exit 1
+
+echo "✅ Pre-commit checks passed!"
