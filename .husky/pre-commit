@@ -1,7 +1,7 @@
 #!/bin/sh
 
-# Run typecheck and lint on mcp workspace
-cd mcp
+# Run typecheck and lint on server workspace (MCP server)
+cd server
 
 echo "🔍 Running typecheck..."
 npm run typecheck || exit 1
