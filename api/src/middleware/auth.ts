@@ -65,6 +65,12 @@ export async function verifyPassword(
   
   // Otherwise, do constant-time comparison for plain text (MVP mode)
   const crypto = await import('crypto');
+  
+  // timingSafeEqual requires same-length buffers
+  if (password.length !== expectedPassword.length) {
+    return false;
+  }
+  
   return crypto.timingSafeEqual(
     Buffer.from(password),
     Buffer.from(expectedPassword)
