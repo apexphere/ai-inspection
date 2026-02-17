@@ -30,6 +30,10 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Generate Prisma client (api only)
+        if: matrix.workspace == 'api'
+        run: npm run db:generate --workspace=api
+
       - name: Type check (${{ matrix.workspace }})
         run: npm run typecheck --workspace=${{ matrix.workspace }}
 
