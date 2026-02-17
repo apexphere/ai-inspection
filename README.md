@@ -16,11 +16,16 @@ AI-powered building inspection assistant that guides inspectors through checklis
 
 ## Quick Start
 
-### 1. Build the Server
+### 1. Install Dependencies
 
 ```bash
-cd server
-npm install
+npm install        # Install all workspace dependencies
+```
+
+### 2. Build the MCP Server
+
+```bash
+cd mcp
 npm run build
 ```
 
@@ -67,12 +72,15 @@ Inspector sends findings and photos as they walk through. Agent confirms each en
 
 ```
 ai-inspection/
-├── server/               # MCP server (TypeScript)
+├── api/                  # Backend API (Express + Prisma)
+├── mcp/                  # MCP server (thin HTTP client)
 │   ├── src/
 │   │   ├── tools/        # MCP tool implementations
 │   │   ├── services/     # Checklist, comments, PDF generation
-│   │   └── storage/      # Mock storage (MVP)
-│   └── dist/             # Compiled output
+│   │   └── storage/      # Storage layer
+│   └── Dockerfile
+├── web/                  # Web UI (Next.js)
+├── shared/               # Shared types and schemas
 ├── skill/                # OpenClaw skill
 │   ├── SKILL.md          # Conversation guidance
 │   └── mcp.json          # MCP server config
@@ -84,25 +92,40 @@ ai-inspection/
 ├── data/                 # Runtime data (gitignored)
 │   ├── photos/           # Uploaded inspection photos
 │   └── reports/          # Generated PDFs
-└── docs/
-    ├── design/           # Architecture docs
-    └── research/         # Competitive analysis, template specs
+├── docs/
+│   ├── design/           # Architecture docs
+│   └── research/         # Competitive analysis, template specs
+├── docker-compose.yml
+└── package.json          # npm workspaces root
+```
+
+## npm Workspaces
+
+This is a monorepo using npm workspaces:
+
+```bash
+npm install        # Install all workspace dependencies
+npm run build      # Build all packages
+npm run test       # Run all tests
 ```
 
 ## Testing
 
 ```bash
-cd server
-npm test            # Run all tests (27 tests)
+npm test            # Run all workspace tests
+
+# Or for specific packages:
+cd mcp
+npm test            # Run MCP server tests
 npm run test:watch  # Watch mode
 ```
 
 ### Local Development
 
-Run the server directly for debugging:
+Run the MCP server directly for debugging:
 
 ```bash
-cd server
+cd mcp
 npm run dev    # Watch mode with auto-reload
 ```
 

@@ -1,5 +1,5 @@
 {
-  "name": "ai-inspection-server",
+  "name": "@ai-inspection/mcp",
   "version": "0.1.0",
   "description": "MCP server for AI building inspection assistant",
   "type": "module",

@@ -1,9 +1,9 @@
 services:
-  ai-inspection:
+  mcp:
     build:
-      context: ./server
+      context: ./mcp
       dockerfile: Dockerfile
-    container_name: ai-inspection-server
+    container_name: ai-inspection-mcp
     restart: unless-stopped
     ports:
       - "${MCP_PORT:-3100}:3100"
