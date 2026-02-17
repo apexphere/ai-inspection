@@ -17,8 +17,8 @@ export function SectionView({
 }: SectionViewProps): React.ReactElement {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
-  const criticalCount = findings.filter((f) => f.severity === 'CRITICAL').length;
-  const warningCount = findings.filter((f) => f.severity === 'WARNING').length;
+  const urgentCount = findings.filter((f) => f.severity === 'URGENT').length;
+  const majorCount = findings.filter((f) => f.severity === 'MAJOR').length;
 
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden">
@@ -33,14 +33,14 @@ export function SectionView({
           <span className="text-sm text-gray-500">
             {findings.length} finding{findings.length !== 1 ? 's' : ''}
           </span>
-          {criticalCount > 0 && (
+          {urgentCount > 0 && (
             <span className="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-800 rounded-full">
-              {criticalCount} critical
+              {urgentCount} urgent
             </span>
           )}
-          {warningCount > 0 && (
+          {majorCount > 0 && (
             <span className="px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
-              {warningCount} warning
+              {majorCount} major
             </span>
           )}
         </div>

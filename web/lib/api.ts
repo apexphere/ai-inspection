@@ -62,7 +62,7 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
 // ============================================================================
 
 export type InspectionStatus = 'STARTED' | 'IN_PROGRESS' | 'COMPLETED';
-export type FindingSeverity = 'INFO' | 'WARNING' | 'CRITICAL';
+export type FindingSeverity = 'INFO' | 'MINOR' | 'MAJOR' | 'URGENT';
 
 export interface Inspection {
   id: string;

@@ -69,8 +69,8 @@ export default function InspectionDetailPage({ params }: PageProps): React.React
   }
 
   const findingsCount = inspection.findings.length;
-  const criticalCount = inspection.findings.filter((f) => f.severity === 'CRITICAL').length;
-  const warningCount = inspection.findings.filter((f) => f.severity === 'WARNING').length;
+  const urgentCount = inspection.findings.filter((f) => f.severity === 'URGENT').length;
+  const majorCount = inspection.findings.filter((f) => f.severity === 'MAJOR').length;
 
   return (
     <div>
@@ -129,16 +129,16 @@ export default function InspectionDetailPage({ params }: PageProps): React.React
                 <dt className="text-gray-500">Total Findings</dt>
                 <dd className="font-medium text-gray-900">{findingsCount}</dd>
               </div>
-              {criticalCount > 0 && (
+              {urgentCount > 0 && (
                 <div className="flex justify-between">
-                  <dt className="text-red-600">Critical</dt>
-                  <dd className="font-medium text-red-600">{criticalCount}</dd>
+                  <dt className="text-red-600">Urgent</dt>
+                  <dd className="font-medium text-red-600">{urgentCount}</dd>
                 </div>
               )}
-              {warningCount > 0 && (
+              {majorCount > 0 && (
                 <div className="flex justify-between">
-                  <dt className="text-yellow-600">Warnings</dt>
-                  <dd className="font-medium text-yellow-600">{warningCount}</dd>
+                  <dt className="text-yellow-600">Major</dt>
+                  <dd className="font-medium text-yellow-600">{majorCount}</dd>
                 </div>
               )}
               <div className="pt-3 border-t border-gray-200">
