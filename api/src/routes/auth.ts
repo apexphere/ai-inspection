@@ -7,6 +7,7 @@
 import { Router, Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
+import jwt from 'jsonwebtoken';
 import { generateToken, verifyPassword } from '../middleware/auth.js';
 
 const AUTH_PASSWORD = process.env.AUTH_PASSWORD;
@@ -100,7 +101,6 @@ authRouter.get('/check', (req: Request, res: Response) => {
   }
 
   try {
-    const jwt = require('jsonwebtoken');
     const JWT_SECRET = process.env.JWT_SECRET || 'development-secret-min-32-chars!!';
     jwt.verify(token, JWT_SECRET);
     res.json({ authenticated: true });
