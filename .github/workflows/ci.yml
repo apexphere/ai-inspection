@@ -54,9 +54,53 @@ jobs:
         if: matrix.workspace == 'api'
         run: npm run test --workspace=${{ matrix.workspace }}
 
-  docker-build:
+  integration-tests:
     runs-on: ubuntu-latest
     needs: lint-and-test
+    
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: ai_inspection_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Generate Prisma client
+        run: npm run db:generate --workspace=api
+
+      - name: Run database migrations
+        run: npm run db:push --workspace=api
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/ai_inspection_test
+
+      - name: Run integration tests
+        run: npm run test:integration --workspace=api
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/ai_inspection_test
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: [lint-and-test, integration-tests]
     strategy:
       matrix:
         include:
