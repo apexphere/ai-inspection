@@ -10,10 +10,14 @@
     "web"
   ],
   "scripts": {
+    "prepare": "husky || true",
     "dev": "npm run dev --workspaces --if-present",
     "build": "npm run build --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present"
+  },
+  "devDependencies": {
+    "husky": "^9.0.0"
   },
   "engines": {
     "node": ">=20.0.0"
