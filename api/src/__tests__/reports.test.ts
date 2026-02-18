@@ -5,7 +5,7 @@ import {
   InspectionNotFoundError,
 } from '../services/report.js';
 import type { IInspectionRepository } from '../repositories/interfaces/inspection.js';
-import type { Report, Inspection, Finding, Photo } from '@prisma/client';
+import type { Report, Inspection, Finding } from '@prisma/client';
 
 // Mock puppeteer
 vi.mock('puppeteer', () => ({

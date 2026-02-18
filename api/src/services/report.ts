@@ -4,7 +4,6 @@
  */
 
 import puppeteer from 'puppeteer';
-import * as fs from 'node:fs/promises';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import * as path from 'node:path';
 import Handlebars from 'handlebars';

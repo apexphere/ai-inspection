@@ -3,7 +3,7 @@
  * Handles inspection workflow navigation and status.
  */
 
-import type { Inspection, Finding } from '@prisma/client';
+import type { Finding } from '@prisma/client';
 import type { IInspectionRepository } from '../repositories/interfaces/inspection.js';
 import { checklistService, type Checklist, type ChecklistItem } from './checklist.js';
 
