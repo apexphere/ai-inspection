@@ -14,10 +14,30 @@ import { authMiddleware } from './middleware/auth.js';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// CORS configuration - allow localhost and Vercel deployments
+const allowedOrigins = [
+  'http://localhost:3001',
+  /^https:\/\/ai-inspection.*\.vercel\.app$/,  // All Vercel preview/production URLs
+];
+
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3001',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (e.g., mobile apps, curl)
+    if (!origin) return callback(null, true);
+    
+    // Check against allowed origins
+    const isAllowed = allowedOrigins.some(allowed => 
+      allowed instanceof RegExp ? allowed.test(origin) : allowed === origin
+    );
+    
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS not allowed for origin: ${origin}`));
+    }
+  },
   credentials: true, // Allow cookies
 }));
 app.use(cookieParser());
