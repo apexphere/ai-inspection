@@ -131,8 +131,10 @@ jobs:
       - name: Wait for Web to be ready
         run: |
           echo "Waiting for Web at $BASE_URL..."
-          timeout 120 bash -c 'until curl -sf $BASE_URL; do echo "Waiting..."; sleep 5; done'
+          timeout 120 bash -c 'until curl -sf -H "x-vercel-protection-bypass: $VERCEL_BYPASS" $BASE_URL; do echo "Waiting..."; sleep 5; done'
           echo "Web is ready!"
+        env:
+          VERCEL_BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
@@ -141,6 +143,7 @@ jobs:
         run: npx playwright test
         env:
           CI: true
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
