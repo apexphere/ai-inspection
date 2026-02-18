@@ -22,8 +22,8 @@ test.describe('Inspections List', () => {
     // Wait for the list to load
     await page.waitForLoadState('networkidle');
 
-    // Click on the first inspection link if exists
-    const inspectionLink = page.locator('a[href^="/inspections/"]').first();
+    // Click on the first inspection link (exclude /inspections/new)
+    const inspectionLink = page.locator('a[href^="/inspections/"]:not([href="/inspections/new"])').first();
 
     if (await inspectionLink.isVisible()) {
       await inspectionLink.click();
@@ -43,8 +43,8 @@ test.describe('Inspection Detail', () => {
     await page.goto('/inspections');
     await page.waitForLoadState('networkidle');
 
-    // Click on the first inspection if exists
-    const inspectionLink = page.locator('a[href^="/inspections/"]').first();
+    // Click on the first inspection (exclude /inspections/new)
+    const inspectionLink = page.locator('a[href^="/inspections/"]:not([href="/inspections/new"])').first();
 
     if (await inspectionLink.isVisible()) {
       await inspectionLink.click();
@@ -68,7 +68,7 @@ test.describe('Inspection Detail', () => {
     await page.goto('/inspections');
     await page.waitForLoadState('networkidle');
 
-    const inspectionLink = page.locator('a[href^="/inspections/"]').first();
+    const inspectionLink = page.locator('a[href^="/inspections/"]:not([href="/inspections/new"])').first();
 
     if (await inspectionLink.isVisible()) {
       await inspectionLink.click();
@@ -83,7 +83,7 @@ test.describe('Inspection Detail', () => {
     await page.goto('/inspections');
     await page.waitForLoadState('networkidle');
 
-    const inspectionLink = page.locator('a[href^="/inspections/"]').first();
+    const inspectionLink = page.locator('a[href^="/inspections/"]:not([href="/inspections/new"])').first();
 
     if (await inspectionLink.isVisible()) {
       await inspectionLink.click();
