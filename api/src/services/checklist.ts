@@ -43,6 +43,16 @@ export interface Checklist {
   conclusions?: Record<string, string>;
 }
 
+/** Raw section shape from YAML before normalization */
+interface RawSection {
+  id: string;
+  name: string;
+  prompt?: string;
+  items?: string[];
+  subareas?: RawSection[];
+  report_section?: number;
+}
+
 // ============================================================================
 // Checklist Service
 // ============================================================================
@@ -105,13 +115,13 @@ class ChecklistService {
   /**
    * Normalize sections to ensure consistent structure
    */
-  private normalizeSections(sections: any[]): ChecklistItem[] {
+  private normalizeSections(sections: RawSection[]): ChecklistItem[] {
     return sections.map(section => ({
       id: section.id,
       name: section.name,
       prompt: section.prompt || `Check ${section.name.toLowerCase()}.`,
       items: section.items || [],
-      subareas: section.subareas?.map((sub: any) => ({
+      subareas: section.subareas?.map((sub: RawSection) => ({
         id: sub.id,
         name: sub.name,
         prompt: sub.prompt || `Check ${sub.name.toLowerCase()}.`,
