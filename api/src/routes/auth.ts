@@ -9,6 +9,7 @@ import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
 import jwt from 'jsonwebtoken';
 import { generateToken, verifyPassword } from '../middleware/auth.js';
+import { cookieDomain } from '../config/domain.js';
 
 const AUTH_PASSWORD = process.env.AUTH_PASSWORD;
 
@@ -93,8 +94,8 @@ authRouter.post('/logout', (req: Request, res: Response) => {
     sameSite: 'strict',
   };
 
-  if (COOKIE_DOMAIN) {
-    clearOptions.domain = COOKIE_DOMAIN;
+  if (cookieDomain) {
+    clearOptions.domain = cookieDomain;
   }
 
   res.clearCookie('token', clearOptions);
@@ -122,9 +123,6 @@ authRouter.get('/check', (req: Request, res: Response) => {
   }
 });
 
-// Cookie domain for same-site auth across subdomains
-const COOKIE_DOMAIN = process.env.COOKIE_DOMAIN; // e.g., '.apexphere.co.nz'
-
 function setTokenCookie(res: Response, token: string): void {
   const isProduction = process.env.NODE_ENV === 'production';
   
@@ -141,9 +139,9 @@ function setTokenCookie(res: Response, token: string): void {
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
   };
 
-  // Set domain for cross-subdomain cookies (e.g., .apexphere.co.nz)
-  if (COOKIE_DOMAIN) {
-    cookieOptions.domain = COOKIE_DOMAIN;
+  // Set domain for cross-subdomain cookies (from APP_DOMAIN)
+  if (cookieDomain) {
+    cookieOptions.domain = cookieDomain;
   }
 
   res.cookie('token', token, cookieOptions);

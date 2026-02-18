@@ -10,17 +10,13 @@ import { photosRouter } from './routes/photos.js';
 import { reportsRouter } from './routes/reports.js';
 import { navigationRouter } from './routes/navigation.js';
 import { authMiddleware } from './middleware/auth.js';
+import { getAllowedOrigins } from './config/domain.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// CORS configuration - allow localhost, Vercel, and custom domains
-const allowedOrigins = [
-  'http://localhost:3001',
-  /^https:\/\/ai-inspection.*\.vercel\.app$/,  // Vercel preview/production URLs
-  'https://app-ai-inspection.apexphere.co.nz',      // Production frontend
-  'https://app-test-ai-inspection.apexphere.co.nz', // Test frontend
-];
+// CORS configuration - generated from APP_DOMAIN env var
+const allowedOrigins = getAllowedOrigins();
 
 // Middleware
 app.use(helmet());
