@@ -52,7 +52,7 @@ jobs:
       - name: Run database migrations
         run: |
           echo "Running Prisma migrations..."
-          flyctl ssh console --app ai-inspection-api-test -C "cd /app && npx prisma migrate deploy"
+          flyctl ssh console --app ai-inspection-api-test -C "sh -c 'cd /app && npx prisma migrate deploy'"
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
