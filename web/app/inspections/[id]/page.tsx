@@ -113,7 +113,7 @@ export default function InspectionDetailPage({ params }: PageProps): React.React
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{inspection.address}</h1>
-            <p className="text-gray-500 mt-1">
+            <p className="text-gray-600 mt-1">
               Client: {inspection.clientName}
               {inspection.inspectorName && ` • Inspector: ${inspection.inspectorName}`}
             </p>

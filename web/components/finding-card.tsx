@@ -23,7 +23,7 @@ export function FindingCard({ finding, onEdit }: FindingCardProps): React.ReactE
             <button
               type="button"
               onClick={onEdit}
-              className="p-1.5 text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity rounded hover:bg-gray-100"
+              className="p-1.5 text-gray-500 hover:text-gray-700 opacity-0 group-hover:opacity-100 transition-opacity rounded hover:bg-gray-100"
               aria-label="Edit finding"
             >
               <svg
@@ -63,7 +63,7 @@ export function FindingCard({ finding, onEdit }: FindingCardProps): React.ReactE
         </div>
       )}
 
-      <div className="mt-2 text-xs text-gray-400">
+      <div className="mt-2 text-xs text-gray-600">
         {new Date(finding.createdAt).toLocaleString()}
       </div>
     </div>
