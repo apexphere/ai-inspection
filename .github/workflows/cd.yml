@@ -49,6 +49,13 @@ jobs:
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
+      - name: Run database migrations
+        run: |
+          echo "Running Prisma migrations..."
+          flyctl ssh console --app ai-inspection-api-test -C "cd /app && npx prisma migrate deploy"
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
   wait-for-vercel:
     name: Wait for Vercel Auto-Deploy
     runs-on: ubuntu-latest
