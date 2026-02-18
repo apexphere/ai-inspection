@@ -35,6 +35,16 @@ jobs:
         if: matrix.workspace == 'api'
         run: npm run db:generate --workspace=api
 
+      - name: Check Prisma migration drift (api only)
+        if: matrix.workspace == 'api'
+        run: |
+          cd api
+          npx prisma migrate diff \
+            --from-migrations ./prisma/migrations \
+            --to-schema-datamodel ./prisma/schema.prisma \
+            --exit-code
+        continue-on-error: false
+
       - name: Build shared (for dependents)
         if: matrix.workspace == 'web'
         run: npm run build --workspace=shared
