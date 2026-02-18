@@ -11,6 +11,7 @@ import { reportsRouter } from './routes/reports.js';
 import { navigationRouter } from './routes/navigation.js';
 import { authMiddleware } from './middleware/auth.js';
 import { getAllowedOrigins } from './config/domain.js';
+import { logStartupDiagnostics } from './config/startup.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -52,15 +53,37 @@ app.use('/api', authMiddleware, photosRouter);
 app.use('/api', authMiddleware, reportsRouter);
 app.use('/api', authMiddleware, navigationRouter);
 
-// Error handling
+// Error handling with detailed logging
 app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error(err.stack);
+  // Log with context
+  console.error('=== API Error ===');
+  console.error(`Method: ${req.method}`);
+  console.error(`Path: ${req.path}`);
+  console.error(`Error: ${err.message}`);
+  console.error(`Stack: ${err.stack}`);
+  console.error('=================');
+  
+  // Check for common issues and provide hints
+  const message = err.message.toLowerCase();
+  if (message.includes('prisma') || message.includes('database') || message.includes('connect')) {
+    console.error('💡 Hint: Check DATABASE_URL is set correctly');
+  }
+  
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`API server running on port ${PORT}`);
+// Start server with diagnostics
+async function start(): Promise<void> {
+  await logStartupDiagnostics();
+  
+  app.listen(PORT, () => {
+    console.log(`API server running on port ${PORT}`);
+  });
+}
+
+start().catch(err => {
+  console.error('Failed to start server:', err);
+  process.exit(1);
 });
 
 export { app };
