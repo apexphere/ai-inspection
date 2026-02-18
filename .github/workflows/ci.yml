@@ -35,22 +35,6 @@ jobs:
         if: matrix.workspace == 'api'
         run: npm run db:generate --workspace=api
 
-      - name: Check Prisma migration drift (api only)
-        if: matrix.workspace == 'api'
-        run: |
-          cd api
-          if [ -d "prisma/migrations" ]; then
-            npx prisma migrate diff \
-              --from-migrations ./prisma/migrations \
-              --to-schema-datamodel ./prisma/schema.prisma \
-              --exit-code || {
-                echo "::error::Schema drift detected! Run 'npx prisma migrate dev' to create migration."
-                exit 1
-              }
-          else
-            echo "::warning::No migrations directory found. Consider running 'npx prisma migrate dev --name init' to create initial migration."
-          fi
-
       - name: Build shared (for dependents)
         if: matrix.workspace == 'web'
         run: npm run build --workspace=shared
@@ -103,6 +87,26 @@ jobs:
 
       - name: Generate Prisma client
         run: npm run db:generate --workspace=api
+
+      - name: Create shadow database
+        run: |
+          PGPASSWORD=test psql -h localhost -U test -d ai_inspection_test -c "CREATE DATABASE ai_inspection_shadow;"
+
+      - name: Check Prisma migration drift
+        run: |
+          cd api
+          if [ -d "prisma/migrations" ]; then
+            npx prisma migrate diff \
+              --from-migrations ./prisma/migrations \
+              --to-schema-datamodel ./prisma/schema.prisma \
+              --shadow-database-url "postgresql://test:test@localhost:5432/ai_inspection_shadow" \
+              --exit-code || {
+                echo "::error::Schema drift detected! Run 'npx prisma migrate dev' to create migration."
+                exit 1
+              }
+          else
+            echo "::warning::No migrations directory found."
+          fi
 
       - name: Run database migrations
         run: npx prisma migrate deploy --schema=api/prisma/schema.prisma
