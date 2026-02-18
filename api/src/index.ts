@@ -14,10 +14,12 @@ import { authMiddleware } from './middleware/auth.js';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// CORS configuration - allow localhost and Vercel deployments
+// CORS configuration - allow localhost, Vercel, and custom domains
 const allowedOrigins = [
   'http://localhost:3001',
-  /^https:\/\/ai-inspection.*\.vercel\.app$/,  // All Vercel preview/production URLs
+  /^https:\/\/ai-inspection.*\.vercel\.app$/,  // Vercel preview/production URLs
+  'https://app-ai-inspection.apexphere.co.nz',      // Production frontend
+  'https://app-test-ai-inspection.apexphere.co.nz', // Test frontend
 ];
 
 // Middleware
