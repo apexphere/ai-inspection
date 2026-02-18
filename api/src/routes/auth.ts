@@ -81,11 +81,23 @@ authRouter.post('/login', loginLimiter, async (req: Request, res: Response) => {
  */
 authRouter.post('/logout', (req: Request, res: Response) => {
   const isProduction = process.env.NODE_ENV === 'production';
-  res.clearCookie('token', {
+  
+  const clearOptions: {
+    httpOnly: boolean;
+    secure: boolean;
+    sameSite: 'strict' | 'lax' | 'none';
+    domain?: string;
+  } = {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? 'none' : 'strict',
-  });
+    sameSite: 'strict',
+  };
+
+  if (COOKIE_DOMAIN) {
+    clearOptions.domain = COOKIE_DOMAIN;
+  }
+
+  res.clearCookie('token', clearOptions);
   res.json({ message: 'Logged out' });
 });
 
@@ -110,12 +122,29 @@ authRouter.get('/check', (req: Request, res: Response) => {
   }
 });
 
+// Cookie domain for same-site auth across subdomains
+const COOKIE_DOMAIN = process.env.COOKIE_DOMAIN; // e.g., '.apexphere.co.nz'
+
 function setTokenCookie(res: Response, token: string): void {
   const isProduction = process.env.NODE_ENV === 'production';
-  res.cookie('token', token, {
+  
+  const cookieOptions: {
+    httpOnly: boolean;
+    secure: boolean;
+    sameSite: 'strict' | 'lax' | 'none';
+    maxAge: number;
+    domain?: string;
+  } = {
     httpOnly: true,
-    secure: isProduction,  // Required for SameSite=None
-    sameSite: isProduction ? 'none' : 'strict',  // Allow cross-origin in production
+    secure: isProduction,
+    sameSite: 'strict',  // Same-site with custom domains
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-  });
+  };
+
+  // Set domain for cross-subdomain cookies (e.g., .apexphere.co.nz)
+  if (COOKIE_DOMAIN) {
+    cookieOptions.domain = COOKIE_DOMAIN;
+  }
+
+  res.cookie('token', token, cookieOptions);
 }
