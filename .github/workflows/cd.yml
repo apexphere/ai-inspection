@@ -113,4 +113,20 @@ jobs:
           path: web/playwright-report/
           retention-days: 7
 
-  # Discord notifications will be added by #83
+  notify-failure:
+    name: Notify on Failure
+    runs-on: ubuntu-latest
+    needs: e2e-tests
+    if: failure()
+    steps:
+      - name: Send Discord notification
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          status: failure
+          title: "E2E Tests Failed"
+          description: |
+            E2E tests failed on the develop branch.
+            Check the workflow run for details.
+          color: 0xff0000
+          username: "CI Bot"
