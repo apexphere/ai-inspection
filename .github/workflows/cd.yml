@@ -142,30 +142,46 @@ jobs:
     name: Publish Playwright Report
     runs-on: ubuntu-latest
     needs: e2e-tests
-    if: always()
+    if: always() && needs.e2e-tests.result != 'skipped'
     permissions:
       pages: write
       id-token: write
     steps:
       - name: Download test report
+        id: download
         uses: actions/download-artifact@v4
         with:
           name: playwright-report
           path: playwright-report/
+        continue-on-error: true
+
+      - name: Check if report exists
+        id: check
+        run: |
+          if [ -d "playwright-report" ] && [ "$(ls -A playwright-report)" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "⚠️ No Playwright report found — skipping publish" >> $GITHUB_STEP_SUMMARY
+          fi
 
       - name: Setup Pages
+        if: steps.check.outputs.exists == 'true'
         uses: actions/configure-pages@v4
 
       - name: Upload to Pages
+        if: steps.check.outputs.exists == 'true'
         uses: actions/upload-pages-artifact@v3
         with:
           path: playwright-report/
 
       - name: Deploy to GitHub Pages
+        if: steps.check.outputs.exists == 'true'
         id: deployment
         uses: actions/deploy-pages@v4
 
       - name: Add report link to summary
+        if: steps.check.outputs.exists == 'true'
         run: |
           echo "## 📊 Playwright Test Report" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
