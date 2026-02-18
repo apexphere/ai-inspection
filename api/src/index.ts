@@ -16,6 +16,10 @@ import { logStartupDiagnostics } from './config/startup.js';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Trust first proxy (Fly.io reverse proxy)
+// Required for express-rate-limit to work correctly with X-Forwarded-For header
+app.set('trust proxy', 1);
+
 // CORS configuration - generated from APP_DOMAIN env var
 const allowedOrigins = getAllowedOrigins();
 
