@@ -2,6 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 const baseURL = process.env.BASE_URL || 'http://localhost:3001';
 const isDeployed = baseURL.startsWith('https://');
+const vercelBypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
 
 /**
  * Playwright configuration for E2E tests
@@ -19,6 +20,10 @@ export default defineConfig({
     baseURL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    // Add Vercel bypass header for protected deployments
+    extraHTTPHeaders: vercelBypassSecret ? {
+      'x-vercel-protection-bypass': vercelBypassSecret,
+    } : undefined,
   },
 
   projects: [
