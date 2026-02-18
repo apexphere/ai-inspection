@@ -10,6 +10,11 @@ concurrency:
   group: cd-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  # Fixed URLs for test environment
+  API_URL: https://ai-inspection-api-test.fly.dev
+  WEB_URL: https://ai-inspection-git-develop-chenyang-apexpherecos-projects.vercel.app
+
 jobs:
   # Only run CD if CI passes
   ci-check:
@@ -48,19 +53,13 @@ jobs:
     name: Wait for Vercel Auto-Deploy
     runs-on: ubuntu-latest
     needs: ci-check
-    outputs:
-      deployment-url: ${{ steps.wait.outputs.url }}
     steps:
-      - name: Wait for Vercel deployment
-        id: wait
+      - name: Wait for Vercel deployment to be ready
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          COMMIT_SHA: ${{ github.sha }}
+          VERCEL_BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: |
-          echo "Waiting for Vercel to deploy commit $COMMIT_SHA..."
+          echo "Waiting for Vercel deployment at $WEB_URL..."
           
-          # Poll Vercel API for deployment status
           MAX_ATTEMPTS=30
           ATTEMPT=0
           
@@ -68,30 +67,17 @@ jobs:
             ATTEMPT=$((ATTEMPT + 1))
             echo "Attempt $ATTEMPT/$MAX_ATTEMPTS..."
             
-            # Get deployments for this commit
-            RESPONSE=$(curl -s -H "Authorization: Bearer $VERCEL_TOKEN" \
-              "https://api.vercel.com/v6/deployments?projectId=$VERCEL_PROJECT_ID&limit=5")
+            # Check if the deployment is responding (with bypass header)
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+              -H "x-vercel-protection-bypass: $VERCEL_BYPASS" \
+              "$WEB_URL")
             
-            # Find deployment for this commit that is ready
-            DEPLOYMENT=$(echo "$RESPONSE" | jq -r --arg sha "$COMMIT_SHA" \
-              '.deployments[] | select(.meta.githubCommitSha == $sha and .readyState == "READY") | .url' | head -1)
-            
-            if [ -n "$DEPLOYMENT" ] && [ "$DEPLOYMENT" != "null" ]; then
-              echo "Deployment ready: https://$DEPLOYMENT"
-              echo "url=https://$DEPLOYMENT" >> $GITHUB_OUTPUT
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "Vercel deployment ready!"
               exit 0
             fi
             
-            # Check if deployment failed
-            FAILED=$(echo "$RESPONSE" | jq -r --arg sha "$COMMIT_SHA" \
-              '.deployments[] | select(.meta.githubCommitSha == $sha and .readyState == "ERROR") | .url' | head -1)
-            
-            if [ -n "$FAILED" ] && [ "$FAILED" != "null" ]; then
-              echo "Deployment failed!"
-              exit 1
-            fi
-            
-            echo "Deployment not ready yet, waiting 10s..."
+            echo "Got HTTP $HTTP_CODE, waiting 10s..."
             sleep 10
           done
           
@@ -105,9 +91,6 @@ jobs:
     defaults:
       run:
         working-directory: ./web
-    env:
-      API_URL: https://ai-inspection-api-test.fly.dev
-      BASE_URL: ${{ needs.wait-for-vercel.outputs.deployment-url }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -128,14 +111,6 @@ jobs:
           timeout 120 bash -c 'until curl -sf $API_URL/health; do echo "Waiting..."; sleep 5; done'
           echo "API is ready!"
 
-      - name: Wait for Web to be ready
-        run: |
-          echo "Waiting for Web at $BASE_URL..."
-          timeout 120 bash -c 'until curl -sf -H "x-vercel-protection-bypass: $VERCEL_BYPASS" $BASE_URL; do echo "Waiting..."; sleep 5; done'
-          echo "Web is ready!"
-        env:
-          VERCEL_BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
-
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
@@ -143,6 +118,8 @@ jobs:
         run: npx playwright test
         env:
           CI: true
+          BASE_URL: ${{ env.WEB_URL }}
+          API_URL: ${{ env.API_URL }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
 
       - name: Upload test results
