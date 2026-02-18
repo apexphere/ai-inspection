@@ -131,6 +131,39 @@ jobs:
           path: web/playwright-report/
           retention-days: 7
 
+  publish-report:
+    name: Publish Playwright Report
+    runs-on: ubuntu-latest
+    needs: e2e-tests
+    if: always()
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Download test report
+        uses: actions/download-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload to Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: playwright-report/
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Add report link to summary
+        run: |
+          echo "## 📊 Playwright Test Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "View the full report: https://apexphere.github.io/ai-inspection/" >> $GITHUB_STEP_SUMMARY
+
   notify-failure:
     name: Notify on Failure
     runs-on: ubuntu-latest
