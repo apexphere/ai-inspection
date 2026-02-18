@@ -44,33 +44,70 @@ jobs:
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
-  deploy-web:
-    name: Deploy Web to Vercel
+  wait-for-vercel:
+    name: Wait for Vercel Auto-Deploy
     runs-on: ubuntu-latest
     needs: ci-check
+    outputs:
+      deployment-url: ${{ steps.wait.outputs.url }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          working-directory: ./web
-          vercel-args: '--prod'
+      - name: Wait for Vercel deployment
+        id: wait
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          echo "Waiting for Vercel to deploy commit $COMMIT_SHA..."
+          
+          # Poll Vercel API for deployment status
+          MAX_ATTEMPTS=30
+          ATTEMPT=0
+          
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+            ATTEMPT=$((ATTEMPT + 1))
+            echo "Attempt $ATTEMPT/$MAX_ATTEMPTS..."
+            
+            # Get deployments for this commit
+            RESPONSE=$(curl -s -H "Authorization: Bearer $VERCEL_TOKEN" \
+              "https://api.vercel.com/v6/deployments?projectId=$VERCEL_PROJECT_ID&limit=5")
+            
+            # Find deployment for this commit that is ready
+            DEPLOYMENT=$(echo "$RESPONSE" | jq -r --arg sha "$COMMIT_SHA" \
+              '.deployments[] | select(.meta.githubCommitSha == $sha and .readyState == "READY") | .url' | head -1)
+            
+            if [ -n "$DEPLOYMENT" ] && [ "$DEPLOYMENT" != "null" ]; then
+              echo "Deployment ready: https://$DEPLOYMENT"
+              echo "url=https://$DEPLOYMENT" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+            
+            # Check if deployment failed
+            FAILED=$(echo "$RESPONSE" | jq -r --arg sha "$COMMIT_SHA" \
+              '.deployments[] | select(.meta.githubCommitSha == $sha and .readyState == "ERROR") | .url' | head -1)
+            
+            if [ -n "$FAILED" ] && [ "$FAILED" != "null" ]; then
+              echo "Deployment failed!"
+              exit 1
+            fi
+            
+            echo "Deployment not ready yet, waiting 10s..."
+            sleep 10
+          done
+          
+          echo "Timeout waiting for Vercel deployment"
+          exit 1
 
   e2e-tests:
     name: Run E2E Tests
     runs-on: ubuntu-latest
-    needs: [deploy-api, deploy-web]
+    needs: [deploy-api, wait-for-vercel]
     defaults:
       run:
         working-directory: ./web
     env:
       API_URL: https://ai-inspection-api-test.fly.dev
-      BASE_URL: https://ai-inspection-test.vercel.app
+      BASE_URL: ${{ needs.wait-for-vercel.outputs.deployment-url }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -93,7 +130,7 @@ jobs:
 
       - name: Wait for Web to be ready
         run: |
-          echo "Waiting for Web to be ready..."
+          echo "Waiting for Web at $BASE_URL..."
           timeout 120 bash -c 'until curl -sf $BASE_URL; do echo "Waiting..."; sleep 5; done'
           echo "Web is ready!"
 
