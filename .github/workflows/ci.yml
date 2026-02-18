@@ -105,7 +105,7 @@ jobs:
         run: npm run db:generate --workspace=api
 
       - name: Run database migrations
-        run: npm run db:push --workspace=api
+        run: npx prisma migrate deploy --schema=api/prisma/schema.prisma
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/ai_inspection_test
 
