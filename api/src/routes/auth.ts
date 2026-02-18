@@ -80,10 +80,11 @@ authRouter.post('/login', loginLimiter, async (req: Request, res: Response) => {
  * Clear the auth cookie
  */
 authRouter.post('/logout', (req: Request, res: Response) => {
+  const isProduction = process.env.NODE_ENV === 'production';
   res.clearCookie('token', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'strict',
   });
   res.json({ message: 'Logged out' });
 });
@@ -110,10 +111,11 @@ authRouter.get('/check', (req: Request, res: Response) => {
 });
 
 function setTokenCookie(res: Response, token: string): void {
+  const isProduction = process.env.NODE_ENV === 'production';
   res.cookie('token', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    secure: isProduction,  // Required for SameSite=None
+    sameSite: isProduction ? 'none' : 'strict',  // Allow cross-origin in production
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
   });
 }
