@@ -1,8 +1,17 @@
 import { defineConfig, devices } from '@playwright/test';
+import { config } from 'dotenv';
 
-const baseURL = process.env.BASE_URL || 'http://localhost:3001';
-const isDeployed = baseURL.startsWith('https://');
+// Load .env.local for local testing
+config({ path: '.env.local' });
+
+const rawBaseURL = process.env.BASE_URL || 'http://localhost:3001';
+const isDeployed = rawBaseURL.startsWith('https://');
 const vercelBypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+
+// Append bypass token as query param for Vercel-protected deployments
+const baseURL = vercelBypassSecret 
+  ? `${rawBaseURL}?x-vercel-protection-bypass=${vercelBypassSecret}`
+  : rawBaseURL;
 
 /**
  * Playwright configuration for E2E tests

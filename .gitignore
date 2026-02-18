@@ -21,3 +21,7 @@ __pycache__/
 # Playwright
 playwright-report/
 test-results/
+
+# Local environment files
+.env.local
+.env*.local
