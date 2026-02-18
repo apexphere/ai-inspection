@@ -15,10 +15,11 @@ const AUTH_PASSWORD = process.env.AUTH_PASSWORD;
 
 export const authRouter = Router();
 
-// Rate limiting: 5 attempts per IP per minute
+// Rate limiting: stricter in production, relaxed for test environment
+const isTestEnv = process.env.NODE_ENV === 'test';
 const loginLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
-  max: 5, // 5 attempts
+  max: isTestEnv ? 100 : 5, // 100 attempts in test, 5 in production
   message: { error: 'Too many login attempts, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,
