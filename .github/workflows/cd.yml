@@ -11,9 +11,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # Fixed URLs for test environment
-  API_URL: https://ai-inspection-api-test.fly.dev
-  WEB_URL: https://ai-inspection-git-develop-chenyang-apexpherecos-projects.vercel.app
+  # Custom domain URLs for test environment (same-site cookie support)
+  API_URL: https://api-test-ai-inspection.apexphere.co.nz
+  WEB_URL: https://app-test-ai-inspection.apexphere.co.nz
 
 jobs:
   # Only run CD if CI passes
