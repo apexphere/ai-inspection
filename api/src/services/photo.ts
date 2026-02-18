@@ -57,10 +57,8 @@ export class PhotoService {
     // Validate base64
     let buffer: Buffer;
     try {
-      // Check if it's valid base64 by verifying it can be decoded and re-encoded
+      // Check if it's valid base64 by decoding it
       buffer = Buffer.from(base64Data, 'base64');
-      const reEncoded = buffer.toString('base64');
-      // Allow some padding differences, but core content must match
       if (buffer.length === 0 || !this.isValidBase64(base64Data)) {
         throw new InvalidBase64Error();
       }
