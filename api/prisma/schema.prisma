@@ -209,9 +209,59 @@ model SiteInspection {
   // Relations
   checklistItems    ChecklistItem[]
   clauseReviews     ClauseReview[]
+  measurements      SiteMeasurement[]
   
   @@index([projectId])
   @@index([status])
+}
+
+// Site measurement records
+model SiteMeasurement {
+  id              String              @id @default(uuid())
+  inspectionId    String
+  inspection      SiteInspection      @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  
+  type            MeasurementType
+  location        String
+  value           Float
+  unit            MeasurementUnit
+  result          MeasurementResult   @default(PENDING)
+  
+  linkedClauseId  String?
+  linkedClause    BuildingCodeClause? @relation(fields: [linkedClauseId], references: [id])
+  
+  notes           String?
+  
+  sortOrder       Int                 @default(0)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  
+  @@index([inspectionId])
+  @@index([type])
+}
+
+enum MeasurementType {
+  MOISTURE_CONTENT
+  SLOPE_FALL
+  DIMENSION
+  CLEARANCE
+  TEMPERATURE
+  OTHER
+}
+
+enum MeasurementUnit {
+  PERCENT         // %
+  MM_PER_M        // mm/m (slope)
+  MM              // mm
+  CM              // cm
+  M               // m
+  CELSIUS         // °C
+}
+
+enum MeasurementResult {
+  PENDING
+  PASS
+  FAIL
 }
 
 model ChecklistItem {
@@ -306,6 +356,7 @@ model BuildingCodeClause {
   children          BuildingCodeClause[] @relation("ClauseHierarchy")
   
   clauseReviews     ClauseReview[]
+  measurements      SiteMeasurement[]
   
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
