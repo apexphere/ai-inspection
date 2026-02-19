@@ -12,6 +12,7 @@ import { navigationRouter } from './routes/navigation.js';
 import { projectsRouter } from './routes/projects.js';
 import { propertiesRouter } from './routes/properties.js';
 import { clientsRouter } from './routes/clients.js';
+import { siteInspectionsRouter } from './routes/site-inspections.js';
 import { authMiddleware } from './middleware/auth.js';
 import { getAllowedOrigins } from './config/domain.js';
 import { logStartupDiagnostics } from './config/startup.js';
@@ -62,6 +63,7 @@ app.use('/api', authMiddleware, navigationRouter);
 app.use('/api/projects', authMiddleware, projectsRouter);
 app.use('/api/properties', authMiddleware, propertiesRouter);
 app.use('/api/clients', authMiddleware, clientsRouter);
+app.use('/api', authMiddleware, siteInspectionsRouter);
 
 // Error handling with detailed logging
 app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
