@@ -1,13 +1,17 @@
-# Working Scenario: COA Report for Unauthorized Bathroom Renovation
+# AI Inspection — Workflow Scenario
 
 ## Purpose
-End-to-end acceptance test scenario demonstrating the two-phase workflow:
+
+This is the **primary workflow reference** for AI Inspection. It demonstrates the complete two-phase workflow that applies to all inspection types:
+
 1. **Phase 1 (On-Site):** WhatsApp + OpenClaw for guided data capture
 2. **Phase 2 (Office):** Web interface for review, editing, and report generation
 
+The example below uses a **COA (Certificate of Acceptance)** inspection, but the same workflow applies to PPI, CCC Gap Analysis, and other report types.
+
 ---
 
-## Scenario Background
+## Example Scenario: COA for Bathroom Renovation
 
 **Situation:** Homeowner did a bathroom renovation in 2020 without building consent. Now selling the property and needs a COA for settlement.
 
