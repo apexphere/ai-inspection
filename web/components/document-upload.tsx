@@ -44,15 +44,18 @@ export function DocumentUpload({
 
   const maxSizeBytes = maxSizeMB * 1024 * 1024;
 
-  const validateFile = (file: File): string | null => {
-    if (!acceptedTypes.includes(file.type)) {
-      return `Invalid file type: ${file.type}`;
-    }
-    if (file.size > maxSizeBytes) {
-      return `File too large: ${(file.size / 1024 / 1024).toFixed(1)}MB (max ${maxSizeMB}MB)`;
-    }
-    return null;
-  };
+  const validateFile = useCallback(
+    (file: File): string | null => {
+      if (!acceptedTypes.includes(file.type)) {
+        return `Invalid file type: ${file.type}`;
+      }
+      if (file.size > maxSizeBytes) {
+        return `File too large: ${(file.size / 1024 / 1024).toFixed(1)}MB (max ${maxSizeMB}MB)`;
+      }
+      return null;
+    },
+    [acceptedTypes, maxSizeBytes, maxSizeMB]
+  );
 
   const uploadFile = useCallback(
     async (file: File): Promise<void> => {
@@ -133,7 +136,7 @@ export function DocumentUpload({
         );
       }
     },
-    [projectId, onUploadComplete, maxSizeBytes, acceptedTypes]
+    [projectId, onUploadComplete, validateFile]
   );
 
   const handleFiles = useCallback(
