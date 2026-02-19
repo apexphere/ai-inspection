@@ -189,6 +189,8 @@ documentsRouter.put(
 
       const updateData = {
         ...parsed.data,
+        // Convert null to undefined for fields that don't accept null
+        issuer: parsed.data.issuer === null ? undefined : parsed.data.issuer,
         issuedAt: parsed.data.issuedAt === null 
           ? null 
           : parsed.data.issuedAt 
