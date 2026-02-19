@@ -1,4 +1,4 @@
-import { PrismaClient, type ProjectPhoto, type PhotoSource } from '@prisma/client';
+import { PrismaClient, Prisma, type ProjectPhoto, type PhotoSource } from '@prisma/client';
 
 export interface CreateProjectPhotoInput {
   projectId: string;
@@ -10,7 +10,7 @@ export interface CreateProjectPhotoInput {
   caption: string;
   source?: PhotoSource;
   takenAt?: Date;
-  location?: Record<string, unknown>;
+  location?: Prisma.InputJsonValue;
   linkedClauses?: string[];
 }
 
