@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # Custom domain URLs for test environment (same-site cookie support)
+  # Custom domain URLs for test environment
   API_URL: https://api-test-ai-inspection.apexphere.co.nz
   WEB_URL: https://app-test-ai-inspection.apexphere.co.nz
 
@@ -23,96 +23,34 @@ jobs:
       - name: Check CI status
         run: echo "CI must pass before CD runs (enforced by branch protection)"
 
-  deploy-api:
-    name: Deploy API to Fly.io
+  wait-for-railway:
+    name: Wait for Railway Auto-Deploy
     runs-on: ubuntu-latest
     needs: ci-check
-    defaults:
-      run:
-        working-directory: ./api
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Fly.io CLI
-        uses: superfly/flyctl-actions/setup-flyctl@1.5
-
-      - name: Deploy to Fly.io
-        run: flyctl deploy --remote-only
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-
-      - name: Wait for deployment to be healthy
+      - name: Wait for Railway deployment to be ready
         run: |
-          echo "Waiting for deployment to be healthy..."
-          flyctl status --app ai-inspection-api-test
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-
-      - name: Wake database
-        run: |
-          echo "Waking database by hitting health endpoint..."
-          for i in 1 2 3 4 5; do
-            curl -sf "$API_URL/health" && break
-            echo "Attempt $i failed, waiting 5s..."
-            sleep 5
-          done
-          echo "Waiting 10s for database connections to stabilize..."
-          sleep 10
-        env:
-          API_URL: ${{ env.API_URL }}
-
-      - name: Verify database connectivity
-        run: |
-          echo "Verifying database connectivity before migrations..."
-          # Run a simple prisma query to ensure DB is awake and responsive
-          for i in 1 2 3; do
-            echo "Attempt $i: Testing database connection..."
-            if timeout 60 flyctl ssh console --app ai-inspection-api-test -C "sh -c 'cd /app && echo \"SELECT 1;\" | npx prisma db execute --stdin'" 2>&1; then
-              echo "Database connection verified!"
-              break
+          echo "Waiting for Railway deployment at $API_URL..."
+          
+          MAX_ATTEMPTS=30
+          ATTEMPT=0
+          
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+            ATTEMPT=$((ATTEMPT + 1))
+            echo "Attempt $ATTEMPT/$MAX_ATTEMPTS..."
+            
+            # Check if the API is responding
+            if curl -sf "$API_URL/health" > /dev/null 2>&1; then
+              echo "Railway deployment ready!"
+              exit 0
             fi
-            echo "Connection test failed, waiting 10s..."
+            
+            echo "API not ready yet, waiting 10s..."
             sleep 10
           done
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-
-      - name: Run database migrations
-        run: |
-          echo "Running Prisma migrations..."
-          # Retry logic for migrations (3 attempts, 180s timeout each)
-          for i in 1 2 3; do
-            echo "Migration attempt $i..."
-            if timeout 180 flyctl ssh console --app ai-inspection-api-test -C "sh -c 'cd /app && npx prisma migrate deploy'" 2>&1; then
-              echo "Migrations completed successfully!"
-              exit 0
-            fi
-            echo "Migration attempt $i failed or timed out, waiting 15s before retry..."
-            sleep 15
-          done
-          echo "All migration attempts failed"
+          
+          echo "Timeout waiting for Railway deployment"
           exit 1
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-
-      - name: Seed database (test data)
-        run: |
-          echo "Seeding test database..."
-          # Retry logic for seeding (3 attempts, 180s timeout each)
-          for i in 1 2 3; do
-            echo "Seed attempt $i..."
-            if timeout 180 flyctl ssh console --app ai-inspection-api-test -C "sh -c 'cd /app && npx tsx prisma/seed.ts'" 2>&1; then
-              echo "Seeding completed successfully!"
-              exit 0
-            fi
-            echo "Seed attempt $i failed or timed out, waiting 15s before retry..."
-            sleep 15
-          done
-          echo "All seed attempts failed"
-          exit 1
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
   wait-for-vercel:
     name: Wait for Vercel Auto-Deploy
@@ -152,7 +90,7 @@ jobs:
   e2e-tests:
     name: Run E2E Tests
     runs-on: ubuntu-latest
-    needs: [deploy-api, wait-for-vercel]
+    needs: [wait-for-railway, wait-for-vercel]
     defaults:
       run:
         working-directory: ./web
