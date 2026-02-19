@@ -17,6 +17,7 @@ import { checklistItemsRouter } from './routes/checklist-items.js';
 import { buildingCodeRouter } from './routes/building-code.js';
 import { clauseReviewsRouter } from './routes/clause-reviews.js';
 import { documentsRouter } from './routes/documents.js';
+import { naReasonTemplatesRouter } from './routes/na-reason-templates.js';
 import { authMiddleware } from './middleware/auth.js';
 import { getAllowedOrigins } from './config/domain.js';
 import { logStartupDiagnostics } from './config/startup.js';
@@ -72,6 +73,7 @@ app.use('/api', authMiddleware, checklistItemsRouter);
 app.use('/api/building-code', authMiddleware, buildingCodeRouter);
 app.use('/api', authMiddleware, clauseReviewsRouter);
 app.use('/api', authMiddleware, documentsRouter);
+app.use('/api/na-reason-templates', authMiddleware, naReasonTemplatesRouter);
 
 // Error handling with detailed logging
 app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
