@@ -112,6 +112,7 @@ model Property {
   updatedAt            DateTime             @updatedAt
   
   projects             Project[]
+  buildingHistory      BuildingHistory[]
 }
 
 model Client {
@@ -469,4 +470,43 @@ enum DocumentStatus {
   RECEIVED
   OUTSTANDING
   NA
+}
+
+// Building permit/consent history
+model BuildingHistory {
+  id          String              @id @default(uuid())
+  propertyId  String
+  property    Property            @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  
+  type        BuildingHistoryType
+  reference   String
+  year        Int
+  status      BuildingHistoryStatus @default(UNKNOWN)
+  description String?
+  issuer      String?
+  issuedAt    DateTime?
+  
+  sortOrder   Int                 @default(0)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  
+  @@index([propertyId])
+  @@index([type])
+}
+
+enum BuildingHistoryType {
+  BUILDING_PERMIT
+  BUILDING_CONSENT
+  CCC
+  COA
+  RESOURCE_CONSENT
+  OTHER
+}
+
+enum BuildingHistoryStatus {
+  ISSUED
+  LAPSED
+  CANCELLED
+  COMPLETE
+  UNKNOWN
 }
