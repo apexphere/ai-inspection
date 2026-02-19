@@ -362,3 +362,16 @@ enum Applicability {
   APPLICABLE
   NA
 }
+
+// ============================================
+// N/A Reason Templates (reference data)
+// ============================================
+
+model NAReasonTemplate {
+  id          String   @id @default(uuid())
+  template    String
+  usage       String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
