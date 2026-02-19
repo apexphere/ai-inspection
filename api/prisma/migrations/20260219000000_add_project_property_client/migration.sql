@@ -1,11 +1,11 @@
 -- CreateEnum
-CREATE TYPE "ReportType" AS ENUM ('COA', 'CCC', 'PRE_PURCHASE', 'WEATHERTIGHTNESS', 'GENERAL');
+CREATE TYPE "ReportType" AS ENUM ('COA', 'CCC_GAP', 'PPI', 'SAFE_SANITARY', 'TFA');
 
 -- CreateEnum
-CREATE TYPE "ProjectStatus" AS ENUM ('DRAFT', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED');
+CREATE TYPE "ProjectStatus" AS ENUM ('DRAFT', 'IN_PROGRESS', 'REVIEW', 'COMPLETED');
 
 -- CreateEnum
-CREATE TYPE "TerritorialAuthority" AS ENUM ('AUCKLAND', 'WELLINGTON', 'CHRISTCHURCH', 'HAMILTON', 'TAURANGA', 'DUNEDIN', 'OTHER');
+CREATE TYPE "TerritorialAuthority" AS ENUM ('AKL', 'WCC', 'CCC', 'HDC', 'TCC', 'DCC', 'HCC', 'PCC', 'NCC', 'ICC', 'NPDC', 'WDC', 'RDC', 'OTHER');
 
 -- CreateTable
 CREATE TABLE "Client" (
@@ -13,7 +13,9 @@ CREATE TABLE "Client" (
     "name" TEXT NOT NULL,
     "email" TEXT,
     "phone" TEXT,
+    "mobile" TEXT,
     "address" TEXT,
+    "contactPerson" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
