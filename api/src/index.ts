@@ -19,6 +19,7 @@ import { clauseReviewsRouter } from './routes/clause-reviews.js';
 import { documentsRouter } from './routes/documents.js';
 import { naReasonTemplatesRouter } from './routes/na-reason-templates.js';
 import { projectPhotosRouter } from './routes/project-photos.js';
+import { buildingHistoryRouter } from './routes/building-history.js';
 import { authMiddleware } from './middleware/auth.js';
 import { getAllowedOrigins } from './config/domain.js';
 import { logStartupDiagnostics } from './config/startup.js';
@@ -76,6 +77,7 @@ app.use('/api', authMiddleware, clauseReviewsRouter);
 app.use('/api', authMiddleware, documentsRouter);
 app.use('/api/na-reason-templates', authMiddleware, naReasonTemplatesRouter);
 app.use('/api', authMiddleware, projectPhotosRouter);
+app.use('/api', authMiddleware, buildingHistoryRouter);
 
 // Error handling with detailed logging
 app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
