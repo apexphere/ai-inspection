@@ -1,4 +1,4 @@
-import { Router, type Request, type Response, type NextFunction } from 'express';
+import { Router, type Request, type Response, type NextFunction, type Router as RouterType } from 'express';
 import * as fs from 'node:fs/promises';
 import { PrismaClient } from '@prisma/client';
 import { PrismaInspectionRepository } from '../repositories/prisma/inspection.js';
@@ -13,7 +13,7 @@ const prisma = new PrismaClient();
 const repository = new PrismaInspectionRepository(prisma);
 const service = new ReportService(repository);
 
-export const reportsRouter = Router();
+export const reportsRouter: RouterType = Router();
 
 // POST /api/inspections/:inspectionId/report - Generate PDF report
 reportsRouter.post(

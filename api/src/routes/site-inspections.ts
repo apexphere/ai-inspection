@@ -1,4 +1,4 @@
-import { Router, type Request, type Response, type NextFunction } from 'express';
+import { Router, type Request, type Response, type NextFunction, type Router as RouterType } from 'express';
 import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
 import { PrismaSiteInspectionRepository } from '../repositories/prisma/site-inspection.js';
@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 const repository = new PrismaSiteInspectionRepository(prisma);
 const service = new SiteInspectionService(repository);
 
-export const siteInspectionsRouter = Router();
+export const siteInspectionsRouter: RouterType = Router();
 
 // Inspection type and stage enums
 const inspectionTypes = ['SIMPLE', 'CLAUSE_REVIEW'] as const;

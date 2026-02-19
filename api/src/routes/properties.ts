@@ -1,4 +1,4 @@
-import { Router, type Request, type Response, type NextFunction } from 'express';
+import { Router, type Request, type Response, type NextFunction, type Router as RouterType } from 'express';
 import { z } from 'zod';
 import { PrismaClient, type Prisma } from '@prisma/client';
 import { PrismaPropertyRepository } from '../repositories/prisma/project.js';
@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 const repository = new PrismaPropertyRepository(prisma);
 const service = new PropertyService(repository);
 
-export const propertiesRouter = Router();
+export const propertiesRouter: RouterType = Router();
 
 // Territorial authority enum values
 const territorialAuthorities = [

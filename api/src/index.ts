@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { type Application } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
@@ -20,7 +20,7 @@ import { authMiddleware } from './middleware/auth.js';
 import { getAllowedOrigins } from './config/domain.js';
 import { logStartupDiagnostics } from './config/startup.js';
 
-const app = express();
+const app: Application = express();
 const PORT = process.env.PORT || 3000;
 
 // Trust first proxy (Fly.io reverse proxy)

@@ -1,4 +1,4 @@
-import { Router, type Request, type Response, type NextFunction } from 'express';
+import { Router, type Request, type Response, type NextFunction, type Router as RouterType } from 'express';
 import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
 import { PrismaBuildingCodeClauseRepository } from '../repositories/prisma/building-code.js';
@@ -9,7 +9,7 @@ const prisma = new PrismaClient();
 const repository = new PrismaBuildingCodeClauseRepository(prisma);
 const service = new BuildingCodeClauseService(repository);
 
-export const buildingCodeRouter = Router();
+export const buildingCodeRouter: RouterType = Router();
 
 // Enums
 const clauseCategories = ['B', 'C', 'D', 'E', 'F', 'G', 'H'] as const;

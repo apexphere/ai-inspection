@@ -4,7 +4,7 @@
  * Login endpoint with rate limiting.
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, type Router as RouterType } from 'express';
 import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
 import jwt from 'jsonwebtoken';
@@ -13,7 +13,7 @@ import { cookieDomain } from '../config/domain.js';
 
 const AUTH_PASSWORD = process.env.AUTH_PASSWORD;
 
-export const authRouter = Router();
+export const authRouter: RouterType = Router();
 
 // Rate limiting: stricter in production, relaxed for test environment
 const isTestEnv = process.env.NODE_ENV === 'test';
