@@ -72,3 +72,86 @@ enum Severity {
   MAJOR
   URGENT
 }
+
+// ============================================
+// Project Management Entities
+// ============================================
+
+model Project {
+  id          String        @id @default(uuid())
+  jobNumber   String        @unique
+  activity    String
+  reportType  ReportType
+  status      ProjectStatus @default(DRAFT)
+  propertyId  String
+  property    Property      @relation(fields: [propertyId], references: [id])
+  clientId    String
+  client      Client        @relation(fields: [clientId], references: [id])
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model Property {
+  id                   String               @id @default(uuid())
+  streetAddress        String
+  suburb               String?
+  city                 String?
+  postcode             String?
+  lotDp                String?
+  councilPropertyId    String?
+  territorialAuthority TerritorialAuthority
+  bcNumber             String?
+  yearBuilt            Int?
+  siteData             Json?
+  construction         Json?
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  
+  projects             Project[]
+}
+
+model Client {
+  id            String    @id @default(uuid())
+  name          String
+  email         String?
+  phone         String?
+  mobile        String?
+  address       String?
+  contactPerson String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  projects      Project[]
+}
+
+enum ReportType {
+  COA
+  CCC_GAP
+  PPI
+  SAFE_SANITARY
+  TFA
+}
+
+enum ProjectStatus {
+  DRAFT
+  IN_PROGRESS
+  REVIEW
+  COMPLETED
+}
+
+enum TerritorialAuthority {
+  AKL
+  WCC
+  CCC
+  HDC
+  TCC
+  DCC
+  HCC
+  PCC
+  NCC
+  ICC
+  NPDC
+  WDC
+  RDC
+  OTHER
+}
