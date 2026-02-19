@@ -4,3 +4,6 @@ export * from './findings.js';
 export * from './photos.js';
 export * from './reports.js';
 export * from './navigation.js';
+export * from './projects.js';
+export * from './properties.js';
+export * from './clients.js';

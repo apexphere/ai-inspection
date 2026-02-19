@@ -9,6 +9,9 @@ import { findingsRouter } from './routes/findings.js';
 import { photosRouter } from './routes/photos.js';
 import { reportsRouter } from './routes/reports.js';
 import { navigationRouter } from './routes/navigation.js';
+import { projectsRouter } from './routes/projects.js';
+import { propertiesRouter } from './routes/properties.js';
+import { clientsRouter } from './routes/clients.js';
 import { authMiddleware } from './middleware/auth.js';
 import { getAllowedOrigins } from './config/domain.js';
 import { logStartupDiagnostics } from './config/startup.js';
@@ -56,6 +59,9 @@ app.use('/api', authMiddleware, findingsRouter);
 app.use('/api', authMiddleware, photosRouter);
 app.use('/api', authMiddleware, reportsRouter);
 app.use('/api', authMiddleware, navigationRouter);
+app.use('/api/projects', authMiddleware, projectsRouter);
+app.use('/api/properties', authMiddleware, propertiesRouter);
+app.use('/api/clients', authMiddleware, clientsRouter);
 
 // Error handling with detailed logging
 app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
