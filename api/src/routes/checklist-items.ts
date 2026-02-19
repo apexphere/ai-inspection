@@ -17,24 +17,24 @@ const decisions = ['PASS', 'FAIL', 'NA'] as const;
 // Validation schemas
 const CreateChecklistItemSchema = z.object({
   category: z.enum(checklistCategories),
-  item: z.string().min(1, 'Item text is required'),
+  item: z.string().min(1, 'Item text is required').max(500),
   decision: z.enum(decisions),
-  notes: z.string().optional(),
-  photoIds: z.array(z.string()).optional(),
+  notes: z.string().max(2000).optional(),
+  photoIds: z.array(z.string().uuid()).max(50).optional(),
   sortOrder: z.number().int().optional(),
 });
 
 const UpdateChecklistItemSchema = z.object({
   category: z.enum(checklistCategories).optional(),
-  item: z.string().min(1).optional(),
+  item: z.string().min(1).max(500).optional(),
   decision: z.enum(decisions).optional(),
-  notes: z.string().optional(),
-  photoIds: z.array(z.string()).optional(),
+  notes: z.string().max(2000).optional(),
+  photoIds: z.array(z.string().uuid()).max(50).optional(),
   sortOrder: z.number().int().optional(),
 });
 
 const BulkCreateSchema = z.object({
-  items: z.array(CreateChecklistItemSchema),
+  items: z.array(CreateChecklistItemSchema).max(100, 'Maximum 100 items per bulk request'),
 });
 
 const ReorderSchema = z.object({

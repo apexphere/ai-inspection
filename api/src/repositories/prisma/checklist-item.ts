@@ -80,8 +80,8 @@ export class PrismaChecklistItemRepository implements IChecklistItemRepository {
   async reorder(inspectionId: string, itemIds: string[]): Promise<void> {
     await this.prisma.$transaction(
       itemIds.map((id, index) =>
-        this.prisma.checklistItem.update({
-          where: { id },
+        this.prisma.checklistItem.updateMany({
+          where: { id, inspectionId }, // Verify ownership
           data: { sortOrder: index },
         })
       )
