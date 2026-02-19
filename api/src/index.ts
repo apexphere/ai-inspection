@@ -16,6 +16,7 @@ import { siteInspectionsRouter } from './routes/site-inspections.js';
 import { checklistItemsRouter } from './routes/checklist-items.js';
 import { buildingCodeRouter } from './routes/building-code.js';
 import { clauseReviewsRouter } from './routes/clause-reviews.js';
+import { documentsRouter } from './routes/documents.js';
 import { authMiddleware } from './middleware/auth.js';
 import { getAllowedOrigins } from './config/domain.js';
 import { logStartupDiagnostics } from './config/startup.js';
@@ -70,6 +71,7 @@ app.use('/api', authMiddleware, siteInspectionsRouter);
 app.use('/api', authMiddleware, checklistItemsRouter);
 app.use('/api/building-code', authMiddleware, buildingCodeRouter);
 app.use('/api', authMiddleware, clauseReviewsRouter);
+app.use('/api', authMiddleware, documentsRouter);
 
 // Error handling with detailed logging
 app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
