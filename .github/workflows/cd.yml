@@ -62,17 +62,55 @@ jobs:
         env:
           API_URL: ${{ env.API_URL }}
 
+      - name: Verify database connectivity
+        run: |
+          echo "Verifying database connectivity before migrations..."
+          # Run a simple prisma query to ensure DB is awake and responsive
+          for i in 1 2 3; do
+            echo "Attempt $i: Testing database connection..."
+            if flyctl ssh console --app ai-inspection-api-test -C "sh -c 'cd /app && npx prisma db execute --stdin <<< \"SELECT 1;\"'" 2>&1; then
+              echo "Database connection verified!"
+              break
+            fi
+            echo "Connection test failed, waiting 10s..."
+            sleep 10
+          done
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
       - name: Run database migrations
         run: |
           echo "Running Prisma migrations..."
-          flyctl ssh console --app ai-inspection-api-test -C "sh -c 'cd /app && npx prisma migrate deploy'"
+          # Retry logic for migrations
+          for i in 1 2 3; do
+            echo "Migration attempt $i..."
+            if flyctl ssh console --app ai-inspection-api-test -C "sh -c 'cd /app && npx prisma migrate deploy'" 2>&1; then
+              echo "Migrations completed successfully!"
+              exit 0
+            fi
+            echo "Migration attempt $i failed, waiting 15s before retry..."
+            sleep 15
+          done
+          echo "All migration attempts failed"
+          exit 1
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
       - name: Seed database (test data)
         run: |
           echo "Seeding test database..."
-          flyctl ssh console --app ai-inspection-api-test -C "sh -c 'cd /app && npx tsx prisma/seed.ts'"
+          # Retry logic for seeding
+          for i in 1 2 3; do
+            echo "Seed attempt $i..."
+            if flyctl ssh console --app ai-inspection-api-test -C "sh -c 'cd /app && npx tsx prisma/seed.ts'" 2>&1; then
+              echo "Seeding completed successfully!"
+              exit 0
+            fi
+            echo "Seed attempt $i failed, waiting 15s before retry..."
+            sleep 15
+          done
+          echo "All seed attempts failed"
+          exit 1
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
