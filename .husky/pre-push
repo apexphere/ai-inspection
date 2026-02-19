@@ -8,6 +8,11 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 echo "📦 Checking api..."
 cd "$REPO_ROOT/api" && npm run typecheck && npm run lint || exit 1
 
+# Validate Prisma schema (use dummy URL for syntax check only)
+echo "🔍 Validating Prisma schema..."
+cd "$REPO_ROOT/api"
+DATABASE_URL="postgresql://localhost/dummy" npx prisma validate || exit 1
+
 # Check web
 echo "📦 Checking web..."
 cd "$REPO_ROOT/web" && npm run typecheck && npm run lint || exit 1
