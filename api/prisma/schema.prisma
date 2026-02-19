@@ -203,8 +203,44 @@ model SiteInspection {
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
   
+  // Relations
+  checklistItems    ChecklistItem[]
+  
   @@index([projectId])
   @@index([status])
+}
+
+model ChecklistItem {
+  id              String          @id @default(uuid())
+  inspectionId    String
+  inspection      SiteInspection  @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  
+  category        ChecklistCategory
+  item            String
+  decision        Decision
+  notes           String?
+  
+  photoIds        String[]        @default([])
+  
+  sortOrder       Int             @default(0)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  @@index([inspectionId, category])
+}
+
+enum ChecklistCategory {
+  EXTERIOR
+  INTERIOR
+  DECKS
+  SERVICES
+  SITE
+}
+
+enum Decision {
+  PASS
+  FAIL
+  NA
 }
 
 enum InspectionType {

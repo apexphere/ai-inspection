@@ -8,3 +8,4 @@ export * from './projects.js';
 export * from './properties.js';
 export * from './clients.js';
 export * from './site-inspections.js';
+export * from './checklist-items.js';
