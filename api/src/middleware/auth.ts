@@ -48,6 +48,34 @@ export function generateToken(userId: string): string {
 }
 
 /**
+ * Require admin role for protected endpoints
+ * For now, admins are identified by checking personnel role
+ */
+export function requireAdmin(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): void {
+  // Check if user is authenticated
+  if (!req.userId) {
+    res.status(401).json({ error: 'Authentication required' });
+    return;
+  }
+
+  // For MVP: Check if user ID is in admin list (env var)
+  // In production: Look up user's personnel role
+  const adminUsers = (process.env.ADMIN_USER_IDS || '').split(',').filter(Boolean);
+  
+  if (adminUsers.length > 0 && !adminUsers.includes(req.userId)) {
+    res.status(403).json({ error: 'Admin access required' });
+    return;
+  }
+
+  // If no admin list configured, allow access (development mode)
+  next();
+}
+
+/**
  * Verify password against stored hash
  */
 export async function verifyPassword(

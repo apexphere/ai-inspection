@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
 import { PrismaBuildingCodeClauseRepository } from '../repositories/prisma/building-code.js';
 import { BuildingCodeClauseService, BuildingCodeClauseNotFoundError } from '../services/building-code.js';
+import { requireAdmin } from '../middleware/auth.js';
 
 const prisma = new PrismaClient();
 const repository = new PrismaBuildingCodeClauseRepository(prisma);
@@ -110,7 +111,7 @@ buildingCodeRouter.get('/clauses/:id/children', async (req: Request, res: Respon
 });
 
 // POST /api/building-code/clauses - Create clause (admin)
-buildingCodeRouter.post('/clauses', async (req: Request, res: Response, next: NextFunction) => {
+buildingCodeRouter.post('/clauses', requireAdmin, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const parsed = CreateClauseSchema.safeParse(req.body);
 
@@ -130,9 +131,9 @@ buildingCodeRouter.post('/clauses', async (req: Request, res: Response, next: Ne
 });
 
 // POST /api/building-code/clauses/bulk - Bulk create (admin/seed)
-buildingCodeRouter.post('/clauses/bulk', async (req: Request, res: Response, next: NextFunction) => {
+buildingCodeRouter.post('/clauses/bulk', requireAdmin, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const clauses = z.array(CreateClauseSchema).safeParse(req.body);
+    const clauses = z.array(CreateClauseSchema).max(100, 'Maximum 100 items per bulk request').safeParse(req.body);
 
     if (!clauses.success) {
       res.status(400).json({
@@ -150,7 +151,7 @@ buildingCodeRouter.post('/clauses/bulk', async (req: Request, res: Response, nex
 });
 
 // PUT /api/building-code/clauses/:id - Update clause (admin)
-buildingCodeRouter.put('/clauses/:id', async (req: Request, res: Response, next: NextFunction) => {
+buildingCodeRouter.put('/clauses/:id', requireAdmin, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id as string;
     const parsed = UpdateClauseSchema.safeParse(req.body);
@@ -178,7 +179,7 @@ buildingCodeRouter.put('/clauses/:id', async (req: Request, res: Response, next:
 });
 
 // DELETE /api/building-code/clauses/:id - Delete clause (admin)
-buildingCodeRouter.delete('/clauses/:id', async (req: Request, res: Response, next: NextFunction) => {
+buildingCodeRouter.delete('/clauses/:id', requireAdmin, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = req.params.id as string;
     await service.delete(id);
