@@ -1,16 +1,17 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/auth';
+import { usePathname } from 'next/navigation';
+import { useSession, signOut } from 'next-auth/react';
 
 export function AppHeader(): React.ReactElement | null {
   const pathname = usePathname();
-  const router = useRouter();
-  const { isAuthenticated, isLoading, logout } = useAuth();
+  const { data: session, status } = useSession();
+  const isAuthenticated = status === 'authenticated';
+  const isLoading = status === 'loading';
 
-  // Don't show header on login page
-  if (pathname === '/login') {
+  // Don't show header on login/register pages
+  if (pathname === '/login' || pathname === '/register') {
     return null;
   }
 
@@ -20,8 +21,7 @@ export function AppHeader(): React.ReactElement | null {
   }
 
   const handleLogout = async (): Promise<void> => {
-    await logout();
-    router.push('/login');
+    await signOut({ callbackUrl: '/login' });
   };
 
   return (
@@ -46,12 +46,17 @@ export function AppHeader(): React.ReactElement | null {
             )}
           </div>
           {isAuthenticated && (
-            <button
-              onClick={handleLogout}
-              className="text-sm font-medium text-gray-600 hover:text-gray-900"
-            >
-              Sign Out
-            </button>
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-600">
+                {session?.user?.email}
+              </span>
+              <button
+                onClick={handleLogout}
+                className="text-sm font-medium text-gray-600 hover:text-gray-900"
+              >
+                Sign Out
+              </button>
+            </div>
           )}
         </div>
       </div>
