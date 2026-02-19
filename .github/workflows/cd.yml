@@ -62,22 +62,6 @@ jobs:
         env:
           API_URL: ${{ env.API_URL }}
 
-      - name: Verify database connectivity
-        run: |
-          echo "Verifying database connectivity before migrations..."
-          # Run a simple prisma query to ensure DB is awake and responsive
-          for i in 1 2 3; do
-            echo "Attempt $i: Testing database connection..."
-            if timeout 60 flyctl ssh console --app ai-inspection-api-test -C "sh -c 'cd /app && echo \"SELECT 1;\" | npx prisma db execute --stdin'" 2>&1; then
-              echo "Database connection verified!"
-              break
-            fi
-            echo "Connection test failed, waiting 10s..."
-            sleep 10
-          done
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-
       - name: Run database migrations
         run: |
           echo "Running Prisma migrations..."
