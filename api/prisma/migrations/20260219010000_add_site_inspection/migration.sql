@@ -2,7 +2,7 @@
 CREATE TYPE "InspectionType" AS ENUM ('SIMPLE', 'CLAUSE_REVIEW');
 
 -- CreateEnum
-CREATE TYPE "InspectionStage" AS ENUM ('INS_01', 'INS_02', 'INS_03', 'INS_04', 'INS_05', 'INS_06', 'INS_07', 'INS_07A', 'INS_08', 'INS_09', 'INS_10', 'INS_11', 'COA', 'CCC_GA', 'S_AND_S');
+CREATE TYPE "InspectionStage" AS ENUM ('INS_01', 'INS_02', 'INS_03', 'INS_04', 'INS_05', 'INS_06', 'INS_07', 'INS_07A', 'INS_08', 'INS_09', 'INS_10', 'INS_11', 'COA', 'CCC_GA', 'S_AND_S', 'TFA', 'DMG');
 
 -- CreateEnum
 CREATE TYPE "InspectionStatus" AS ENUM ('DRAFT', 'IN_PROGRESS', 'REVIEW', 'COMPLETED');
