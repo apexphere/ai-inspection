@@ -1,4 +1,4 @@
-import { Router, type Request, type Response, type NextFunction } from 'express';
+import { Router, type Request, type Response, type NextFunction, type Router as RouterType } from 'express';
 import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
 import { PrismaClauseReviewRepository } from '../repositories/prisma/clause-review.js';
@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 const repository = new PrismaClauseReviewRepository(prisma);
 const service = new ClauseReviewService(repository);
 
-export const clauseReviewsRouter = Router();
+export const clauseReviewsRouter: RouterType = Router();
 
 // Enums
 const applicabilityValues = ['APPLICABLE', 'NA'] as const;

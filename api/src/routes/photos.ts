@@ -1,4 +1,4 @@
-import { Router, type Request, type Response, type NextFunction } from 'express';
+import { Router, type Request, type Response, type NextFunction, type Router as RouterType } from 'express';
 import * as fs from 'node:fs/promises';
 import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
@@ -14,7 +14,7 @@ const prisma = new PrismaClient();
 const repository = new PrismaInspectionRepository(prisma);
 const service = new PhotoService(repository);
 
-export const photosRouter = Router();
+export const photosRouter: RouterType = Router();
 
 // Validation schema
 const UploadPhotoSchema = z.object({

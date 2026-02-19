@@ -1,4 +1,4 @@
-import { Router, type Request, type Response, type NextFunction } from 'express';
+import { Router, type Request, type Response, type NextFunction, type Router as RouterType } from 'express';
 import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
 import { PrismaClientRepository } from '../repositories/prisma/project.js';
@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 const repository = new PrismaClientRepository(prisma);
 const service = new ClientService(repository);
 
-export const clientsRouter = Router();
+export const clientsRouter: RouterType = Router();
 
 // Validation schemas
 const CreateClientSchema = z.object({
