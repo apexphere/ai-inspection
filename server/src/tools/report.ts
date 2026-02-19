@@ -20,7 +20,7 @@ export function registerReportTools(server: McpServer): void {
     "inspection_complete",
     "Finish the inspection and generate the PDF report",
     {
-      inspection_id: z.string().describe("ID of the inspection to complete"),
+      inspection_id: z.string().uuid().describe("ID of the inspection to complete"),
       summary_notes: z.string().optional().describe("Overall summary or additional notes"),
       weather: z.string().optional().describe("Weather conditions at time of inspection"),
     },
@@ -154,7 +154,7 @@ export function registerReportTools(server: McpServer): void {
     "inspection_get_report",
     "Retrieve a generated inspection report",
     {
-      inspection_id: z.string().describe("ID of the inspection"),
+      inspection_id: z.string().uuid().describe("ID of the inspection"),
       format: z.enum(["pdf", "markdown"]).optional().describe("Report format (default: pdf)"),
     },
     async ({ inspection_id, format = "pdf" }) => {

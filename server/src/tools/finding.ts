@@ -28,7 +28,7 @@ export function registerFindingTools(server: McpServer): void {
     "inspection_add_finding",
     "Record a finding or issue during the inspection with optional photos",
     {
-      inspection_id: z.string().describe("ID of the active inspection"),
+      inspection_id: z.string().uuid().describe("ID of the active inspection"),
       section: z.string().optional().describe("Section ID (defaults to current section)"),
       text: z.string().describe("Inspector's note or description of the finding"),
       photos: z.array(z.object({
@@ -163,19 +163,19 @@ export function registerFindingTools(server: McpServer): void {
     "site_inspection_add_finding",
     "Record a finding for a site inspection - creates ChecklistItem (Simple mode) or ClauseReview observation (Clause Review mode)",
     {
-      inspection_id: z.string().describe("ID of the site inspection"),
+      inspection_id: z.string().uuid().describe("ID of the site inspection"),
       // For Simple mode
       category: z.enum(['EXTERIOR', 'INTERIOR', 'DECKS', 'SERVICES', 'SITE']).optional()
         .describe("Category for Simple mode checklist item"),
       item: z.string().optional().describe("Checklist item name (Simple mode)"),
       decision: z.enum(['PASS', 'FAIL', 'NA']).optional().describe("Decision for Simple mode"),
       // For Clause Review mode
-      clause_id: z.string().optional().describe("Building code clause ID (Clause Review mode)"),
+      clause_id: z.string().uuid().optional().describe("Building code clause ID (Clause Review mode)"),
       applicability: z.enum(['APPLICABLE', 'NA']).optional().describe("Clause applicability (Clause Review mode)"),
       na_reason: z.string().optional().describe("Reason for N/A (Clause Review mode)"),
       // Common
       notes: z.string().optional().describe("Notes or observations"),
-      photo_ids: z.array(z.string()).optional().describe("Photo IDs to attach"),
+      photo_ids: z.array(z.string().uuid()).optional().describe("Photo IDs to attach"),
     },
     async ({ inspection_id, category, item, decision, clause_id, applicability, notes, na_reason, photo_ids }) => {
       try {

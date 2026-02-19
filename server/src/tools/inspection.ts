@@ -143,7 +143,7 @@ export function registerInspectionTools(server: McpServer): void {
     "inspection_status",
     "Get the current inspection state and progress",
     {
-      inspection_id: z.string().describe("ID of the inspection to check"),
+      inspection_id: z.string().uuid().describe("ID of the inspection to check"),
     },
     async ({ inspection_id }) => {
       try {
@@ -219,7 +219,7 @@ export function registerInspectionTools(server: McpServer): void {
     "site_inspection_start",
     "Start a new site inspection with Simple (Pass/Fail) or Clause Review (COA/CCC) mode",
     {
-      project_id: z.string().describe("ID of the project to attach inspection to"),
+      project_id: z.string().uuid().describe("ID of the project to attach inspection to"),
       type: z.enum(['SIMPLE', 'CLAUSE_REVIEW']).describe("Inspection type: SIMPLE for Pass/Fail, CLAUSE_REVIEW for COA/CCC"),
       stage: z.string().describe("Inspection stage (e.g., INS_05, COA, CCC_GA)"),
       inspector_name: z.string().describe("Name of the inspector"),
@@ -320,7 +320,7 @@ export function registerInspectionTools(server: McpServer): void {
     "site_inspection_status",
     "Get status and progress for a site inspection",
     {
-      inspection_id: z.string().describe("ID of the site inspection"),
+      inspection_id: z.string().uuid().describe("ID of the site inspection"),
     },
     async ({ inspection_id }) => {
       try {
