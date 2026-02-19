@@ -1,6 +1,10 @@
 'use client';
 
+import { useCallback } from 'react';
 import { CollapsibleSection } from '@/components/collapsible-section';
+import { PhotoGrid, Photo } from '@/components/photo-grid';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 interface Project {
   id: string;
@@ -52,7 +56,10 @@ interface Project {
     id: string;
     reportNumber: number;
     caption: string;
+    filePath: string;
     thumbnailPath: string | null;
+    source: string;
+    linkedClauses: string[];
   }>;
 }
 
@@ -259,40 +266,73 @@ export function ProjectSections({ project }: ProjectSectionsProps): React.ReactE
       </CollapsibleSection>
 
       {/* Photos Section */}
-      <CollapsibleSection
-        id="photos"
-        title="Photos"
-        completionStatus={photoCount > 0 ? `${photoCount} photos` : undefined}
-      >
-        {photoCount === 0 ? (
-          <p className="text-sm text-gray-500 italic">No photos attached</p>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {project.photos?.map((photo) => (
-              <div key={photo.id} className="group relative">
-                <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                  {photo.thumbnailPath ? (
-                    <img
-                      src={photo.thumbnailPath}
-                      alt={photo.caption}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-                <p className="mt-1 text-xs text-gray-600 truncate">
-                  #{photo.reportNumber}: {photo.caption}
-                </p>
-              </div>
-            ))}
-          </div>
-        )}
-      </CollapsibleSection>
+      <PhotosSection
+        projectId={project.id}
+        photos={project.photos ?? []}
+        photoCount={photoCount}
+      />
     </div>
+  );
+}
+
+/**
+ * Photos Section with PhotoGrid — Issue #187
+ */
+function PhotosSection({
+  projectId,
+  photos,
+  photoCount,
+}: {
+  projectId: string;
+  photos: Photo[];
+  photoCount: number;
+}): React.ReactElement {
+  const handleReorder = useCallback(
+    async (photoIds: string[]): Promise<void> => {
+      await fetch(`${API_URL}/api/projects/${projectId}/photos/reorder`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ photoIds }),
+      });
+    },
+    [projectId]
+  );
+
+  const handleUpdateCaption = useCallback(
+    async (photoId: string, caption: string): Promise<void> => {
+      await fetch(`${API_URL}/api/photos/${photoId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ caption }),
+      });
+    },
+    []
+  );
+
+  const handleDelete = useCallback(
+    async (photoId: string): Promise<void> => {
+      await fetch(`${API_URL}/api/photos/${photoId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+    },
+    []
+  );
+
+  return (
+    <CollapsibleSection
+      id="photos"
+      title="Photos"
+      completionStatus={photoCount > 0 ? `${photoCount} photos` : undefined}
+    >
+      <PhotoGrid
+        photos={photos}
+        onReorder={handleReorder}
+        onUpdateCaption={handleUpdateCaption}
+        onDelete={handleDelete}
+      />
+    </CollapsibleSection>
   );
 }
