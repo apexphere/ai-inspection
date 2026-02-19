@@ -1,0 +1,192 @@
+[
+  {
+    "code": "B1",
+    "title": "Structure",
+    "category": "B",
+    "objective": "Safeguard people from injury caused by structural failure",
+    "performanceText": "Buildings, building elements and sitework shall withstand the combination of loads that they are likely to experience during construction or alteration and throughout their lives.",
+    "durabilityPeriod": "FIFTY_YEARS",
+    "typicalEvidence": ["PS1 Design", "PS3 Structural", "Foundation inspection"],
+    "sortOrder": 1
+  },
+  {
+    "code": "B2",
+    "title": "Durability",
+    "category": "B",
+    "objective": "Ensure building elements remain functional for their intended life",
+    "performanceText": "Building materials, components and construction methods shall be sufficiently durable to ensure that the building, without reconstruction or major renovation, satisfies the other functional requirements of this code throughout the life of the building.",
+    "durabilityPeriod": null,
+    "typicalEvidence": ["Material data sheets", "Warranties", "Treatment certificates"],
+    "sortOrder": 2
+  },
+  {
+    "code": "C1",
+    "title": "Outbreak of Fire",
+    "category": "C",
+    "objective": "Safeguard people from injury or illness caused by fire",
+    "performanceText": "Buildings shall be designed and constructed so that there is a low probability of fire occurring.",
+    "durabilityPeriod": "FIFTY_YEARS",
+    "typicalEvidence": ["Fire report", "Smoke alarm compliance"],
+    "sortOrder": 10
+  },
+  {
+    "code": "C2",
+    "title": "Means of Escape",
+    "category": "C",
+    "objective": "Safeguard people from injury during evacuation",
+    "performanceText": "Buildings shall be provided with means of escape to enable safe evacuation.",
+    "durabilityPeriod": "FIFTY_YEARS",
+    "typicalEvidence": ["Fire report", "Exit signage"],
+    "sortOrder": 11
+  },
+  {
+    "code": "D1",
+    "title": "Access Routes",
+    "category": "D",
+    "objective": "Provide safe and easy access for all building users",
+    "performanceText": "Buildings shall be provided with reasonable and adequate access for people with disabilities.",
+    "durabilityPeriod": "FIFTY_YEARS",
+    "typicalEvidence": ["Accessibility compliance report"],
+    "sortOrder": 20
+  },
+  {
+    "code": "E1",
+    "title": "Surface Water",
+    "category": "E",
+    "objective": "Protect people and property from surface water",
+    "performanceText": "Buildings and sitework shall be constructed to protect people and other property from the adverse effects of surface water.",
+    "durabilityPeriod": "FIFTEEN_YEARS",
+    "typicalEvidence": ["Site photos", "Drainage plan"],
+    "sortOrder": 30
+  },
+  {
+    "code": "E2",
+    "title": "External Moisture",
+    "category": "E",
+    "objective": "Protect building elements from external moisture damage",
+    "performanceText": "Buildings must be constructed to provide adequate resistance to penetration by, and the accumulation of, moisture from the outside.",
+    "durabilityPeriod": "FIFTEEN_YEARS",
+    "typicalEvidence": ["Window test report", "Cladding inspection", "Photos"],
+    "sortOrder": 31
+  },
+  {
+    "code": "E3",
+    "title": "Internal Moisture",
+    "category": "E",
+    "objective": "Protect building elements from internal moisture damage",
+    "performanceText": "Buildings must be constructed to avoid the likelihood of fungal growth or the accumulation of contaminants on linings and other building elements likely to become damp; uncontrolled overflow of water in sanitary fixtures; damage to building elements caused by the presence of moisture.",
+    "durabilityPeriod": "FIFTEEN_YEARS",
+    "typicalEvidence": ["PS3 Waterproofing", "Flood test report", "Tanking warranty", "Moisture readings"],
+    "sortOrder": 32
+  },
+  {
+    "code": "F1",
+    "title": "Hazardous Agents on Site",
+    "category": "F",
+    "objective": "Safeguard people from hazardous agents",
+    "performanceText": "Buildings shall be constructed to avoid people within the building being adversely affected by hazardous agents on the site.",
+    "durabilityPeriod": "FIFTEEN_YEARS",
+    "typicalEvidence": ["Asbestos test", "Meth test", "Contamination report"],
+    "sortOrder": 40
+  },
+  {
+    "code": "F2",
+    "title": "Hazardous Building Materials",
+    "category": "F",
+    "objective": "Safeguard people from hazardous building materials",
+    "performanceText": "Building materials which may be potentially hazardous to people shall be used in a way which ensures that the material is unlikely to be a significant source of contamination.",
+    "durabilityPeriod": "FIFTEEN_YEARS",
+    "typicalEvidence": ["Material safety data sheets"],
+    "sortOrder": 41
+  },
+  {
+    "code": "F4",
+    "title": "Safety from Falling",
+    "category": "F",
+    "objective": "Safeguard people from injury caused by falling",
+    "performanceText": "Buildings shall be constructed to reduce the likelihood of accidental fall from one level to another; on a surface or through an opening; or of objects falling onto people.",
+    "durabilityPeriod": "FIFTY_YEARS",
+    "typicalEvidence": ["Barrier height measurements", "Balustrade photos"],
+    "sortOrder": 42
+  },
+  {
+    "code": "G1",
+    "title": "Personal Hygiene",
+    "category": "G",
+    "objective": "Provide adequate facilities for personal hygiene",
+    "performanceText": "Buildings shall be provided with appropriate spaces and facilities for personal hygiene.",
+    "durabilityPeriod": "FIFTEEN_YEARS",
+    "typicalEvidence": ["Bathroom photos", "Fixture schedule"],
+    "sortOrder": 50
+  },
+  {
+    "code": "G4",
+    "title": "Ventilation",
+    "category": "G",
+    "objective": "Provide adequate ventilation for occupant health",
+    "performanceText": "Spaces within buildings shall be provided with adequate ventilation consistent with their intended use.",
+    "durabilityPeriod": "FIFTEEN_YEARS",
+    "typicalEvidence": ["Ventilation photos", "Extract fan specs"],
+    "sortOrder": 53
+  },
+  {
+    "code": "G7",
+    "title": "Natural Light",
+    "category": "G",
+    "objective": "Provide adequate natural light in habitable spaces",
+    "performanceText": "Adequate openings for natural light shall be provided to habitable spaces.",
+    "durabilityPeriod": "FIFTY_YEARS",
+    "typicalEvidence": ["Window schedule", "Room photos"],
+    "sortOrder": 56
+  },
+  {
+    "code": "G9",
+    "title": "Electricity",
+    "category": "G",
+    "objective": "Ensure safe electrical installations",
+    "performanceText": "Buildings with electrical installations shall be constructed so that the electrical installation is safe for the intended use.",
+    "durabilityPeriod": "FIFTEEN_YEARS",
+    "typicalEvidence": ["Electrical CoC", "ESC (Electrical Safety Certificate)"],
+    "sortOrder": 58
+  },
+  {
+    "code": "G10",
+    "title": "Piped Services",
+    "category": "G",
+    "objective": "Ensure safe piped services installations",
+    "performanceText": "Buildings with piped services installations shall be provided in a way which safeguards people from illness or injury.",
+    "durabilityPeriod": "FIFTEEN_YEARS",
+    "typicalEvidence": ["Plumbing photos", "PS3 Plumbing"],
+    "sortOrder": 59
+  },
+  {
+    "code": "G12",
+    "title": "Water Supplies",
+    "category": "G",
+    "objective": "Provide safe and adequate water supplies",
+    "performanceText": "Buildings provided with water outlets, sanitary fixtures, or sanitary appliances must have safe, potable water that is adequate for the intended use.",
+    "durabilityPeriod": "FIFTEEN_YEARS",
+    "typicalEvidence": ["PS3 Plumbing", "Water supply photos"],
+    "sortOrder": 61
+  },
+  {
+    "code": "G13",
+    "title": "Foul Water",
+    "category": "G",
+    "objective": "Ensure safe disposal of foul water",
+    "performanceText": "Buildings with sanitary fixtures or sanitary appliances must have drainage which disposes of foul water in a way that avoids causing illness to people.",
+    "durabilityPeriod": "FIFTEEN_YEARS",
+    "typicalEvidence": ["PS3 Plumbing", "Drainage photos", "Connection certificate"],
+    "sortOrder": 62
+  },
+  {
+    "code": "H1",
+    "title": "Energy Efficiency",
+    "category": "H",
+    "objective": "Provide energy efficient buildings",
+    "performanceText": "Buildings must be constructed to achieve an adequate degree of energy efficiency when energy is used for space heating, hot water heating, artificial lighting, or air conditioning.",
+    "durabilityPeriod": "FIFTY_YEARS",
+    "typicalEvidence": ["Insulation R-values", "H1 calculation", "Glazing specs"],
+    "sortOrder": 70
+  }
+]
