@@ -6,7 +6,14 @@
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { inspectionApi, findingsApi, photosApi } from "../api/client.js";
+import { 
+  inspectionApi, 
+  findingsApi, 
+  photosApi,
+  siteInspectionApi,
+  checklistItemApi,
+  clauseReviewApi,
+} from "../api/client.js";
 import { commentLibrary } from "../services/comments.js";
 
 // ============================================================================
@@ -21,7 +28,7 @@ export function registerFindingTools(server: McpServer): void {
     "inspection_add_finding",
     "Record a finding or issue during the inspection with optional photos",
     {
-      inspection_id: z.string().describe("ID of the active inspection"),
+      inspection_id: z.string().uuid().describe("ID of the active inspection"),
       section: z.string().optional().describe("Section ID (defaults to current section)"),
       text: z.string().describe("Inspector's note or description of the finding"),
       photos: z.array(z.object({
@@ -134,6 +141,162 @@ export function registerFindingTools(server: McpServer): void {
             text: JSON.stringify(response, null, 2),
           }],
         };
+      } catch (error) {
+        return {
+          content: [{
+            type: "text" as const,
+            text: JSON.stringify({
+              error: "Failed to add finding",
+              details: error instanceof Error ? error.message : String(error),
+            }, null, 2),
+          }],
+          isError: true,
+        };
+      }
+    }
+  );
+
+  // -------------------------------------------------------------------------
+  // site_inspection_add_finding - Add finding to site inspection
+  // -------------------------------------------------------------------------
+  server.tool(
+    "site_inspection_add_finding",
+    "Record a finding for a site inspection - creates ChecklistItem (Simple mode) or ClauseReview observation (Clause Review mode)",
+    {
+      inspection_id: z.string().uuid().describe("ID of the site inspection"),
+      // For Simple mode
+      category: z.enum(['EXTERIOR', 'INTERIOR', 'DECKS', 'SERVICES', 'SITE']).optional()
+        .describe("Category for Simple mode checklist item"),
+      item: z.string().optional().describe("Checklist item name (Simple mode)"),
+      decision: z.enum(['PASS', 'FAIL', 'NA']).optional().describe("Decision for Simple mode"),
+      // For Clause Review mode
+      clause_id: z.string().uuid().optional().describe("Building code clause ID (Clause Review mode)"),
+      applicability: z.enum(['APPLICABLE', 'NA']).optional().describe("Clause applicability (Clause Review mode)"),
+      na_reason: z.string().optional().describe("Reason for N/A (Clause Review mode)"),
+      // Common
+      notes: z.string().optional().describe("Notes or observations"),
+      photo_ids: z.array(z.string().uuid()).optional().describe("Photo IDs to attach"),
+    },
+    async ({ inspection_id, category, item, decision, clause_id, applicability, notes, na_reason, photo_ids }) => {
+      try {
+        // Get inspection to determine type
+        const inspResult = await siteInspectionApi.get(inspection_id);
+        if (!inspResult.ok || !inspResult.data) {
+          return {
+            content: [{
+              type: "text" as const,
+              text: JSON.stringify({
+                error: "Inspection not found",
+                inspection_id,
+              }, null, 2),
+            }],
+            isError: true,
+          };
+        }
+
+        const inspection = inspResult.data;
+
+        if (inspection.type === 'SIMPLE') {
+          // Simple mode - create ChecklistItem
+          if (!category || !item || !decision) {
+            return {
+              content: [{
+                type: "text" as const,
+                text: JSON.stringify({
+                  error: "Simple mode requires category, item, and decision",
+                  inspection_type: "SIMPLE",
+                }, null, 2),
+              }],
+              isError: true,
+            };
+          }
+
+          const result = await checklistItemApi.create(inspection_id, {
+            category,
+            item,
+            decision,
+            notes,
+            photoIds: photo_ids,
+          });
+
+          if (!result.ok || !result.data) {
+            return {
+              content: [{
+                type: "text" as const,
+                text: JSON.stringify({
+                  error: "Failed to create checklist item",
+                  details: result.error,
+                }, null, 2),
+              }],
+              isError: true,
+            };
+          }
+
+          return {
+            content: [{
+              type: "text" as const,
+              text: JSON.stringify({
+                item_id: result.data.id,
+                category: result.data.category,
+                item: result.data.item,
+                decision: result.data.decision,
+                notes: result.data.notes,
+                photos_attached: result.data.photoIds?.length || 0,
+                message: `Checklist item recorded: ${item} - ${decision}`,
+              }, null, 2),
+            }],
+          };
+        } else {
+          // Clause Review mode - create or update ClauseReview
+          if (!clause_id) {
+            return {
+              content: [{
+                type: "text" as const,
+                text: JSON.stringify({
+                  error: "Clause Review mode requires clause_id",
+                  inspection_type: "CLAUSE_REVIEW",
+                }, null, 2),
+              }],
+              isError: true,
+            };
+          }
+
+          const result = await clauseReviewApi.create(inspection_id, {
+            clauseId: clause_id,
+            applicability: applicability || 'APPLICABLE',
+            naReason: na_reason,
+            observations: notes,
+            photoIds: photo_ids,
+          });
+
+          if (!result.ok || !result.data) {
+            return {
+              content: [{
+                type: "text" as const,
+                text: JSON.stringify({
+                  error: "Failed to create clause review",
+                  details: result.error,
+                }, null, 2),
+              }],
+              isError: true,
+            };
+          }
+
+          return {
+            content: [{
+              type: "text" as const,
+              text: JSON.stringify({
+                review_id: result.data.id,
+                clause_code: result.data.clause.code,
+                clause_title: result.data.clause.title,
+                applicability: result.data.applicability,
+                observations: result.data.observations,
+                photos_attached: result.data.photoIds?.length || 0,
+                message: `Clause ${result.data.clause.code} reviewed: ${result.data.applicability}`,
+              }, null, 2),
+            }],
+          };
+        }
       } catch (error) {
         return {
           content: [{

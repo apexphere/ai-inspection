@@ -25,7 +25,7 @@ export function registerTools(server: McpServer): void {
     "inspection_navigate",
     "Navigate to a different section of the inspection checklist",
     {
-      inspection_id: z.string().describe("ID of the active inspection"),
+      inspection_id: z.string().uuid().describe("ID of the active inspection"),
       section: z.string().describe("Section ID to navigate to"),
     },
     async ({ inspection_id, section }) => {
@@ -83,7 +83,7 @@ export function registerTools(server: McpServer): void {
     "inspection_suggest_next",
     "Get guidance for what to do next based on current state",
     {
-      inspection_id: z.string().describe("ID of the active inspection"),
+      inspection_id: z.string().uuid().describe("ID of the active inspection"),
     },
     async ({ inspection_id }) => {
       try {
