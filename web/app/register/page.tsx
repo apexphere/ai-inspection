@@ -5,19 +5,65 @@ import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 
-export default function LoginPage(): React.ReactElement {
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
+export default function RegisterPage(): React.ReactElement {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const validateForm = (): string | null => {
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return 'Please enter a valid email address';
+    }
+
+    // Password strength validation
+    if (password.length < 8) {
+      return 'Password must be at least 8 characters';
+    }
+
+    // Confirm password
+    if (password !== confirmPassword) {
+      return 'Passwords do not match';
+    }
+
+    return null;
+  };
 
   const handleSubmit = async (e: FormEvent): Promise<void> => {
     e.preventDefault();
     setError(null);
+
+    // Validate form
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
     setSubmitting(true);
 
     try {
+      // Register with API
+      const response = await fetch(`${API_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        setError(data.error || 'Registration failed');
+        setSubmitting(false);
+        return;
+      }
+
+      // Auto sign-in after registration
       const result = await signIn('credentials', {
         email,
         password,
@@ -25,8 +71,8 @@ export default function LoginPage(): React.ReactElement {
       });
 
       if (result?.error) {
-        setError('Invalid email or password');
-        setSubmitting(false);
+        // Registration succeeded but auto-login failed, redirect to login
+        router.push('/login');
       } else {
         router.push('/inspections');
         router.refresh();
@@ -42,7 +88,7 @@ export default function LoginPage(): React.ReactElement {
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">AI Inspection</h1>
-          <p className="mt-2 text-gray-600">Sign in to your account</p>
+          <p className="mt-2 text-gray-600">Create your account</p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white shadow rounded-lg p-8">
@@ -76,7 +122,7 @@ export default function LoginPage(): React.ReactElement {
             />
           </div>
 
-          <div className="mb-6">
+          <div className="mb-4">
             <label
               htmlFor="password"
               className="block text-sm font-medium text-gray-700 mb-2"
@@ -90,24 +136,47 @@ export default function LoginPage(): React.ReactElement {
               onChange={(e) => setPassword(e.target.value)}
               disabled={submitting}
               required
-              autoComplete="current-password"
+              autoComplete="new-password"
               className="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
-              placeholder="Enter password"
+              placeholder="At least 8 characters"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Minimum 8 characters
+            </p>
+          </div>
+
+          <div className="mb-6">
+            <label
+              htmlFor="confirmPassword"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Confirm Password
+            </label>
+            <input
+              id="confirmPassword"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              disabled={submitting}
+              required
+              autoComplete="new-password"
+              className="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
+              placeholder="Confirm password"
             />
           </div>
 
           <button
             type="submit"
-            disabled={submitting || !email || !password}
+            disabled={submitting || !email || !password || !confirmPassword}
             className="w-full px-4 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {submitting ? 'Signing in...' : 'Sign In'}
+            {submitting ? 'Creating account...' : 'Create Account'}
           </button>
 
           <p className="mt-4 text-center text-sm text-gray-600">
-            Don&apos;t have an account?{' '}
-            <Link href="/register" className="text-blue-600 hover:text-blue-700 font-medium">
-              Register
+            Already have an account?{' '}
+            <Link href="/login" className="text-blue-600 hover:text-blue-700 font-medium">
+              Sign in
             </Link>
           </p>
         </form>

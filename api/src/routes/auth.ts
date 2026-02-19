@@ -1,40 +1,112 @@
 /**
- * Auth Routes — Issue #41
+ * Auth Routes — Issue #181
  *
- * Login endpoint with rate limiting.
+ * User authentication with email/password.
+ * Supports registration, login, logout, and session check.
  */
 
 import { Router, Request, Response, type Router as RouterType } from 'express';
 import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
 import jwt from 'jsonwebtoken';
-import { generateToken, verifyPassword } from '../middleware/auth.js';
+import bcrypt from 'bcrypt';
+import { PrismaClient } from '@prisma/client';
+import { generateToken } from '../middleware/auth.js';
 import { cookieDomain } from '../config/domain.js';
 
-const AUTH_PASSWORD = process.env.AUTH_PASSWORD;
+const prisma = new PrismaClient();
 
 export const authRouter: RouterType = Router();
 
+const SALT_ROUNDS = 12;
+const JWT_SECRET = process.env.JWT_SECRET || (
+  process.env.NODE_ENV === 'production' 
+    ? (() => { throw new Error('JWT_SECRET must be set in production'); })()
+    : 'development-secret-min-32-chars!!'
+);
+
 // Rate limiting: stricter in production, relaxed for test environment
 const isTestEnv = process.env.NODE_ENV === 'test';
-const loginLimiter = rateLimit({
+
+const authLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
   max: isTestEnv ? 100 : 5, // 100 attempts in test, 5 in production
-  message: { error: 'Too many login attempts, please try again later' },
+  message: { error: 'Too many attempts, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,
 });
 
-// Validation schema
+// Validation schemas
+const RegisterSchema = z.object({
+  email: z.string().email('Invalid email format'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+});
+
 const LoginSchema = z.object({
+  email: z.string().email('Invalid email format'),
   password: z.string().min(1, 'Password is required'),
 });
 
 /**
- * POST /api/auth/login
- * Authenticate with password, returns JWT token in HttpOnly cookie
+ * POST /api/auth/register
+ * Create a new user account
  */
-authRouter.post('/login', loginLimiter, async (req: Request, res: Response) => {
+authRouter.post('/register', authLimiter, async (req: Request, res: Response) => {
+  try {
+    // Validate input
+    const parsed = RegisterSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({
+        error: 'Validation failed',
+        details: parsed.error.flatten().fieldErrors,
+      });
+      return;
+    }
+
+    const { email, password } = parsed.data;
+
+    // Check if user already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email: email.toLowerCase() },
+    });
+
+    if (existingUser) {
+      res.status(409).json({ error: 'Email already registered' });
+      return;
+    }
+
+    // Hash password
+    const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+
+    // Create user
+    const user = await prisma.user.create({
+      data: {
+        email: email.toLowerCase(),
+        passwordHash,
+      },
+    });
+
+    // Generate token
+    const token = generateToken(user.id);
+
+    // Set HttpOnly cookie
+    setTokenCookie(res, token);
+
+    res.status(201).json({
+      message: 'Registration successful',
+      user: { id: user.id, email: user.email },
+    });
+  } catch (err) {
+    console.error('Registration error:', err);
+    res.status(500).json({ error: 'Registration failed' });
+  }
+});
+
+/**
+ * POST /api/auth/login
+ * Authenticate with email and password
+ */
+authRouter.post('/login', authLimiter, async (req: Request, res: Response) => {
   try {
     // Validate input
     const parsed = LoginSchema.safeParse(req.body);
@@ -46,31 +118,41 @@ authRouter.post('/login', loginLimiter, async (req: Request, res: Response) => {
       return;
     }
 
-    const { password } = parsed.data;
+    const { email, password } = parsed.data;
 
-    // Check if auth is configured
-    if (!AUTH_PASSWORD) {
-      // No password configured = auth disabled (development mode)
-      const token = generateToken('user');
-      setTokenCookie(res, token);
-      res.json({ token, message: 'Auth disabled - development mode' });
+    // Find user
+    const user = await prisma.user.findUnique({
+      where: { email: email.toLowerCase() },
+    });
+
+    if (!user) {
+      res.status(401).json({ error: 'Invalid email or password' });
       return;
     }
 
     // Verify password
-    const isValid = await verifyPassword(password, AUTH_PASSWORD);
+    const isValid = await bcrypt.compare(password, user.passwordHash);
     if (!isValid) {
-      res.status(401).json({ error: 'Invalid password' });
+      res.status(401).json({ error: 'Invalid email or password' });
       return;
     }
 
+    // Update last login
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date() },
+    });
+
     // Generate token
-    const token = generateToken('user');
+    const token = generateToken(user.id);
 
     // Set HttpOnly cookie
     setTokenCookie(res, token);
 
-    res.json({ token });
+    res.json({
+      message: 'Login successful',
+      user: { id: user.id, email: user.email },
+    });
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).json({ error: 'Authentication failed' });
@@ -105,9 +187,9 @@ authRouter.post('/logout', (req: Request, res: Response) => {
 
 /**
  * GET /api/auth/check
- * Check if current request is authenticated (for client-side checks)
+ * Check if current request is authenticated
  */
-authRouter.get('/check', (req: Request, res: Response) => {
+authRouter.get('/check', async (req: Request, res: Response) => {
   const token = req.cookies?.token || req.headers.authorization?.replace('Bearer ', '');
   
   if (!token) {
@@ -116,11 +198,53 @@ authRouter.get('/check', (req: Request, res: Response) => {
   }
 
   try {
-    const JWT_SECRET = process.env.JWT_SECRET || 'development-secret-min-32-chars!!';
-    jwt.verify(token, JWT_SECRET);
-    res.json({ authenticated: true });
+    const decoded = jwt.verify(token, JWT_SECRET) as { sub: string };
+    
+    // Verify user still exists
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.sub },
+      select: { id: true, email: true },
+    });
+
+    if (!user) {
+      res.json({ authenticated: false });
+      return;
+    }
+
+    res.json({ authenticated: true, user });
   } catch {
     res.json({ authenticated: false });
+  }
+});
+
+/**
+ * GET /api/auth/me
+ * Get current user info
+ */
+authRouter.get('/me', async (req: Request, res: Response) => {
+  const token = req.cookies?.token || req.headers.authorization?.replace('Bearer ', '');
+  
+  if (!token) {
+    res.status(401).json({ error: 'Not authenticated' });
+    return;
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as { sub: string };
+    
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.sub },
+      select: { id: true, email: true, createdAt: true, lastLoginAt: true },
+    });
+
+    if (!user) {
+      res.status(401).json({ error: 'User not found' });
+      return;
+    }
+
+    res.json({ user });
+  } catch {
+    res.status(401).json({ error: 'Invalid token' });
   }
 });
 
@@ -136,11 +260,10 @@ function setTokenCookie(res: Response, token: string): void {
   } = {
     httpOnly: true,
     secure: isProduction,
-    sameSite: 'strict',  // Same-site with custom domains
+    sameSite: 'strict',
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
   };
 
-  // Set domain for cross-subdomain cookies (from APP_DOMAIN)
   if (cookieDomain) {
     cookieOptions.domain = cookieDomain;
   }
