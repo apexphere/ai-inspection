@@ -10,6 +10,7 @@ import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 import { PrismaClient } from '@prisma/client';
 import { generateToken } from '../middleware/auth.js';
 import { cookieDomain } from '../config/domain.js';
@@ -245,6 +246,149 @@ authRouter.get('/me', async (req: Request, res: Response) => {
     res.json({ user });
   } catch {
     res.status(401).json({ error: 'Invalid token' });
+  }
+});
+
+// ============================================
+// Password Reset — Issue #182
+// ============================================
+
+const RESET_TOKEN_EXPIRY_MS = 60 * 60 * 1000; // 1 hour
+
+const ForgotPasswordSchema = z.object({
+  email: z.string().email('Invalid email format'),
+});
+
+const ResetPasswordSchema = z.object({
+  token: z.string().min(1, 'Token is required'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+});
+
+/**
+ * POST /api/auth/forgot-password
+ * Request a password reset email
+ */
+authRouter.post('/forgot-password', authLimiter, async (req: Request, res: Response) => {
+  try {
+    const parsed = ForgotPasswordSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({
+        error: 'Validation failed',
+        details: parsed.error.flatten().fieldErrors,
+      });
+      return;
+    }
+
+    const { email } = parsed.data;
+
+    // Find user (don't reveal if email exists)
+    const user = await prisma.user.findUnique({
+      where: { email: email.toLowerCase() },
+    });
+
+    // Always return success to prevent email enumeration
+    if (!user) {
+      res.json({ message: 'If the email exists, a reset link has been sent' });
+      return;
+    }
+
+    // Invalidate any existing tokens for this user
+    await prisma.passwordResetToken.updateMany({
+      where: { 
+        userId: user.id,
+        usedAt: null,
+      },
+      data: { usedAt: new Date() },
+    });
+
+    // Generate secure token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+    // Store hashed token
+    await prisma.passwordResetToken.create({
+      data: {
+        userId: user.id,
+        token: hashedToken,
+        expiresAt: new Date(Date.now() + RESET_TOKEN_EXPIRY_MS),
+      },
+    });
+
+    // TODO: Send email with reset link containing resetToken
+    // For now, log in development
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[DEV] Password reset token for ${email}: ${resetToken}`);
+    }
+
+    res.json({ message: 'If the email exists, a reset link has been sent' });
+  } catch (err) {
+    console.error('Forgot password error:', err);
+    res.status(500).json({ error: 'Failed to process request' });
+  }
+});
+
+/**
+ * POST /api/auth/reset-password
+ * Reset password using a valid token
+ */
+authRouter.post('/reset-password', authLimiter, async (req: Request, res: Response) => {
+  try {
+    const parsed = ResetPasswordSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({
+        error: 'Validation failed',
+        details: parsed.error.flatten().fieldErrors,
+      });
+      return;
+    }
+
+    const { token, password } = parsed.data;
+
+    // Hash the provided token to compare with stored hash
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    // Find valid token
+    const resetToken = await prisma.passwordResetToken.findUnique({
+      where: { token: hashedToken },
+      include: { user: true },
+    });
+
+    if (!resetToken) {
+      res.status(400).json({ error: 'Invalid or expired reset token' });
+      return;
+    }
+
+    // Check if token is expired
+    if (resetToken.expiresAt < new Date()) {
+      res.status(400).json({ error: 'Invalid or expired reset token' });
+      return;
+    }
+
+    // Check if token was already used
+    if (resetToken.usedAt) {
+      res.status(400).json({ error: 'Invalid or expired reset token' });
+      return;
+    }
+
+    // Hash new password
+    const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+
+    // Update password and mark token as used
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: resetToken.userId },
+        data: { passwordHash },
+      }),
+      prisma.passwordResetToken.update({
+        where: { id: resetToken.id },
+        data: { usedAt: new Date() },
+      }),
+    ]);
+
+    res.json({ message: 'Password has been reset successfully' });
+  } catch (err) {
+    console.error('Reset password error:', err);
+    res.status(500).json({ error: 'Failed to reset password' });
   }
 });
 
