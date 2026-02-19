@@ -68,7 +68,7 @@ jobs:
           # Run a simple prisma query to ensure DB is awake and responsive
           for i in 1 2 3; do
             echo "Attempt $i: Testing database connection..."
-            if flyctl ssh console --app ai-inspection-api-test -C "sh -c 'cd /app && npx prisma db execute --stdin <<< \"SELECT 1;\"'" 2>&1; then
+            if timeout 60 flyctl ssh console --app ai-inspection-api-test -C "sh -c 'cd /app && npx prisma db execute --stdin <<< \"SELECT 1;\"'" 2>&1; then
               echo "Database connection verified!"
               break
             fi
@@ -81,14 +81,14 @@ jobs:
       - name: Run database migrations
         run: |
           echo "Running Prisma migrations..."
-          # Retry logic for migrations
+          # Retry logic for migrations (3 attempts, 180s timeout each)
           for i in 1 2 3; do
             echo "Migration attempt $i..."
-            if flyctl ssh console --app ai-inspection-api-test -C "sh -c 'cd /app && npx prisma migrate deploy'" 2>&1; then
+            if timeout 180 flyctl ssh console --app ai-inspection-api-test -C "sh -c 'cd /app && npx prisma migrate deploy'" 2>&1; then
               echo "Migrations completed successfully!"
               exit 0
             fi
-            echo "Migration attempt $i failed, waiting 15s before retry..."
+            echo "Migration attempt $i failed or timed out, waiting 15s before retry..."
             sleep 15
           done
           echo "All migration attempts failed"
@@ -99,14 +99,14 @@ jobs:
       - name: Seed database (test data)
         run: |
           echo "Seeding test database..."
-          # Retry logic for seeding
+          # Retry logic for seeding (3 attempts, 180s timeout each)
           for i in 1 2 3; do
             echo "Seed attempt $i..."
-            if flyctl ssh console --app ai-inspection-api-test -C "sh -c 'cd /app && npx tsx prisma/seed.ts'" 2>&1; then
+            if timeout 180 flyctl ssh console --app ai-inspection-api-test -C "sh -c 'cd /app && npx tsx prisma/seed.ts'" 2>&1; then
               echo "Seeding completed successfully!"
               exit 0
             fi
-            echo "Seed attempt $i failed, waiting 15s before retry..."
+            echo "Seed attempt $i failed or timed out, waiting 15s before retry..."
             sleep 15
           done
           echo "All seed attempts failed"
