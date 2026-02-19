@@ -1,12 +1,31 @@
 #!/bin/sh
 
-# Run typecheck and lint on server workspace (MCP server)
-cd server
+echo "🔍 Running pre-commit checks..."
 
-echo "🔍 Running typecheck..."
-npm run typecheck || exit 1
+REPO_ROOT="$(git rev-parse --show-toplevel)"
 
-echo "🧹 Running lint..."
-npm run lint || exit 1
+# Check api workspace
+if git diff --cached --name-only | grep -q "^api/"; then
+  echo "📦 Checking api..."
+  cd "$REPO_ROOT/api"
+  npm run typecheck || exit 1
+  npm run lint || exit 1
+fi
+
+# Check web workspace
+if git diff --cached --name-only | grep -q "^web/"; then
+  echo "📦 Checking web..."
+  cd "$REPO_ROOT/web"
+  npm run typecheck || exit 1
+  npm run lint || exit 1
+fi
+
+# Check server workspace (MCP server)
+if git diff --cached --name-only | grep -q "^server/"; then
+  echo "📦 Checking server..."
+  cd "$REPO_ROOT/server"
+  npm run typecheck || exit 1
+  npm run lint || exit 1
+fi
 
 echo "✅ Pre-commit checks passed!"
