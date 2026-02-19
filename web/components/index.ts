@@ -8,3 +8,4 @@ export { PhotoUploader } from './photo-uploader';
 export { FindingEditor } from './finding-editor';
 export { AuthGuard } from './auth-guard';
 export { AppHeader } from './app-header';
+export { SaveIndicator } from './save-indicator';
