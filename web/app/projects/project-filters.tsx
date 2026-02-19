@@ -98,12 +98,3 @@ export function ProjectFilters(): React.ReactElement {
     </div>
   );
 }
-
-ProjectFilters.Skeleton = function ProjectFiltersSkeleton(): React.ReactElement {
-  return (
-    <div className="mb-6 flex flex-col sm:flex-row gap-4 animate-pulse">
-      <div className="flex-1 h-10 bg-gray-200 rounded-lg" />
-      <div className="sm:w-48 h-10 bg-gray-200 rounded-lg" />
-    </div>
-  );
-};

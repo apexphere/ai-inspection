@@ -34,6 +34,31 @@ const STATUS_LABELS: Record<string, string> = {
   COMPLETED: 'Completed',
 };
 
+function ProjectListSkeleton(): React.ReactElement {
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden animate-pulse">
+      <div className="bg-gray-50 px-6 py-3">
+        <div className="flex gap-4">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="h-4 bg-gray-200 rounded w-20" />
+          ))}
+        </div>
+      </div>
+      <div className="divide-y divide-gray-200">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className="px-6 py-4 flex gap-4">
+            <div className="h-4 bg-gray-200 rounded w-16" />
+            <div className="h-4 bg-gray-200 rounded w-32" />
+            <div className="h-4 bg-gray-200 rounded w-24" />
+            <div className="h-4 bg-gray-200 rounded w-20" />
+            <div className="h-4 bg-gray-200 rounded w-24" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function ProjectList(): React.ReactElement {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -137,7 +162,7 @@ export function ProjectList(): React.ReactElement {
   };
 
   if (loading) {
-    return <ProjectList.Skeleton />;
+    return <ProjectListSkeleton />;
   }
 
   if (error) {
@@ -237,28 +262,3 @@ export function ProjectList(): React.ReactElement {
     </div>
   );
 }
-
-ProjectList.Skeleton = function ProjectListSkeleton(): React.ReactElement {
-  return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden animate-pulse">
-      <div className="bg-gray-50 px-6 py-3">
-        <div className="flex gap-4">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-4 bg-gray-200 rounded w-20" />
-          ))}
-        </div>
-      </div>
-      <div className="divide-y divide-gray-200">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="px-6 py-4 flex gap-4">
-            <div className="h-4 bg-gray-200 rounded w-16" />
-            <div className="h-4 bg-gray-200 rounded w-32" />
-            <div className="h-4 bg-gray-200 rounded w-24" />
-            <div className="h-4 bg-gray-200 rounded w-20" />
-            <div className="h-4 bg-gray-200 rounded w-24" />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
