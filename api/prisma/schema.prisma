@@ -92,6 +92,7 @@ model Project {
   
   siteInspections SiteInspection[]
   documents       Document[]
+  photos          ProjectPhoto[]
 }
 
 model Property {
@@ -362,6 +363,44 @@ model ClauseReview {
 enum Applicability {
   APPLICABLE
   NA
+}
+
+// ============================================
+// Photo Attachments (Issue #172)
+// ============================================
+
+model ProjectPhoto {
+  id              String        @id @default(uuid())
+  projectId       String
+  project         Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  inspectionId    String?       // Which inspection captured it
+  
+  reportNumber    Int           // Sequential within project (1, 2, 3...)
+  filePath        String        // Storage path to original
+  thumbnailPath   String?       // Compressed preview
+  mimeType        String        @default("image/jpeg")
+  fileSize        Int?          // Bytes
+  
+  caption         String
+  source          PhotoSource   @default(SITE)
+  takenAt         DateTime?     // When photo was taken
+  location        Json?         // GPS coordinates
+  
+  linkedClauses   String[]      @default([])  // Building Code clause codes
+  
+  sortOrder       Int           @default(0)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  @@index([projectId])
+  @@index([projectId, reportNumber])
+}
+
+enum PhotoSource {
+  SITE        // Taken during inspection
+  OWNER       // Client provided
+  CONTRACTOR  // Builder/trade provided
 }
 
 // ============================================
