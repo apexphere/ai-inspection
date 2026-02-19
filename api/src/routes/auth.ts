@@ -392,6 +392,267 @@ authRouter.post('/reset-password', authLimiter, async (req: Request, res: Respon
   }
 });
 
+// ============================================
+// WhatsApp Account Linking — Issue #189
+// ============================================
+
+const VERIFICATION_CODE_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
+const VERIFICATION_CODE_LENGTH = 6;
+
+const LinkWhatsAppSchema = z.object({
+  phoneNumber: z.string()
+    .min(10, 'Phone number must be at least 10 digits')
+    .regex(/^\+?[1-9]\d{9,14}$/, 'Invalid phone number format'),
+});
+
+const VerifyWhatsAppSchema = z.object({
+  phoneNumber: z.string().min(10),
+  code: z.string().length(VERIFICATION_CODE_LENGTH, `Code must be ${VERIFICATION_CODE_LENGTH} digits`),
+});
+
+/**
+ * Generate a random numeric verification code
+ */
+function generateVerificationCode(): string {
+  return Array.from({ length: VERIFICATION_CODE_LENGTH }, () => 
+    Math.floor(Math.random() * 10)
+  ).join('');
+}
+
+/**
+ * POST /api/auth/link-whatsapp
+ * Request to link a WhatsApp number (sends verification code)
+ */
+authRouter.post('/link-whatsapp', authLimiter, async (req: Request, res: Response) => {
+  try {
+    // Get authenticated user
+    const token = req.cookies?.token || req.headers.authorization?.replace('Bearer ', '');
+    if (!token) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+
+    let userId: string;
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as { sub: string };
+      userId = decoded.sub;
+    } catch {
+      res.status(401).json({ error: 'Invalid token' });
+      return;
+    }
+
+    const parsed = LinkWhatsAppSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({
+        error: 'Validation failed',
+        details: parsed.error.flatten().fieldErrors,
+      });
+      return;
+    }
+
+    const { phoneNumber } = parsed.data;
+
+    // Check if phone number is already linked to another account
+    const existingUser = await prisma.user.findUnique({
+      where: { phoneNumber },
+    });
+
+    if (existingUser && existingUser.id !== userId) {
+      res.status(409).json({ error: 'Phone number already linked to another account' });
+      return;
+    }
+
+    // Invalidate any existing codes for this user
+    await prisma.whatsAppVerificationCode.updateMany({
+      where: { userId, verifiedAt: null },
+      data: { verifiedAt: new Date() }, // Mark as used
+    });
+
+    // Generate verification code
+    const code = generateVerificationCode();
+
+    // Store verification code
+    await prisma.whatsAppVerificationCode.create({
+      data: {
+        userId,
+        phoneNumber,
+        code,
+        expiresAt: new Date(Date.now() + VERIFICATION_CODE_EXPIRY_MS),
+      },
+    });
+
+    // TODO: Send verification code via WhatsApp
+    // For now, log in development
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[DEV] WhatsApp verification code for ${phoneNumber}: ${code}`);
+    }
+
+    res.json({ 
+      message: 'Verification code sent to WhatsApp',
+      phoneNumber,
+      expiresIn: VERIFICATION_CODE_EXPIRY_MS / 1000,
+    });
+  } catch (err) {
+    console.error('Link WhatsApp error:', err);
+    res.status(500).json({ error: 'Failed to send verification code' });
+  }
+});
+
+/**
+ * POST /api/auth/verify-whatsapp
+ * Verify WhatsApp number with code
+ */
+authRouter.post('/verify-whatsapp', authLimiter, async (req: Request, res: Response) => {
+  try {
+    // Get authenticated user
+    const token = req.cookies?.token || req.headers.authorization?.replace('Bearer ', '');
+    if (!token) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+
+    let userId: string;
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as { sub: string };
+      userId = decoded.sub;
+    } catch {
+      res.status(401).json({ error: 'Invalid token' });
+      return;
+    }
+
+    const parsed = VerifyWhatsAppSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({
+        error: 'Validation failed',
+        details: parsed.error.flatten().fieldErrors,
+      });
+      return;
+    }
+
+    const { phoneNumber, code } = parsed.data;
+
+    // Find valid verification code
+    const verification = await prisma.whatsAppVerificationCode.findFirst({
+      where: {
+        userId,
+        phoneNumber,
+        code,
+        verifiedAt: null,
+        expiresAt: { gt: new Date() },
+      },
+    });
+
+    if (!verification) {
+      res.status(400).json({ error: 'Invalid or expired verification code' });
+      return;
+    }
+
+    // Update user and mark code as verified
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: userId },
+        data: { 
+          phoneNumber,
+          phoneVerified: true,
+        },
+      }),
+      prisma.whatsAppVerificationCode.update({
+        where: { id: verification.id },
+        data: { verifiedAt: new Date() },
+      }),
+    ]);
+
+    res.json({ 
+      message: 'WhatsApp number verified successfully',
+      phoneNumber,
+    });
+  } catch (err) {
+    console.error('Verify WhatsApp error:', err);
+    res.status(500).json({ error: 'Failed to verify WhatsApp number' });
+  }
+});
+
+/**
+ * DELETE /api/auth/unlink-whatsapp
+ * Remove linked WhatsApp number
+ */
+authRouter.delete('/unlink-whatsapp', async (req: Request, res: Response) => {
+  try {
+    // Get authenticated user
+    const token = req.cookies?.token || req.headers.authorization?.replace('Bearer ', '');
+    if (!token) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+
+    let userId: string;
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as { sub: string };
+      userId = decoded.sub;
+    } catch {
+      res.status(401).json({ error: 'Invalid token' });
+      return;
+    }
+
+    // Clear phone number
+    await prisma.user.update({
+      where: { id: userId },
+      data: { 
+        phoneNumber: null,
+        phoneVerified: false,
+      },
+    });
+
+    res.json({ message: 'WhatsApp number unlinked successfully' });
+  } catch (err) {
+    console.error('Unlink WhatsApp error:', err);
+    res.status(500).json({ error: 'Failed to unlink WhatsApp number' });
+  }
+});
+
+/**
+ * GET /api/auth/whatsapp-status
+ * Get WhatsApp linking status
+ */
+authRouter.get('/whatsapp-status', async (req: Request, res: Response) => {
+  try {
+    // Get authenticated user
+    const token = req.cookies?.token || req.headers.authorization?.replace('Bearer ', '');
+    if (!token) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+
+    let userId: string;
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as { sub: string };
+      userId = decoded.sub;
+    } catch {
+      res.status(401).json({ error: 'Invalid token' });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { phoneNumber: true, phoneVerified: true },
+    });
+
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    res.json({
+      linked: !!user.phoneNumber && user.phoneVerified,
+      phoneNumber: user.phoneNumber,
+      verified: user.phoneVerified,
+    });
+  } catch (err) {
+    console.error('WhatsApp status error:', err);
+    res.status(500).json({ error: 'Failed to get WhatsApp status' });
+  }
+});
+
 function setTokenCookie(res: Response, token: string): void {
   const isProduction = process.env.NODE_ENV === 'production';
   

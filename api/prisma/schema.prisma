@@ -18,13 +18,17 @@ model User {
   id            String    @id @default(uuid())
   email         String    @unique
   passwordHash  String
+  phoneNumber   String?   @unique
+  phoneVerified Boolean   @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   lastLoginAt   DateTime?
   
-  passwordResetTokens PasswordResetToken[]
+  passwordResetTokens      PasswordResetToken[]
+  whatsappVerificationCodes WhatsAppVerificationCode[]
   
   @@index([email])
+  @@index([phoneNumber])
 }
 
 // Password reset tokens — Issue #182
@@ -39,6 +43,21 @@ model PasswordResetToken {
   
   @@index([token])
   @@index([userId])
+}
+
+// WhatsApp verification codes — Issue #189
+model WhatsAppVerificationCode {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phoneNumber String
+  code        String
+  expiresAt   DateTime
+  verifiedAt  DateTime?
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([phoneNumber, code])
 }
 
 model Inspection {
