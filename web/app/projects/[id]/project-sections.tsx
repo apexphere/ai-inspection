@@ -3,6 +3,7 @@
 import { useCallback } from 'react';
 import { CollapsibleSection } from '@/components/collapsible-section';
 import { PhotoGrid, Photo } from '@/components/photo-grid';
+import { ClauseReviewSection } from './clause-review-section';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -44,6 +45,22 @@ interface Project {
     status: string;
     inspectorName: string;
     outcome: string | null;
+    clauseReviews?: Array<{
+      id: string;
+      clauseId: string;
+      applicability: 'APPLICABLE' | 'NA';
+      naReason: string | null;
+      observations: string | null;
+      photoIds: string[];
+      docIds: string[];
+      docsRequired: string | null;
+      remedialWorks: string | null;
+      clause: {
+        code: string;
+        title: string;
+        description: string | null;
+      };
+    }>;
   }>;
   documents?: Array<{
     id: string;
@@ -220,6 +237,13 @@ export function ProjectSections({ project }: ProjectSectionsProps): React.ReactE
           </div>
         )}
       </CollapsibleSection>
+
+      {/* Clause Reviews Section */}
+      <ClauseReviewSection
+        inspections={project.siteInspections || []}
+        photos={project.photos}
+        documents={project.documents}
+      />
 
       {/* Documents Section */}
       <CollapsibleSection
