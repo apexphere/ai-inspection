@@ -280,3 +280,47 @@ enum InspectionOutcome {
   FAIL
   REPEAT_REQUIRED
 }
+
+// ============================================
+// Building Code Reference Data
+// ============================================
+
+model BuildingCodeClause {
+  id                String              @id @default(uuid())
+  code              String              @unique
+  title             String
+  category          ClauseCategory
+  objective         String?
+  functionalReq     String?
+  performanceText   String
+  durabilityPeriod  DurabilityPeriod?
+  typicalEvidence   String[]            @default([])
+  sortOrder         Int                 @default(0)
+  
+  parentId          String?
+  parent            BuildingCodeClause? @relation("ClauseHierarchy", fields: [parentId], references: [id])
+  children          BuildingCodeClause[] @relation("ClauseHierarchy")
+  
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  @@index([category])
+  @@index([parentId])
+}
+
+enum ClauseCategory {
+  B
+  C
+  D
+  E
+  F
+  G
+  H
+}
+
+enum DurabilityPeriod {
+  FIFTY_YEARS
+  FIFTEEN_YEARS
+  FIVE_YEARS
+  NA
+}
