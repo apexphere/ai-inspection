@@ -1,0 +1,19 @@
+#!/bin/sh
+
+echo "🚀 Running pre-push checks (full lint + typecheck)..."
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+# Check api
+echo "📦 Checking api..."
+cd "$REPO_ROOT/api" && npm run typecheck && npm run lint || exit 1
+
+# Check web
+echo "📦 Checking web..."
+cd "$REPO_ROOT/web" && npm run typecheck && npm run lint || exit 1
+
+# Check server
+echo "📦 Checking server..."
+cd "$REPO_ROOT/server" && npm run typecheck && npm run lint || exit 1
+
+echo "✅ Pre-push checks passed!"
