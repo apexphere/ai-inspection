@@ -8,3 +8,7 @@ export { PhotoUploader } from './photo-uploader';
 export { FindingEditor } from './finding-editor';
 export { AuthGuard } from './auth-guard';
 export { AppHeader } from './app-header';
+export { PhotoGrid } from './photo-grid';
+export { PhotoCard, type Photo } from './photo-card';
+export { Lightbox } from './lightbox';
+export { ConfirmDialog } from './confirm-dialog';
