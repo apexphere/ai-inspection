@@ -89,6 +89,8 @@ model Project {
   client      Client        @relation(fields: [clientId], references: [id])
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
+  
+  siteInspections SiteInspection[]
 }
 
 model Property {
@@ -154,4 +156,91 @@ enum TerritorialAuthority {
   WDC
   RDC
   OTHER
+}
+
+// ============================================
+// Site Inspection Entities
+// ============================================
+
+model SiteInspection {
+  id                String              @id @default(uuid())
+  projectId         String
+  project           Project             @relation(fields: [projectId], references: [id])
+  
+  type              InspectionType
+  stage             InspectionStage
+  date              DateTime
+  status            InspectionStatus    @default(DRAFT)
+  
+  // Context
+  weather           String?
+  personsPresent    String?
+  equipment         String[]            @default([])
+  methodology       String?
+  areasNotAccessed  String?
+  
+  // Inspector (string for now, will reference Personnel later)
+  inspectorName     String
+  
+  // LBP Verification (Simple mode)
+  lbpOnSite         Boolean?
+  lbpLicenseSighted Boolean?
+  lbpLicenseNumber  String?
+  lbpExpiryDate     DateTime?
+  
+  // Outcome
+  outcome           InspectionOutcome?
+  signatureData     String?
+  signatureDate     DateTime?
+  
+  // WhatsApp navigation
+  currentSection    String?
+  currentClauseId   String?
+  
+  // Soft delete
+  deletedAt         DateTime?
+  
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  @@index([projectId])
+  @@index([status])
+}
+
+enum InspectionType {
+  SIMPLE
+  CLAUSE_REVIEW
+}
+
+enum InspectionStage {
+  INS_01
+  INS_02
+  INS_03
+  INS_04
+  INS_05
+  INS_06
+  INS_07
+  INS_07A
+  INS_08
+  INS_09
+  INS_10
+  INS_11
+  COA
+  CCC_GA
+  S_AND_S
+  TFA
+  DMG
+}
+
+enum InspectionStatus {
+  DRAFT
+  IN_PROGRESS
+  REVIEW
+  COMPLETED
+}
+
+enum InspectionOutcome {
+  PASS
+  FAIL
+  REPEAT_REQUIRED
 }
