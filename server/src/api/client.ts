@@ -186,6 +186,201 @@ export const navigationApi = {
 };
 
 // ============================================================================
+// Site Inspection API (New inspection system)
+// ============================================================================
+
+export interface CreateSiteInspectionInput {
+  projectId: string;
+  type: 'SIMPLE' | 'CLAUSE_REVIEW';
+  stage: string;
+  date: string;
+  inspectorName: string;
+  weather?: string;
+}
+
+export interface SiteInspection {
+  id: string;
+  projectId: string;
+  type: 'SIMPLE' | 'CLAUSE_REVIEW';
+  stage: string;
+  date: string;
+  status: string;
+  weather?: string;
+  inspectorName: string;
+  currentSection?: string;
+  currentClauseId?: string;
+  createdAt: string;
+  updatedAt: string;
+  project?: {
+    id: string;
+    jobNumber: string;
+    property: {
+      streetAddress: string;
+    };
+    client: {
+      name: string;
+    };
+  };
+}
+
+export const siteInspectionApi = {
+  create: (projectId: string, input: Omit<CreateSiteInspectionInput, 'projectId'>) =>
+    request<SiteInspection>('POST', `/api/projects/${projectId}/inspections`, input),
+  
+  get: (id: string) =>
+    request<SiteInspection>('GET', `/api/site-inspections/${id}`),
+  
+  update: (id: string, input: Partial<CreateSiteInspectionInput> & { status?: string; currentSection?: string; currentClauseId?: string }) =>
+    request<SiteInspection>('PUT', `/api/site-inspections/${id}`, input),
+  
+  list: (projectId: string) =>
+    request<SiteInspection[]>('GET', `/api/projects/${projectId}/inspections`),
+};
+
+// ============================================================================
+// Checklist Item API (Simple mode)
+// ============================================================================
+
+export interface CreateChecklistItemInput {
+  category: string;
+  item: string;
+  decision: 'PASS' | 'FAIL' | 'NA';
+  notes?: string;
+  photoIds?: string[];
+}
+
+export interface ChecklistItem {
+  id: string;
+  inspectionId: string;
+  category: string;
+  item: string;
+  decision: string;
+  notes?: string;
+  photoIds: string[];
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ChecklistSummary {
+  total: number;
+  passed: number;
+  failed: number;
+  na: number;
+  byCategory: Record<string, { passed: number; failed: number; na: number }>;
+  failedItemsWithoutNotes: string[];
+  overallResult: 'PASS' | 'FAIL' | 'INCOMPLETE';
+}
+
+export const checklistItemApi = {
+  create: (inspectionId: string, input: CreateChecklistItemInput) =>
+    request<ChecklistItem>('POST', `/api/site-inspections/${inspectionId}/checklist-items`, input),
+  
+  list: (inspectionId: string) =>
+    request<ChecklistItem[]>('GET', `/api/site-inspections/${inspectionId}/checklist-items`),
+  
+  getSummary: (inspectionId: string) =>
+    request<ChecklistSummary>('GET', `/api/site-inspections/${inspectionId}/checklist-summary`),
+  
+  update: (id: string, input: Partial<CreateChecklistItemInput>) =>
+    request<ChecklistItem>('PUT', `/api/checklist-items/${id}`, input),
+};
+
+// ============================================================================
+// Clause Review API (Clause Review mode)
+// ============================================================================
+
+export interface CreateClauseReviewInput {
+  clauseId: string;
+  applicability: 'APPLICABLE' | 'NA';
+  naReason?: string;
+  observations?: string;
+  photoIds?: string[];
+  docIds?: string[];
+}
+
+export interface ClauseReview {
+  id: string;
+  inspectionId: string;
+  clauseId: string;
+  applicability: string;
+  naReason?: string;
+  observations?: string;
+  photoIds: string[];
+  docIds: string[];
+  remedialWorks?: string;
+  clause: {
+    id: string;
+    code: string;
+    title: string;
+    category: string;
+    performanceText: string;
+    typicalEvidence: string[];
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ClauseReviewSummary {
+  total: number;
+  applicable: number;
+  na: number;
+  withObservations: number;
+  withPhotos: number;
+  completionPercentage: number;
+  byCategory: Record<string, { applicable: number; na: number }>;
+}
+
+export const clauseReviewApi = {
+  create: (inspectionId: string, input: CreateClauseReviewInput) =>
+    request<ClauseReview>('POST', `/api/site-inspections/${inspectionId}/clause-reviews`, input),
+  
+  list: (inspectionId: string) =>
+    request<ClauseReview[]>('GET', `/api/site-inspections/${inspectionId}/clause-reviews`),
+  
+  getSummary: (inspectionId: string) =>
+    request<ClauseReviewSummary>('GET', `/api/site-inspections/${inspectionId}/clause-review-summary`),
+  
+  update: (id: string, input: Partial<CreateClauseReviewInput>) =>
+    request<ClauseReview>('PUT', `/api/clause-reviews/${id}`, input),
+  
+  markNA: (id: string, naReason: string) =>
+    request<ClauseReview>('POST', `/api/clause-reviews/${id}/mark-na`, { naReason }),
+  
+  markApplicable: (id: string) =>
+    request<ClauseReview>('POST', `/api/clause-reviews/${id}/mark-applicable`, {}),
+  
+  initialize: (inspectionId: string, clauseIds: string[]) =>
+    request<ClauseReview[]>('POST', `/api/site-inspections/${inspectionId}/clause-reviews/init`, { clauseIds }),
+};
+
+// ============================================================================
+// Building Code API
+// ============================================================================
+
+export interface BuildingCodeClause {
+  id: string;
+  code: string;
+  title: string;
+  category: string;
+  performanceText: string;
+  durabilityPeriod?: string;
+  typicalEvidence: string[];
+  sortOrder: number;
+}
+
+export const buildingCodeApi = {
+  listClauses: (category?: string) =>
+    request<BuildingCodeClause[]>('GET', `/api/building-code/clauses${category ? `?category=${category}` : ''}`),
+  
+  getClause: (code: string) =>
+    request<BuildingCodeClause>('GET', `/api/building-code/clauses/${code}`),
+  
+  getHierarchy: () =>
+    request<Record<string, BuildingCodeClause[]>>('GET', `/api/building-code/clauses/hierarchy`),
+};
+
+// ============================================================================
 // Findings API
 // ============================================================================
 
