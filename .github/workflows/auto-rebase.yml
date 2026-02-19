@@ -1,0 +1,18 @@
+name: Auto Rebase
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  rebase-prs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Rebase open PRs
+        uses: peter-evans/rebase@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          base: develop
+          exclude-drafts: true
+          exclude-labels: no-auto-rebase
