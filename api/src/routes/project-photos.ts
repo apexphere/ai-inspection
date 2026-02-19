@@ -265,6 +265,95 @@ projectPhotosRouter.delete(
   }
 );
 
+// POST /api/projects/:projectId/photos/base64 - Upload photo from base64 (for MCP/WhatsApp)
+const Base64UploadSchema = z.object({
+  data: z.string().min(1, 'Base64 data is required'),
+  filename: z.string().optional(),
+  mimeType: z.string().optional(),
+  caption: z.string().max(500).optional(),
+  source: z.enum(photoSources).optional(),
+  linkedClauses: z.array(z.string()).optional(),
+  inspectionId: z.string().uuid().optional(),
+});
+
+projectPhotosRouter.post(
+  '/projects/:projectId/photos/base64',
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const projectId = req.params.projectId as string;
+      const parsed = Base64UploadSchema.safeParse(req.body);
+
+      if (!parsed.success) {
+        res.status(400).json({
+          error: 'Validation failed',
+          details: parsed.error.flatten().fieldErrors,
+        });
+        return;
+      }
+
+      const { data, caption, source, linkedClauses, inspectionId } = parsed.data;
+
+      // Decode base64
+      const base64Data = data.replace(/^data:image\/\w+;base64,/, '');
+      const buffer = Buffer.from(base64Data, 'base64');
+
+      if (buffer.length > MAX_FILE_SIZE) {
+        res.status(400).json({ error: 'File too large. Maximum 10MB.' });
+        return;
+      }
+
+      // Ensure project exists
+      const project = await prisma.project.findUnique({
+        where: { id: projectId },
+        select: { id: true },
+      });
+      if (!project) {
+        res.status(404).json({ error: 'Project not found' });
+        return;
+      }
+
+      // Create directories
+      const projectDir = await ensureDirectories(projectId);
+
+      // Generate file names
+      const fileId = randomUUID();
+      const ext = '.jpg';
+      const fileName = `${fileId}${ext}`;
+      const thumbName = `${fileId}_thumb${ext}`;
+      const filePath = path.join(projectDir, fileName);
+      const thumbPath = path.join(projectDir, thumbName);
+
+      // Process and save original
+      const processedBuffer = await sharp(buffer)
+        .resize(1920, 1440, { fit: 'inside', withoutEnlargement: true })
+        .jpeg({ quality: 85 })
+        .toBuffer();
+
+      await fs.writeFile(filePath, processedBuffer);
+
+      // Generate thumbnail
+      await generateThumbnail(buffer, thumbPath);
+
+      // Create database record
+      const photo = await service.create({
+        projectId,
+        inspectionId,
+        filePath: path.relative(UPLOAD_DIR, filePath),
+        thumbnailPath: path.relative(UPLOAD_DIR, thumbPath),
+        mimeType: 'image/jpeg',
+        fileSize: processedBuffer.length,
+        caption: caption || 'Photo',
+        source: (source || 'SITE') as 'SITE' | 'OWNER' | 'CONTRACTOR',
+        linkedClauses: linkedClauses || [],
+      });
+
+      res.status(201).json(photo);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 // PUT /api/projects/:projectId/photos/reorder - Reorder photos
 projectPhotosRouter.put(
   '/projects/:projectId/photos/reorder',

@@ -13,6 +13,7 @@ import {
   siteInspectionApi,
   checklistItemApi,
   clauseReviewApi,
+  projectPhotosApi,
 } from "../api/client.js";
 import { commentLibrary } from "../services/comments.js";
 
@@ -175,9 +176,14 @@ export function registerFindingTools(server: McpServer): void {
       na_reason: z.string().optional().describe("Reason for N/A (Clause Review mode)"),
       // Common
       notes: z.string().optional().describe("Notes or observations"),
-      photo_ids: z.array(z.string().uuid()).optional().describe("Photo IDs to attach"),
+      photo_ids: z.array(z.string().uuid()).optional().describe("Existing photo IDs to attach"),
+      // Inline photos (for WhatsApp capture)
+      photos: z.array(z.object({
+        data: z.string().describe("Base64 encoded photo data"),
+        caption: z.string().optional().describe("Photo caption (defaults to notes)"),
+      })).optional().describe("Inline photos to upload and attach"),
     },
-    async ({ inspection_id, category, item, decision, clause_id, applicability, notes, na_reason, photo_ids }) => {
+    async ({ inspection_id, category, item, decision, clause_id, applicability, notes, na_reason, photo_ids, photos }) => {
       try {
         // Get inspection to determine type
         const inspResult = await siteInspectionApi.get(inspection_id);
@@ -195,6 +201,23 @@ export function registerFindingTools(server: McpServer): void {
         }
 
         const inspection = inspResult.data;
+
+        // Upload inline photos if provided
+        const uploadedPhotoIds: string[] = photo_ids ? [...photo_ids] : [];
+        if (photos && photos.length > 0) {
+          for (const photo of photos) {
+            const uploadResult = await projectPhotosApi.uploadBase64(inspection.projectId, {
+              data: photo.data,
+              caption: photo.caption || notes || 'Photo',
+              source: 'SITE',
+              inspectionId: inspection_id,
+              linkedClauses: clause_id ? [clause_id] : [],
+            });
+            if (uploadResult.ok && uploadResult.data) {
+              uploadedPhotoIds.push(uploadResult.data.id);
+            }
+          }
+        }
 
         if (inspection.type === 'SIMPLE') {
           // Simple mode - create ChecklistItem
@@ -216,7 +239,7 @@ export function registerFindingTools(server: McpServer): void {
             item,
             decision,
             notes,
-            photoIds: photo_ids,
+            photoIds: uploadedPhotoIds.length > 0 ? uploadedPhotoIds : undefined,
           });
 
           if (!result.ok || !result.data) {
@@ -266,7 +289,7 @@ export function registerFindingTools(server: McpServer): void {
             applicability: applicability || 'APPLICABLE',
             naReason: na_reason,
             observations: notes,
-            photoIds: photo_ids,
+            photoIds: uploadedPhotoIds.length > 0 ? uploadedPhotoIds : undefined,
           });
 
           if (!result.ok || !result.data) {

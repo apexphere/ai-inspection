@@ -434,6 +434,54 @@ export const photosApi = {
 };
 
 // ============================================================================
+// Project Photos API (new entity from #172)
+// ============================================================================
+
+export interface CreateProjectPhotoInput {
+  data: string;  // base64 data
+  filename?: string;
+  mimeType?: string;
+  caption?: string;
+  source?: 'SITE' | 'OWNER' | 'CONTRACTOR';
+  linkedClauses?: string[];
+  inspectionId?: string;
+}
+
+export interface ProjectPhoto {
+  id: string;
+  projectId: string;
+  inspectionId?: string;
+  reportNumber: number;
+  filePath: string;
+  thumbnailPath?: string;
+  mimeType: string;
+  fileSize: number;
+  caption: string;
+  source: string;
+  linkedClauses: string[];
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const projectPhotosApi = {
+  uploadBase64: (projectId: string, input: CreateProjectPhotoInput) =>
+    request<ProjectPhoto>('POST', `/api/projects/${projectId}/photos/base64`, input),
+  
+  list: (projectId: string) =>
+    request<ProjectPhoto[]>('GET', `/api/projects/${projectId}/photos`),
+  
+  get: (id: string) =>
+    request<ProjectPhoto>('GET', `/api/photos/${id}`),
+  
+  update: (id: string, input: Partial<Pick<CreateProjectPhotoInput, 'caption' | 'source' | 'linkedClauses'>>) =>
+    request<ProjectPhoto>('PUT', `/api/photos/${id}`, input),
+  
+  delete: (id: string) =>
+    request<void>('DELETE', `/api/photos/${id}`),
+};
+
+// ============================================================================
 // Reports API
 // ============================================================================
 
