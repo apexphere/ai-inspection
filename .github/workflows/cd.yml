@@ -68,7 +68,7 @@ jobs:
           # Run a simple prisma query to ensure DB is awake and responsive
           for i in 1 2 3; do
             echo "Attempt $i: Testing database connection..."
-            if timeout 60 flyctl ssh console --app ai-inspection-api-test -C "sh -c 'cd /app && npx prisma db execute --stdin <<< \"SELECT 1;\"'" 2>&1; then
+            if timeout 60 flyctl ssh console --app ai-inspection-api-test -C "sh -c 'cd /app && echo \"SELECT 1;\" | npx prisma db execute --stdin'" 2>&1; then
               echo "Database connection verified!"
               break
             fi
