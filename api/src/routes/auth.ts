@@ -19,7 +19,11 @@ const prisma = new PrismaClient();
 export const authRouter: RouterType = Router();
 
 const SALT_ROUNDS = 12;
-const JWT_SECRET = process.env.JWT_SECRET || 'development-secret-min-32-chars!!';
+const JWT_SECRET = process.env.JWT_SECRET || (
+  process.env.NODE_ENV === 'production' 
+    ? (() => { throw new Error('JWT_SECRET must be set in production'); })()
+    : 'development-secret-min-32-chars!!'
+);
 
 // Rate limiting: stricter in production, relaxed for test environment
 const isTestEnv = process.env.NODE_ENV === 'test';
