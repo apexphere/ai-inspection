@@ -375,3 +375,41 @@ model NAReasonTemplate {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+// ============================================
+// Inspection Photos (evidence capture)
+// ============================================
+
+model InspectionPhoto {
+  id              String        @id @default(uuid())
+  projectId       String
+  inspectionId    String?
+  
+  reportNumber    Int           // Sequential within project (1, 2, 3...)
+  filePath        String
+  thumbnailPath   String?
+  filename        String
+  mimeType        String        @default("image/jpeg")
+  
+  caption         String
+  source          PhotoSource   @default(SITE)
+  takenAt         DateTime?
+  location        Json?         // GPS coordinates
+  
+  linkedClauses   String[]      @default([])
+  linkedItemId    String?       // ChecklistItem or ClauseReview ID
+  linkedItemType  String?       // 'ChecklistItem' or 'ClauseReview'
+  
+  sortOrder       Int           @default(0)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  @@index([projectId])
+  @@index([inspectionId])
+}
+
+enum PhotoSource {
+  SITE
+  OWNER
+  CONTRACTOR
+}

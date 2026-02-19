@@ -13,6 +13,7 @@ import {
   siteInspectionApi,
   checklistItemApi,
   clauseReviewApi,
+  inspectionPhotoApi,
 } from "../api/client.js";
 import { commentLibrary } from "../services/comments.js";
 
@@ -161,7 +162,7 @@ export function registerFindingTools(server: McpServer): void {
   // -------------------------------------------------------------------------
   server.tool(
     "site_inspection_add_finding",
-    "Record a finding for a site inspection - creates ChecklistItem (Simple mode) or ClauseReview observation (Clause Review mode)",
+    "Record a finding for a site inspection - creates ChecklistItem (Simple mode) or ClauseReview observation (Clause Review mode). Supports direct photo upload via WhatsApp.",
     {
       inspection_id: z.string().uuid().describe("ID of the site inspection"),
       // For Simple mode
@@ -175,9 +176,15 @@ export function registerFindingTools(server: McpServer): void {
       na_reason: z.string().optional().describe("Reason for N/A (Clause Review mode)"),
       // Common
       notes: z.string().optional().describe("Notes or observations"),
-      photo_ids: z.array(z.string().uuid()).optional().describe("Photo IDs to attach"),
+      photo_ids: z.array(z.string().uuid()).optional().describe("Existing photo IDs to attach"),
+      // New: Direct photo upload (for WhatsApp capture)
+      photos: z.array(z.object({
+        data: z.string().describe("Base64 encoded photo data"),
+        caption: z.string().optional().describe("Photo caption (defaults to notes)"),
+        mime_type: z.string().optional().describe("MIME type (default: image/jpeg)"),
+      })).optional().describe("Photos to upload and attach (WhatsApp capture)"),
     },
-    async ({ inspection_id, category, item, decision, clause_id, applicability, notes, na_reason, photo_ids }) => {
+    async ({ inspection_id, category, item, decision, clause_id, applicability, notes, na_reason, photo_ids, photos }) => {
       try {
         // Get inspection to determine type
         const inspResult = await siteInspectionApi.get(inspection_id);
@@ -195,6 +202,32 @@ export function registerFindingTools(server: McpServer): void {
         }
 
         const inspection = inspResult.data;
+
+        // Upload any photos first (WhatsApp capture)
+        const uploadedPhotoIds: string[] = [...(photo_ids || [])];
+        const uploadedPhotos: Array<{ id: string; reportNumber: number; filename: string }> = [];
+        
+        if (photos && photos.length > 0) {
+          for (const photo of photos) {
+            const photoResult = await inspectionPhotoApi.upload(inspection.projectId, {
+              base64Data: photo.data,
+              mimeType: photo.mime_type,
+              caption: photo.caption || notes || 'Photo from inspection',
+              inspectionId: inspection_id,
+              source: 'SITE',
+              linkedItemType: inspection.type === 'SIMPLE' ? 'ChecklistItem' : 'ClauseReview',
+            });
+
+            if (photoResult.ok && photoResult.data) {
+              uploadedPhotoIds.push(photoResult.data.id);
+              uploadedPhotos.push({
+                id: photoResult.data.id,
+                reportNumber: photoResult.data.reportNumber,
+                filename: photoResult.data.filename,
+              });
+            }
+          }
+        }
 
         if (inspection.type === 'SIMPLE') {
           // Simple mode - create ChecklistItem
@@ -216,7 +249,7 @@ export function registerFindingTools(server: McpServer): void {
             item,
             decision,
             notes,
-            photoIds: photo_ids,
+            photoIds: uploadedPhotoIds,
           });
 
           if (!result.ok || !result.data) {
@@ -232,18 +265,26 @@ export function registerFindingTools(server: McpServer): void {
             };
           }
 
+          const response: Record<string, unknown> = {
+            item_id: result.data.id,
+            category: result.data.category,
+            item: result.data.item,
+            decision: result.data.decision,
+            notes: result.data.notes,
+            photos_attached: result.data.photoIds?.length || 0,
+            message: `Checklist item recorded: ${item} - ${decision}`,
+          };
+
+          // Include uploaded photo details
+          if (uploadedPhotos.length > 0) {
+            response.uploaded_photos = uploadedPhotos;
+            response.message = `Checklist item recorded: ${item} - ${decision}. ${uploadedPhotos.length} photo(s) saved.`;
+          }
+
           return {
             content: [{
               type: "text" as const,
-              text: JSON.stringify({
-                item_id: result.data.id,
-                category: result.data.category,
-                item: result.data.item,
-                decision: result.data.decision,
-                notes: result.data.notes,
-                photos_attached: result.data.photoIds?.length || 0,
-                message: `Checklist item recorded: ${item} - ${decision}`,
-              }, null, 2),
+              text: JSON.stringify(response, null, 2),
             }],
           };
         } else {
@@ -266,7 +307,7 @@ export function registerFindingTools(server: McpServer): void {
             applicability: applicability || 'APPLICABLE',
             naReason: na_reason,
             observations: notes,
-            photoIds: photo_ids,
+            photoIds: uploadedPhotoIds,
           });
 
           if (!result.ok || !result.data) {
@@ -282,18 +323,26 @@ export function registerFindingTools(server: McpServer): void {
             };
           }
 
+          const response: Record<string, unknown> = {
+            review_id: result.data.id,
+            clause_code: result.data.clause.code,
+            clause_title: result.data.clause.title,
+            applicability: result.data.applicability,
+            observations: result.data.observations,
+            photos_attached: result.data.photoIds?.length || 0,
+            message: `Clause ${result.data.clause.code} reviewed: ${result.data.applicability}`,
+          };
+
+          // Include uploaded photo details
+          if (uploadedPhotos.length > 0) {
+            response.uploaded_photos = uploadedPhotos;
+            response.message = `Clause ${result.data.clause.code} reviewed: ${result.data.applicability}. ${uploadedPhotos.length} photo(s) saved.`;
+          }
+
           return {
             content: [{
               type: "text" as const,
-              text: JSON.stringify({
-                review_id: result.data.id,
-                clause_code: result.data.clause.code,
-                clause_title: result.data.clause.title,
-                applicability: result.data.applicability,
-                observations: result.data.observations,
-                photos_attached: result.data.photoIds?.length || 0,
-                message: `Clause ${result.data.clause.code} reviewed: ${result.data.applicability}`,
-              }, null, 2),
+              text: JSON.stringify(response, null, 2),
             }],
           };
         }

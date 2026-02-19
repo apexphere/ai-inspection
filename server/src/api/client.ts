@@ -452,3 +452,57 @@ export const reportsApi = {
   getLatest: (inspectionId: string) =>
     request<Report>('GET', `/api/inspections/${inspectionId}/report`),
 };
+
+// ============================================================================
+// Inspection Photos API (New photo system)
+// ============================================================================
+
+export interface UploadInspectionPhotoInput {
+  base64Data: string;
+  mimeType?: string;
+  caption: string;
+  source?: 'SITE' | 'OWNER' | 'CONTRACTOR';
+  inspectionId?: string;
+  linkedClauses?: string[];
+  linkedItemId?: string;
+  linkedItemType?: 'ChecklistItem' | 'ClauseReview';
+}
+
+export interface InspectionPhoto {
+  id: string;
+  projectId: string;
+  inspectionId?: string;
+  reportNumber: number;
+  filePath: string;
+  thumbnailPath?: string;
+  filename: string;
+  mimeType: string;
+  caption: string;
+  source: string;
+  linkedClauses: string[];
+  linkedItemId?: string;
+  linkedItemType?: string;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const inspectionPhotoApi = {
+  upload: (projectId: string, input: UploadInspectionPhotoInput) =>
+    request<InspectionPhoto>('POST', `/api/projects/${projectId}/inspection-photos`, input),
+  
+  listByProject: (projectId: string) =>
+    request<InspectionPhoto[]>('GET', `/api/projects/${projectId}/inspection-photos`),
+  
+  listByInspection: (inspectionId: string) =>
+    request<InspectionPhoto[]>('GET', `/api/inspections/${inspectionId}/photos`),
+  
+  get: (id: string) =>
+    request<InspectionPhoto>('GET', `/api/inspection-photos/${id}`),
+  
+  update: (id: string, input: Partial<UploadInspectionPhotoInput>) =>
+    request<InspectionPhoto>('PUT', `/api/inspection-photos/${id}`, input),
+  
+  delete: (id: string) =>
+    request<void>('DELETE', `/api/inspection-photos/${id}`),
+};
