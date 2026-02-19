@@ -22,7 +22,7 @@ export interface UpdateDocumentInput {
   filename?: string;
   documentType?: DocumentType;
   description?: string;
-  issuer?: string;
+  issuer?: string | null;
   issuedAt?: Date | null;
   referenceNumber?: string | null;
   status?: DocumentStatus;
