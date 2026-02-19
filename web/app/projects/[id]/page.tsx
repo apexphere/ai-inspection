@@ -58,7 +58,10 @@ interface Project {
     id: string;
     reportNumber: number;
     caption: string;
+    filePath: string;
     thumbnailPath: string | null;
+    source: string;
+    linkedClauses: string[];
   }>;
 }
 
