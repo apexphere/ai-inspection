@@ -65,14 +65,14 @@ jobs:
       - name: Run database migrations
         run: |
           echo "Running Prisma migrations..."
-          flyctl ssh console --app ai-inspection-api-test --timeout 300 -C "sh -c 'cd /app && npx prisma migrate deploy'"
+          flyctl ssh console --app ai-inspection-api-test -C "sh -c 'cd /app && npx prisma migrate deploy'"
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
       - name: Seed database (test data)
         run: |
           echo "Seeding test database..."
-          flyctl ssh console --app ai-inspection-api-test --timeout 300 -C "sh -c 'cd /app && npx tsx prisma/seed.ts'"
+          flyctl ssh console --app ai-inspection-api-test -C "sh -c 'cd /app && npx tsx prisma/seed.ts'"
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
