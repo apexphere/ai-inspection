@@ -205,6 +205,7 @@ model SiteInspection {
   
   // Relations
   checklistItems    ChecklistItem[]
+  clauseReviews     ClauseReview[]
   
   @@index([projectId])
   @@index([status])
@@ -301,6 +302,8 @@ model BuildingCodeClause {
   parent            BuildingCodeClause? @relation("ClauseHierarchy", fields: [parentId], references: [id])
   children          BuildingCodeClause[] @relation("ClauseHierarchy")
   
+  clauseReviews     ClauseReview[]
+  
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
   
@@ -322,5 +325,40 @@ enum DurabilityPeriod {
   FIFTY_YEARS
   FIFTEEN_YEARS
   FIVE_YEARS
+  NA
+}
+
+// ============================================
+// Clause Review (for COA/CCC inspections)
+// ============================================
+
+model ClauseReview {
+  id              String              @id @default(uuid())
+  inspectionId    String
+  inspection      SiteInspection      @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  
+  clauseId        String
+  clause          BuildingCodeClause  @relation(fields: [clauseId], references: [id])
+  
+  applicability   Applicability
+  naReason        String?
+  observations    String?
+  
+  photoIds        String[]            @default([])
+  docIds          String[]            @default([])
+  
+  docsRequired    String?
+  remedialWorks   String?
+  
+  sortOrder       Int                 @default(0)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  
+  @@unique([inspectionId, clauseId])
+  @@index([inspectionId])
+}
+
+enum Applicability {
+  APPLICABLE
   NA
 }
