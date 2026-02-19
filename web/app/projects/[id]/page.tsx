@@ -50,9 +50,12 @@ interface Project {
   documents?: Array<{
     id: string;
     appendixLetter: string | null;
+    filename: string;
     documentType: string;
     description: string;
     status: string;
+    linkedClauses: string[];
+    createdAt: string;
   }>;
   photos?: Array<{
     id: string;

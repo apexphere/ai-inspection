@@ -1,9 +1,11 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { CollapsibleSection } from '@/components/collapsible-section';
 import { PhotoGrid, Photo } from '@/components/photo-grid';
 import { ClauseReviewSection } from './clause-review-section';
+import { DocumentUpload } from '@/components/document-upload';
+import { DocumentList, Document } from '@/components/document-list';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -65,9 +67,12 @@ interface Project {
   documents?: Array<{
     id: string;
     appendixLetter: string | null;
+    filename: string;
     documentType: string;
     description: string;
     status: string;
+    linkedClauses: string[];
+    createdAt: string;
   }>;
   photos?: Array<{
     id: string;
@@ -108,13 +113,6 @@ const INSPECTION_STATUS_COLORS: Record<string, string> = {
   COMPLETED: 'bg-green-100 text-green-800',
 };
 
-const DOCUMENT_STATUS_COLORS: Record<string, string> = {
-  REQUIRED: 'bg-yellow-100 text-yellow-800',
-  RECEIVED: 'bg-green-100 text-green-800',
-  OUTSTANDING: 'bg-red-100 text-red-800',
-  NA: 'bg-gray-100 text-gray-800',
-};
-
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString('en-NZ', {
     day: 'numeric',
@@ -137,11 +135,6 @@ export function ProjectSections({ project }: ProjectSectionsProps): React.ReactE
   const inspectionCount = project.siteInspections?.length ?? 0;
   const completedInspections = project.siteInspections?.filter(
     (i) => i.status === 'COMPLETED'
-  ).length ?? 0;
-
-  const documentCount = project.documents?.length ?? 0;
-  const receivedDocuments = project.documents?.filter(
-    (d) => d.status === 'RECEIVED'
   ).length ?? 0;
 
   const photoCount = project.photos?.length ?? 0;
@@ -246,48 +239,10 @@ export function ProjectSections({ project }: ProjectSectionsProps): React.ReactE
       />
 
       {/* Documents Section */}
-      <CollapsibleSection
-        id="documents"
-        title="Documents"
-        completionStatus={documentCount > 0 ? `${receivedDocuments}/${documentCount} received` : undefined}
-      >
-        {documentCount === 0 ? (
-          <p className="text-sm text-gray-500 italic">No documents attached</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead>
-                <tr className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <th className="py-2 pr-4">Appendix</th>
-                  <th className="py-2 pr-4">Type</th>
-                  <th className="py-2 pr-4">Description</th>
-                  <th className="py-2">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {project.documents?.map((doc) => (
-                  <tr key={doc.id} className="text-sm">
-                    <td className="py-2 pr-4 font-medium">
-                      {doc.appendixLetter || '—'}
-                    </td>
-                    <td className="py-2 pr-4">{doc.documentType}</td>
-                    <td className="py-2 pr-4">{doc.description}</td>
-                    <td className="py-2">
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                          DOCUMENT_STATUS_COLORS[doc.status] || 'bg-gray-100'
-                        }`}
-                      >
-                        {doc.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </CollapsibleSection>
+      <DocumentsSection
+        projectId={project.id}
+        documents={project.documents ?? []}
+      />
 
       {/* Photos Section */}
       <PhotosSection
@@ -357,6 +312,70 @@ function PhotosSection({
         onUpdateCaption={handleUpdateCaption}
         onDelete={handleDelete}
       />
+    </CollapsibleSection>
+  );
+}
+
+/**
+ * Documents Section with Upload and List — Issue #188
+ */
+function DocumentsSection({
+  projectId,
+  documents: initialDocuments,
+}: {
+  projectId: string;
+  documents: Document[];
+}): React.ReactElement {
+  const [documents, setDocuments] = useState(initialDocuments);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleUploadComplete = useCallback((): void => {
+    setRefreshKey((k) => k + 1);
+  }, []);
+
+  const handleUpdate = useCallback(
+    async (docId: string, data: Partial<Document>): Promise<void> => {
+      await fetch(`${API_URL}/api/documents/${docId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+      setDocuments((prev) =>
+        prev.map((d) => (d.id === docId ? { ...d, ...data } : d))
+      );
+    },
+    []
+  );
+
+  const handleDelete = useCallback(async (docId: string): Promise<void> => {
+    await fetch(`${API_URL}/api/documents/${docId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+    setDocuments((prev) => prev.filter((d) => d.id !== docId));
+  }, []);
+
+  const currentReceivedCount = documents.filter((d) => d.status === 'RECEIVED').length;
+
+  return (
+    <CollapsibleSection
+      id="documents"
+      title="Documents"
+      completionStatus={documents.length > 0 ? `${currentReceivedCount}/${documents.length} received` : undefined}
+    >
+      <div className="space-y-6">
+        <DocumentUpload
+          key={refreshKey}
+          projectId={projectId}
+          onUploadComplete={handleUploadComplete}
+        />
+        <DocumentList
+          documents={documents}
+          onUpdate={handleUpdate}
+          onDelete={handleDelete}
+        />
+      </div>
     </CollapsibleSection>
   );
 }
