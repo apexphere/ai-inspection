@@ -22,7 +22,23 @@ model User {
   updatedAt     DateTime  @updatedAt
   lastLoginAt   DateTime?
   
+  passwordResetTokens PasswordResetToken[]
+  
   @@index([email])
+}
+
+// Password reset tokens — Issue #182
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+  
+  @@index([token])
+  @@index([userId])
 }
 
 model Inspection {
