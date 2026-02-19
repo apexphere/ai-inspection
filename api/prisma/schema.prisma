@@ -91,6 +91,7 @@ model Project {
   updatedAt   DateTime      @updatedAt
   
   siteInspections SiteInspection[]
+  documents       Document[]
 }
 
 model Property {
@@ -374,4 +375,59 @@ model NAReasonTemplate {
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// ============================================
+// Document Management
+// ============================================
+
+model Document {
+  id              String          @id @default(uuid())
+  projectId       String
+  project         Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  appendixLetter  String?
+  filePath        String
+  filename        String
+  documentType    DocumentType
+  description     String
+  
+  issuer          String?
+  issuedAt        DateTime?
+  referenceNumber String?
+  
+  status          DocumentStatus  @default(REQUIRED)
+  verified        Boolean         @default(false)
+  linkedClauses   String[]        @default([])
+  
+  sortOrder       Int             @default(0)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  @@index([projectId])
+  @@index([documentType])
+  @@index([status])
+}
+
+enum DocumentType {
+  PS1
+  PS2
+  PS3
+  PS4
+  COC
+  ESC
+  WARRANTY
+  INVOICE
+  DRAWING
+  REPORT
+  FLOOD_TEST
+  PROPERTY_FILE
+  OTHER
+}
+
+enum DocumentStatus {
+  REQUIRED
+  RECEIVED
+  OUTSTANDING
+  NA
 }

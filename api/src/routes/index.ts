@@ -11,3 +11,4 @@ export * from './site-inspections.js';
 export * from './checklist-items.js';
 export * from './building-code.js';
 export * from './clause-reviews.js';
+export * from './documents.js';
