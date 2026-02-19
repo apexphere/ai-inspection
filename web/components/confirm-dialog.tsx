@@ -14,7 +14,7 @@ interface ConfirmDialogProps {
 }
 
 /**
- * Confirm Dialog Component — Issue #187
+ * Confirm Dialog Component — Issue #187, #188
  * 
  * Modal dialog for confirming destructive actions.
  */
