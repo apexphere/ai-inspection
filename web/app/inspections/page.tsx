@@ -3,7 +3,40 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api, Inspection, ApiError } from '@/lib/api';
-import { StatusBadge, LoadingPage, ErrorPage } from '@/components';
+import { LoadingPage, ErrorPage } from '@/components';
+import { PageLayout, PageHeader, PageContent } from '@/components/page-layout';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+
+function getStatusBadgeVariant(status: string): "default" | "secondary" | "success" | "warning" | "destructive" {
+  switch (status.toLowerCase()) {
+    case 'completed':
+    case 'done':
+      return 'success';
+    case 'in_progress':
+    case 'active':
+      return 'warning';
+    case 'draft':
+      return 'secondary';
+    case 'cancelled':
+      return 'destructive';
+    default:
+      return 'default';
+  }
+}
+
+function formatStatus(status: string): string {
+  return status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
 
 export default function InspectionsPage(): React.ReactElement {
   const [inspections, setInspections] = useState<Inspection[]>([]);
@@ -40,82 +73,69 @@ export default function InspectionsPage(): React.ReactElement {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Inspections</h1>
-        <Link
-          href="/inspections/new"
-          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          + New Inspection
-        </Link>
-      </div>
+    <PageLayout>
+      <PageHeader
+        title="Inspections"
+        description="Manage your property inspections"
+        actions={
+          <Button asChild>
+            <Link href="/inspections/new">+ New Inspection</Link>
+          </Button>
+        }
+      />
 
-      {inspections.length === 0 ? (
-        <div className="bg-white shadow rounded-lg p-12 text-center">
-          <p className="text-gray-500 mb-4">No inspections yet</p>
-          <Link
-            href="/inspections/new"
-            className="text-blue-600 hover:text-blue-800 font-medium"
-          >
-            Create your first inspection
-          </Link>
-        </div>
-      ) : (
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Address
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Client
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Created
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {inspections.map((inspection) => (
-                <tr key={inspection.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
+      <PageContent>
+        {inspections.length === 0 ? (
+          <Card className="p-12 text-center">
+            <p className="text-muted-foreground mb-4">No inspections yet</p>
+            <Link
+              href="/inspections/new"
+              className="text-primary hover:underline font-medium"
+            >
+              Create your first inspection
+            </Link>
+          </Card>
+        ) : (
+          <Card>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[30%]">Address</TableHead>
+                  <TableHead className="w-[25%]">Client</TableHead>
+                  <TableHead className="w-[15%]">Status</TableHead>
+                  <TableHead className="w-[15%]">Created</TableHead>
+                  <TableHead className="w-[15%] text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {inspections.map((inspection) => (
+                  <TableRow key={inspection.id}>
+                    <TableCell className="font-medium">
                       {inspection.address}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
                       {inspection.clientName}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <StatusBadge status={inspection.status} />
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(inspection.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <Link
-                      href={`/inspections/${inspection.id}`}
-                      className="text-blue-600 hover:text-blue-900"
-                    >
-                      View
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={getStatusBadgeVariant(inspection.status)}>
+                        {formatStatus(inspection.status)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {new Date(inspection.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link href={`/inspections/${inspection.id}`}>View</Link>
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        )}
+      </PageContent>
+    </PageLayout>
   );
 }
