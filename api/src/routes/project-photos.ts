@@ -8,6 +8,14 @@ import sharp from 'sharp';
 import { randomUUID } from 'crypto';
 import { PrismaProjectPhotoRepository } from '../repositories/prisma/project-photo.js';
 import { ProjectPhotoService, ProjectPhotoNotFoundError } from '../services/project-photo.js';
+import {
+  isR2Configured,
+  uploadPhotoWithThumbnail,
+  getPresignedUrl,
+  deletePhotoWithThumbnail,
+  generatePhotoKey,
+  generateThumbnailKey,
+} from '../services/r2-storage.js';
 
 const prisma = new PrismaClient();
 const repository = new PrismaProjectPhotoRepository(prisma);
@@ -21,7 +29,10 @@ const PHOTO_DIR = path.join(UPLOAD_DIR, 'photos');
 const THUMBNAIL_SIZE = { width: 400, height: 300 };
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
-// Ensure directories exist
+// Use R2 in production, filesystem in development
+const useR2Storage = isR2Configured();
+
+// Ensure directories exist (for local storage)
 async function ensureDirectories(projectId: string) {
   const projectDir = path.join(PHOTO_DIR, projectId);
   await fs.mkdir(projectDir, { recursive: true });
@@ -57,8 +68,19 @@ const ReorderSchema = z.object({
   photoIds: z.array(z.string().uuid()),
 });
 
-// Generate thumbnail
-async function generateThumbnail(buffer: Buffer, outputPath: string): Promise<void> {
+// Generate thumbnail buffer
+async function generateThumbnailBuffer(buffer: Buffer): Promise<Buffer> {
+  return sharp(buffer)
+    .resize(THUMBNAIL_SIZE.width, THUMBNAIL_SIZE.height, {
+      fit: 'inside',
+      withoutEnlargement: true,
+    })
+    .jpeg({ quality: 80 })
+    .toBuffer();
+}
+
+// Generate thumbnail to file (for local storage)
+async function generateThumbnailToFile(buffer: Buffer, outputPath: string): Promise<void> {
   await sharp(buffer)
     .resize(THUMBNAIL_SIZE.width, THUMBNAIL_SIZE.height, {
       fit: 'inside',
@@ -66,6 +88,74 @@ async function generateThumbnail(buffer: Buffer, outputPath: string): Promise<vo
     })
     .jpeg({ quality: 80 })
     .toFile(outputPath);
+}
+
+// Process image buffer (resize, convert to JPEG)
+async function processImageBuffer(buffer: Buffer): Promise<Buffer> {
+  return sharp(buffer)
+    .resize(1920, 1440, { fit: 'inside', withoutEnlargement: true })
+    .jpeg({ quality: 85 })
+    .toBuffer();
+}
+
+// Upload photo (handles both R2 and local storage)
+async function uploadPhoto(
+  projectId: string,
+  buffer: Buffer,
+  originalFilename: string
+): Promise<{ filePath: string; thumbnailPath: string; fileSize: number }> {
+  const processedBuffer = await processImageBuffer(buffer);
+  const thumbnailBuffer = await generateThumbnailBuffer(buffer);
+
+  if (useR2Storage) {
+    // Upload to R2
+    const { photoKey, thumbnailKey } = await uploadPhotoWithThumbnail(
+      projectId,
+      processedBuffer,
+      thumbnailBuffer,
+      'image/jpeg',
+      originalFilename
+    );
+    return {
+      filePath: photoKey,
+      thumbnailPath: thumbnailKey,
+      fileSize: processedBuffer.length,
+    };
+  } else {
+    // Save to local filesystem
+    const projectDir = await ensureDirectories(projectId);
+    const fileId = randomUUID();
+    const ext = '.jpg';
+    const fileName = `${fileId}${ext}`;
+    const thumbName = `${fileId}_thumb${ext}`;
+    const filePath = path.join(projectDir, fileName);
+    const thumbPath = path.join(projectDir, thumbName);
+
+    await fs.writeFile(filePath, processedBuffer);
+    await fs.writeFile(thumbPath, thumbnailBuffer);
+
+    return {
+      filePath: path.relative(UPLOAD_DIR, filePath),
+      thumbnailPath: path.relative(UPLOAD_DIR, thumbPath),
+      fileSize: processedBuffer.length,
+    };
+  }
+}
+
+// Delete photo files (handles both R2 and local storage)
+async function deletePhotoFiles(filePath: string, thumbnailPath: string | null): Promise<void> {
+  if (useR2Storage) {
+    await deletePhotoWithThumbnail(filePath, thumbnailPath);
+  } else {
+    try {
+      await fs.unlink(path.join(UPLOAD_DIR, filePath));
+      if (thumbnailPath) {
+        await fs.unlink(path.join(UPLOAD_DIR, thumbnailPath));
+      }
+    } catch {
+      // Ignore file deletion errors
+    }
+  }
 }
 
 // POST /api/projects/:projectId/photos - Upload photo
@@ -92,27 +182,12 @@ projectPhotosRouter.post(
         return;
       }
 
-      // Create directories
-      const projectDir = await ensureDirectories(projectId);
-
-      // Generate file names
-      const fileId = randomUUID();
-      const ext = '.jpg'; // Always save as JPEG after processing
-      const fileName = `${fileId}${ext}`;
-      const thumbName = `${fileId}_thumb${ext}`;
-      const filePath = path.join(projectDir, fileName);
-      const thumbPath = path.join(projectDir, thumbName);
-
-      // Process and save original (convert to JPEG, compress)
-      const processedBuffer = await sharp(file.buffer)
-        .resize(1920, 1440, { fit: 'inside', withoutEnlargement: true })
-        .jpeg({ quality: 85 })
-        .toBuffer();
-      
-      await fs.writeFile(filePath, processedBuffer);
-
-      // Generate thumbnail
-      await generateThumbnail(file.buffer, thumbPath);
+      // Upload photo
+      const { filePath, thumbnailPath, fileSize } = await uploadPhoto(
+        projectId,
+        file.buffer,
+        file.originalname
+      );
 
       // Parse optional metadata from body
       const caption = req.body.caption || 'Photo';
@@ -125,10 +200,10 @@ projectPhotosRouter.post(
       const photo = await service.create({
         projectId,
         inspectionId: req.body.inspectionId,
-        filePath: path.relative(UPLOAD_DIR, filePath),
-        thumbnailPath: path.relative(UPLOAD_DIR, thumbPath),
+        filePath,
+        thumbnailPath,
         mimeType: 'image/jpeg',
-        fileSize: processedBuffer.length,
+        fileSize,
         caption,
         source: source as 'SITE' | 'OWNER' | 'CONTRACTOR',
         linkedClauses,
@@ -182,17 +257,55 @@ projectPhotosRouter.get(
       const thumbnail = req.query.thumbnail === 'true';
       
       const photo = await service.findById(id);
-      const relativePath = thumbnail && photo.thumbnailPath
+      const storagePath = thumbnail && photo.thumbnailPath
         ? photo.thumbnailPath
         : photo.filePath;
+
+      if (useR2Storage) {
+        // Redirect to presigned URL
+        const presignedUrl = await getPresignedUrl(storagePath);
+        res.redirect(presignedUrl);
+      } else {
+        // Serve from local filesystem
+        const absolutePath = path.join(UPLOAD_DIR, storagePath);
+        res.sendFile(absolutePath, (err) => {
+          if (err) {
+            res.status(404).json({ error: 'File not found' });
+          }
+        });
+      }
+    } catch (error) {
+      if (error instanceof ProjectPhotoNotFoundError) {
+        res.status(404).json({ error: error.message });
+        return;
+      }
+      next(error);
+    }
+  }
+);
+
+// GET /api/photos/:id/url - Get presigned URL for photo (R2 only)
+projectPhotosRouter.get(
+  '/photos/:id/url',
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const id = req.params.id as string;
+      const thumbnail = req.query.thumbnail === 'true';
       
-      const absolutePath = path.join(UPLOAD_DIR, relativePath);
-      
-      res.sendFile(absolutePath, (err) => {
-        if (err) {
-          res.status(404).json({ error: 'File not found' });
-        }
-      });
+      const photo = await service.findById(id);
+      const storagePath = thumbnail && photo.thumbnailPath
+        ? photo.thumbnailPath
+        : photo.filePath;
+
+      if (useR2Storage) {
+        const presignedUrl = await getPresignedUrl(storagePath);
+        res.json({ url: presignedUrl, expiresIn: 3600 });
+      } else {
+        // For local storage, return the file endpoint URL
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        const url = `${baseUrl}/api/photos/${id}/file${thumbnail ? '?thumbnail=true' : ''}`;
+        res.json({ url, expiresIn: null });
+      }
     } catch (error) {
       if (error instanceof ProjectPhotoNotFoundError) {
         res.status(404).json({ error: error.message });
@@ -242,14 +355,7 @@ projectPhotosRouter.delete(
       const photo = await service.findById(id);
       
       // Delete files
-      try {
-        await fs.unlink(path.join(UPLOAD_DIR, photo.filePath));
-        if (photo.thumbnailPath) {
-          await fs.unlink(path.join(UPLOAD_DIR, photo.thumbnailPath));
-        }
-      } catch {
-        // Ignore file deletion errors
-      }
+      await deletePhotoFiles(photo.filePath, photo.thumbnailPath);
       
       // Delete database record (will auto-renumber)
       await service.delete(id);
@@ -291,7 +397,7 @@ projectPhotosRouter.post(
         return;
       }
 
-      const { data, caption, source, linkedClauses, inspectionId } = parsed.data;
+      const { data, filename, caption, source, linkedClauses, inspectionId } = parsed.data;
 
       // Decode base64
       const base64Data = data.replace(/^data:image\/\w+;base64,/, '');
@@ -312,36 +418,21 @@ projectPhotosRouter.post(
         return;
       }
 
-      // Create directories
-      const projectDir = await ensureDirectories(projectId);
-
-      // Generate file names
-      const fileId = randomUUID();
-      const ext = '.jpg';
-      const fileName = `${fileId}${ext}`;
-      const thumbName = `${fileId}_thumb${ext}`;
-      const filePath = path.join(projectDir, fileName);
-      const thumbPath = path.join(projectDir, thumbName);
-
-      // Process and save original
-      const processedBuffer = await sharp(buffer)
-        .resize(1920, 1440, { fit: 'inside', withoutEnlargement: true })
-        .jpeg({ quality: 85 })
-        .toBuffer();
-
-      await fs.writeFile(filePath, processedBuffer);
-
-      // Generate thumbnail
-      await generateThumbnail(buffer, thumbPath);
+      // Upload photo
+      const { filePath, thumbnailPath, fileSize } = await uploadPhoto(
+        projectId,
+        buffer,
+        filename || 'photo.jpg'
+      );
 
       // Create database record
       const photo = await service.create({
         projectId,
         inspectionId,
-        filePath: path.relative(UPLOAD_DIR, filePath),
-        thumbnailPath: path.relative(UPLOAD_DIR, thumbPath),
+        filePath,
+        thumbnailPath,
         mimeType: 'image/jpeg',
-        fileSize: processedBuffer.length,
+        fileSize,
         caption: caption || 'Photo',
         source: (source || 'SITE') as 'SITE' | 'OWNER' | 'CONTRACTOR',
         linkedClauses: linkedClauses || [],
