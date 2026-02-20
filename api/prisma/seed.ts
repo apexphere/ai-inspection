@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import bcrypt from 'bcrypt';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const prisma = new PrismaClient();
@@ -78,6 +79,37 @@ async function seedNAReasonTemplates() {
   console.log(`✓ Seeded ${templates.length} N/A reason templates`);
 }
 
+/**
+ * Seed test user for E2E tests — Issue #275
+ * 
+ * Creates a test user with email 'test@example.com' using TEST_PASSWORD env var.
+ * Both the deployed API and E2E tests must use the same TEST_PASSWORD.
+ */
+async function seedTestUser() {
+  const testPassword = process.env.TEST_PASSWORD;
+  
+  if (!testPassword) {
+    console.log('⚠ TEST_PASSWORD not set, skipping test user creation');
+    return;
+  }
+
+  const testEmail = 'test@example.com';
+  const passwordHash = await bcrypt.hash(testPassword, 12);
+
+  await prisma.user.upsert({
+    where: { email: testEmail },
+    create: {
+      email: testEmail,
+      passwordHash,
+    },
+    update: {
+      passwordHash,
+    },
+  });
+
+  console.log(`✓ Test user created/updated: ${testEmail}`);
+}
+
 async function seedTestData() {
   // Check if already seeded
   const existing = await prisma.inspection.findFirst();
@@ -142,6 +174,9 @@ async function main() {
   // Seed Building Code reference data (required for production)
   await seedBuildingCodeClauses();
   await seedNAReasonTemplates();
+
+  // Seed test user for E2E tests (if TEST_PASSWORD is set)
+  await seedTestUser();
 
   // Seed test data (for development)
   if (process.env.NODE_ENV !== 'production') {
