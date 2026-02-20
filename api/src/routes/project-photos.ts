@@ -13,8 +13,6 @@ import {
   uploadPhotoWithThumbnail,
   getPresignedUrl,
   deletePhotoWithThumbnail,
-  generatePhotoKey,
-  generateThumbnailKey,
 } from '../services/r2-storage.js';
 
 const prisma = new PrismaClient();
@@ -77,17 +75,6 @@ async function generateThumbnailBuffer(buffer: Buffer): Promise<Buffer> {
     })
     .jpeg({ quality: 80 })
     .toBuffer();
-}
-
-// Generate thumbnail to file (for local storage)
-async function generateThumbnailToFile(buffer: Buffer, outputPath: string): Promise<void> {
-  await sharp(buffer)
-    .resize(THUMBNAIL_SIZE.width, THUMBNAIL_SIZE.height, {
-      fit: 'inside',
-      withoutEnlargement: true,
-    })
-    .jpeg({ quality: 80 })
-    .toFile(outputPath);
 }
 
 // Process image buffer (resize, convert to JPEG)

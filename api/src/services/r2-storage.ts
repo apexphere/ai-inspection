@@ -56,7 +56,7 @@ export function generatePhotoKey(projectId: string, filename: string): string {
  * Generate a storage key for a thumbnail
  * Format: thumbnails/{projectId}/{uuid}.jpg
  */
-export function generateThumbnailKey(projectId: string, filename: string): string {
+export function generateThumbnailKey(projectId: string, _filename: string): string {
   const uuid = crypto.randomUUID();
   return `thumbnails/${projectId}/${uuid}.jpg`;
 }
