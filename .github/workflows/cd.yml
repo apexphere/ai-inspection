@@ -168,8 +168,30 @@ jobs:
           timeout 120 bash -c 'until curl -sf $API_URL/health; do echo "Waiting..."; sleep 5; done'
           echo "API is ready!"
 
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: |
+            cd web
+            if [ "${{ steps.playwright-cache.outputs.cache-hit }}" = "true" ]; then
+              echo "📦 Using cached browsers, installing system deps only..."
+              npx playwright install-deps chromium
+            else
+              echo "⬇️ Downloading browsers..."
+              npx playwright install --with-deps chromium
+            fi
 
       - name: Run E2E tests
         run: npx playwright test
