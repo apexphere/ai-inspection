@@ -28,9 +28,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: ci-check
     steps:
-      - name: Wait for Railway deployment to be ready
+      - name: Wait for Railway (correct version)
         run: |
           echo "Waiting for Railway deployment at $API_URL..."
+          EXPECTED_SHA="${{ github.sha }}"
+          echo "Expected SHA: $EXPECTED_SHA"
           
           MAX_ATTEMPTS=30
           ATTEMPT=0
@@ -39,17 +41,22 @@ jobs:
             ATTEMPT=$((ATTEMPT + 1))
             echo "Attempt $ATTEMPT/$MAX_ATTEMPTS..."
             
-            # Check if the API is responding
-            if curl -sf "$API_URL/health" > /dev/null 2>&1; then
-              echo "Railway deployment ready!"
+            # Get health response with version info
+            RESPONSE=$(curl -sf "$API_URL/health" 2>/dev/null || echo '{}')
+            DEPLOYED_SHA=$(echo "$RESPONSE" | jq -r '.version.sha // "none"')
+            
+            if [ "$DEPLOYED_SHA" = "$EXPECTED_SHA" ]; then
+              echo "✅ Railway: Correct version deployed ($DEPLOYED_SHA)"
               exit 0
             fi
             
-            echo "API not ready yet, waiting 10s..."
+            echo "Waiting... deployed=$DEPLOYED_SHA, expected=$EXPECTED_SHA"
             sleep 10
           done
           
-          echo "Timeout waiting for Railway deployment"
+          echo "❌ Railway: Version mismatch after $MAX_ATTEMPTS attempts"
+          echo "Expected: $EXPECTED_SHA"
+          echo "Deployed: $DEPLOYED_SHA"
           exit 1
 
   wait-for-vercel:
@@ -57,11 +64,13 @@ jobs:
     runs-on: ubuntu-latest
     needs: ci-check
     steps:
-      - name: Wait for Vercel deployment to be ready
+      - name: Wait for Vercel (correct version)
         env:
           VERCEL_BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: |
           echo "Waiting for Vercel deployment at $WEB_URL..."
+          EXPECTED_SHA="${{ github.sha }}"
+          echo "Expected SHA: $EXPECTED_SHA"
           
           MAX_ATTEMPTS=30
           ATTEMPT=0
@@ -70,21 +79,24 @@ jobs:
             ATTEMPT=$((ATTEMPT + 1))
             echo "Attempt $ATTEMPT/$MAX_ATTEMPTS..."
             
-            # Check if the deployment is responding (with bypass header)
-            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            # Get version info with bypass header
+            RESPONSE=$(curl -sf \
               -H "x-vercel-protection-bypass: $VERCEL_BYPASS" \
-              "$WEB_URL")
+              "$WEB_URL/api/version" 2>/dev/null || echo '{}')
+            DEPLOYED_SHA=$(echo "$RESPONSE" | jq -r '.sha // "none"')
             
-            if [ "$HTTP_CODE" = "200" ]; then
-              echo "Vercel deployment ready!"
+            if [ "$DEPLOYED_SHA" = "$EXPECTED_SHA" ]; then
+              echo "✅ Vercel: Correct version deployed ($DEPLOYED_SHA)"
               exit 0
             fi
             
-            echo "Got HTTP $HTTP_CODE, waiting 10s..."
+            echo "Waiting... deployed=$DEPLOYED_SHA, expected=$EXPECTED_SHA"
             sleep 10
           done
           
-          echo "Timeout waiting for Vercel deployment"
+          echo "❌ Vercel: Version mismatch after $MAX_ATTEMPTS attempts"
+          echo "Expected: $EXPECTED_SHA"
+          echo "Deployed: $DEPLOYED_SHA"
           exit 1
 
   e2e-tests:
