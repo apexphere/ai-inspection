@@ -29,19 +29,84 @@ jobs:
     needs: ci-check
     steps:
       - name: Wait for Railway (correct version)
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+          RAILWAY_API_SERVICE_ID: ${{ secrets.RAILWAY_API_SERVICE_ID }}
+          RAILWAY_DB_SERVICE_ID: ${{ secrets.RAILWAY_DB_SERVICE_ID }}
         run: |
           echo "Waiting for Railway deployment at $API_URL..."
           EXPECTED_SHA="${{ github.sha }}"
           echo "Expected SHA: $EXPECTED_SHA"
           
+          # GraphQL query helper
+          railway_query() {
+            curl -sf -X POST \
+              -H "Authorization: Bearer $RAILWAY_TOKEN" \
+              -H "Content-Type: application/json" \
+              --data "$1" \
+              https://backboard.railway.app/graphql/v2 2>/dev/null || echo '{}'
+          }
+          
           MAX_ATTEMPTS=30
           ATTEMPT=0
+          DEPLOY_STATUS=""
           
           while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
             ATTEMPT=$((ATTEMPT + 1))
             echo "Attempt $ATTEMPT/$MAX_ATTEMPTS..."
             
-            # Get health response with version info
+            # If we have Railway API access, check deployment status
+            if [ -n "$RAILWAY_TOKEN" ] && [ -n "$RAILWAY_PROJECT_ID" ] && [ -n "$RAILWAY_API_SERVICE_ID" ]; then
+              QUERY='{"query":"query { deployments(first: 5, input: { projectId: \"'"$RAILWAY_PROJECT_ID"'\", serviceId: \"'"$RAILWAY_API_SERVICE_ID"'\" }) { edges { node { id status meta } } } }"}'
+              DEPLOYMENTS=$(railway_query "$QUERY")
+              
+              # Find deployment matching this commit
+              DEPLOY_ID=$(echo "$DEPLOYMENTS" | jq -r --arg sha "$EXPECTED_SHA" \
+                '.data.deployments.edges[]? | select(.node.meta.commitHash == $sha) | .node.id' 2>/dev/null | head -1)
+              DEPLOY_STATUS=$(echo "$DEPLOYMENTS" | jq -r --arg sha "$EXPECTED_SHA" \
+                '.data.deployments.edges[]? | select(.node.meta.commitHash == $sha) | .node.status' 2>/dev/null | head -1)
+              
+              if [ -n "$DEPLOY_ID" ] && [ "$DEPLOY_ID" != "null" ]; then
+                echo "📦 Deployment ID: $DEPLOY_ID"
+                echo "📊 Status: $DEPLOY_STATUS"
+                
+                if [ "$DEPLOY_STATUS" = "FAILED" ] || [ "$DEPLOY_STATUS" = "CRASHED" ]; then
+                  echo ""
+                  echo "❌ Railway API deployment failed!"
+                  echo ""
+                  echo "═══════════════════════════════════════════════════════════"
+                  echo "                   RAILWAY API LOGS                         "
+                  echo "═══════════════════════════════════════════════════════════"
+                  
+                  LOG_QUERY='{"query":"query { deploymentLogs(deploymentId: \"'"$DEPLOY_ID"'\", limit: 100) { message timestamp } }"}'
+                  railway_query "$LOG_QUERY" | jq -r '.data.deploymentLogs[]? | "\(.timestamp) \(.message)"' 2>/dev/null | tail -50 || echo "(Could not fetch API logs)"
+                  
+                  echo "═══════════════════════════════════════════════════════════"
+                  
+                  if [ -n "$RAILWAY_DB_SERVICE_ID" ]; then
+                    echo ""
+                    echo "═══════════════════════════════════════════════════════════"
+                    echo "                   RAILWAY POSTGRES LOGS                    "
+                    echo "═══════════════════════════════════════════════════════════"
+                    
+                    DB_LOG_QUERY='{"query":"query { deployments(first: 1, input: { projectId: \"'"$RAILWAY_PROJECT_ID"'\", serviceId: \"'"$RAILWAY_DB_SERVICE_ID"'\" }) { edges { node { id } } } }"}'
+                    DB_DEPLOY_ID=$(railway_query "$DB_LOG_QUERY" | jq -r '.data.deployments.edges[0]?.node.id' 2>/dev/null)
+                    
+                    if [ -n "$DB_DEPLOY_ID" ] && [ "$DB_DEPLOY_ID" != "null" ]; then
+                      DB_LOGS_QUERY='{"query":"query { deploymentLogs(deploymentId: \"'"$DB_DEPLOY_ID"'\", limit: 50) { message timestamp } }"}'
+                      railway_query "$DB_LOGS_QUERY" | jq -r '.data.deploymentLogs[]? | "\(.timestamp) \(.message)"' 2>/dev/null | tail -30 || echo "(Could not fetch DB logs)"
+                    fi
+                    
+                    echo "═══════════════════════════════════════════════════════════"
+                  fi
+                  
+                  exit 1
+                fi
+              fi
+            fi
+            
+            # Check version endpoint
             RESPONSE=$(curl -sf "$API_URL/health" 2>/dev/null || echo '{}')
             DEPLOYED_SHA=$(echo "$RESPONSE" | jq -r '.version.sha // "none"')
             
