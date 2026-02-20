@@ -1,4 +1,4 @@
-import type { MeasurementType, MeasurementUnit, MeasurementResult } from '@prisma/client';
+import type { MeasurementType, MeasurementResult } from '@prisma/client';
 import type {
   ISiteMeasurementRepository,
   CreateSiteMeasurementInput,
