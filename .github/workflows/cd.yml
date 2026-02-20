@@ -67,6 +67,8 @@ jobs:
       - name: Wait for Vercel (correct version)
         env:
           VERCEL_BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           echo "Waiting for Vercel deployment at $WEB_URL..."
           EXPECTED_SHA="${{ github.sha }}"
@@ -74,12 +76,52 @@ jobs:
           
           MAX_ATTEMPTS=30
           ATTEMPT=0
+          DEPLOY_ID=""
           
           while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
             ATTEMPT=$((ATTEMPT + 1))
             echo "Attempt $ATTEMPT/$MAX_ATTEMPTS..."
             
-            # Get version info with bypass header
+            # If we have Vercel API access, check deployment status
+            if [ -n "$VERCEL_TOKEN" ] && [ -n "$VERCEL_PROJECT_ID" ]; then
+              # Find deployment for this commit
+              if [ -z "$DEPLOY_ID" ]; then
+                DEPLOYMENTS=$(curl -sf -H "Authorization: Bearer $VERCEL_TOKEN" \
+                  "https://api.vercel.com/v6/deployments?projectId=$VERCEL_PROJECT_ID&limit=10" 2>/dev/null || echo '{}')
+                DEPLOY_ID=$(echo "$DEPLOYMENTS" | jq -r --arg sha "$EXPECTED_SHA" \
+                  '.deployments[]? | select(.meta.githubCommitSha == $sha) | .uid' | head -1)
+              fi
+              
+              if [ -n "$DEPLOY_ID" ] && [ "$DEPLOY_ID" != "null" ]; then
+                echo "📦 Deployment ID: $DEPLOY_ID"
+                
+                # Get deployment status
+                DETAILS=$(curl -sf -H "Authorization: Bearer $VERCEL_TOKEN" \
+                  "https://api.vercel.com/v13/deployments/$DEPLOY_ID" 2>/dev/null || echo '{}')
+                STATE=$(echo "$DETAILS" | jq -r '.readyState // "UNKNOWN"')
+                echo "📊 State: $STATE"
+                
+                if [ "$STATE" = "ERROR" ] || [ "$STATE" = "CANCELED" ]; then
+                  echo ""
+                  echo "❌ Vercel deployment failed!"
+                  echo ""
+                  echo "═══════════════════════════════════════════════════════════"
+                  echo "                   VERCEL BUILD LOGS                        "
+                  echo "═══════════════════════════════════════════════════════════"
+                  
+                  # Fetch and print build logs
+                  curl -sf -H "Authorization: Bearer $VERCEL_TOKEN" \
+                    "https://api.vercel.com/v2/deployments/$DEPLOY_ID/events" 2>/dev/null | \
+                    jq -r '.[]? | select(.type == "stdout" or .type == "stderr") | .payload.text // .text // empty' | \
+                    tail -100 || echo "(Could not fetch build logs)"
+                  
+                  echo "═══════════════════════════════════════════════════════════"
+                  exit 1
+                fi
+              fi
+            fi
+            
+            # Check version endpoint
             RESPONSE=$(curl -sf \
               -H "x-vercel-protection-bypass: $VERCEL_BYPASS" \
               "$WEB_URL/api/version" 2>/dev/null || echo '{}')
