@@ -17,7 +17,7 @@ export function PageLayout({ children, className }: PageLayoutProps): React.Reac
 
 interface PageHeaderProps {
   title: string;
-  description?: string;
+  description?: React.ReactNode;
   actions?: React.ReactNode;
   className?: string;
 }
