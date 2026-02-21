@@ -1,8 +1,10 @@
 /**
- * API Client - Issue #34, #35, #42
+ * API Client - Issue #34, #35, #42, #339
  *
  * Centralized HTTP client for backend API communication.
  * Types imported from @ai-inspection/shared.
+ * 
+ * Authentication: Pass apiToken from session to authenticate requests.
  */
 
 import type {
@@ -38,6 +40,7 @@ interface RequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   body?: unknown;
   headers?: Record<string, string>;
+  token?: string; // API token for authentication
 }
 
 class ApiError extends Error {
@@ -52,13 +55,13 @@ class ApiError extends Error {
 }
 
 async function request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-  const { method = 'GET', body, headers = {} } = options;
+  const { method = 'GET', body, headers = {}, token } = options;
 
   const config: RequestInit = {
     method,
-    credentials: 'include', // Send cookies for authentication
     headers: {
       'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
       ...headers,
     },
   };
@@ -87,67 +90,84 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
 }
 
 // ============================================================================
-// API Methods
+// API Factory - Creates authenticated API client
 // ============================================================================
 
-export const api = {
-  // Inspections
-  inspections: {
-    list: (): Promise<Inspection[]> =>
-      request('/api/inspections'),
+export function createApiClient(token?: string) {
+  const opts = (options: RequestOptions = {}): RequestOptions => ({
+    ...options,
+    token: options.token ?? token,
+  });
 
-    get: (id: string): Promise<InspectionDetail> =>
-      request(`/api/inspections/${id}`),
+  return {
+    // Inspections
+    inspections: {
+      list: (): Promise<Inspection[]> =>
+        request('/api/inspections', opts()),
 
-    create: (data: CreateInspectionInput): Promise<Inspection> =>
-      request('/api/inspections', { method: 'POST', body: data }),
+      get: (id: string): Promise<InspectionDetail> =>
+        request(`/api/inspections/${id}`, opts()),
 
-    update: (id: string, data: Partial<CreateInspectionInput>): Promise<Inspection> =>
-      request(`/api/inspections/${id}`, { method: 'PATCH', body: data }),
+      create: (data: CreateInspectionInput): Promise<Inspection> =>
+        request('/api/inspections', opts({ method: 'POST', body: data })),
 
-    delete: (id: string): Promise<void> =>
-      request(`/api/inspections/${id}`, { method: 'DELETE' }),
-  },
+      update: (id: string, data: Partial<CreateInspectionInput>): Promise<Inspection> =>
+        request(`/api/inspections/${id}`, opts({ method: 'PATCH', body: data })),
 
-  // Findings
-  findings: {
-    list: (inspectionId: string): Promise<Finding[]> =>
-      request(`/api/inspections/${inspectionId}/findings`),
+      delete: (id: string): Promise<void> =>
+        request(`/api/inspections/${id}`, opts({ method: 'DELETE' })),
+    },
 
-    create: (inspectionId: string, data: CreateFindingInput): Promise<Finding> =>
-      request(`/api/inspections/${inspectionId}/findings`, { method: 'POST', body: data }),
+    // Findings
+    findings: {
+      list: (inspectionId: string): Promise<Finding[]> =>
+        request(`/api/inspections/${inspectionId}/findings`, opts()),
 
-    update: (inspectionId: string, findingId: string, data: UpdateFindingInput): Promise<Finding> =>
-      request(`/api/inspections/${inspectionId}/findings/${findingId}`, {
-        method: 'PATCH',
-        body: data,
-      }),
+      create: (inspectionId: string, data: CreateFindingInput): Promise<Finding> =>
+        request(`/api/inspections/${inspectionId}/findings`, opts({ method: 'POST', body: data })),
 
-    delete: (inspectionId: string, findingId: string): Promise<void> =>
-      request(`/api/inspections/${inspectionId}/findings/${findingId}`, { method: 'DELETE' }),
-  },
+      update: (inspectionId: string, findingId: string, data: UpdateFindingInput): Promise<Finding> =>
+        request(`/api/inspections/${inspectionId}/findings/${findingId}`, opts({
+          method: 'PATCH',
+          body: data,
+        })),
 
-  // Reports
-  reports: {
-    generate: (inspectionId: string): Promise<{ url: string }> =>
-      request(`/api/inspections/${inspectionId}/report`, { method: 'POST' }),
-  },
+      delete: (inspectionId: string, findingId: string): Promise<void> =>
+        request(`/api/inspections/${inspectionId}/findings/${findingId}`, opts({ method: 'DELETE' })),
+    },
 
-  // Photos
-  photos: {
-    upload: (findingId: string, base64Data: string, mimeType?: string): Promise<Photo> =>
-      request(`/api/findings/${findingId}/photos`, {
-        method: 'POST',
-        body: { base64Data, mimeType },
-      }),
+    // Reports
+    reports: {
+      generate: (inspectionId: string): Promise<{ url: string }> =>
+        request(`/api/inspections/${inspectionId}/report`, opts({ method: 'POST' })),
+    },
 
-    delete: (photoId: string): Promise<void> =>
-      request(`/api/photos/${photoId}`, { method: 'DELETE' }),
+    // Photos
+    photos: {
+      upload: (findingId: string, base64Data: string, mimeType?: string): Promise<Photo> =>
+        request(`/api/findings/${findingId}/photos`, opts({
+          method: 'POST',
+          body: { base64Data, mimeType },
+        })),
 
-    getUrl: (photoId: string): string =>
-      `${API_URL}/api/photos/${photoId}`,
-  },
-};
+      delete: (photoId: string): Promise<void> =>
+        request(`/api/photos/${photoId}`, opts({ method: 'DELETE' })),
+
+      getUrl: (photoId: string): string =>
+        `${API_URL}/api/photos/${photoId}`,
+    },
+  };
+}
+
+// ============================================================================
+// Legacy API object (for backward compatibility)
+// @deprecated Use useApi() hook or createApiClient(token) instead.
+// This export has NO authentication and will fail on protected endpoints.
+// TODO: Remove once all usages are migrated to useApi()
+// ============================================================================
+
+/** @deprecated Use useApi() hook instead */
+export const api = createApiClient();
 
 export { ApiError };
 export default api;

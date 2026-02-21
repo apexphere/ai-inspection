@@ -1,16 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { api, Inspection, ApiError } from '@/lib/api';
+import { Inspection, ApiError } from '@/lib/api';
+import { useApi } from '@/lib/use-api';
 import { StatusBadge, LoadingPage, ErrorPage } from '@/components';
 
 export default function InspectionsPage(): React.ReactElement {
+  const api = useApi();
   const [inspections, setInspections] = useState<Inspection[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchInspections = async (): Promise<void> => {
+  const fetchInspections = useCallback(async (): Promise<void> => {
     try {
       setLoading(true);
       setError(null);
@@ -18,18 +20,23 @@ export default function InspectionsPage(): React.ReactElement {
       setInspections(data);
     } catch (err) {
       if (err instanceof ApiError) {
-        setError(err.message);
+        // Handle 401 specifically - token may be invalid
+        if (err.status === 401) {
+          setError('Session expired. Please log in again.');
+        } else {
+          setError(err.message);
+        }
       } else {
         setError('Failed to load inspections');
       }
     } finally {
       setLoading(false);
     }
-  };
+  }, [api]);
 
   useEffect(() => {
     fetchInspections();
-  }, []);
+  }, [fetchInspections]);
 
   if (loading) {
     return <LoadingPage />;

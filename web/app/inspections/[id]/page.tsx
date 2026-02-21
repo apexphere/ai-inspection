@@ -2,7 +2,8 @@
 
 import { useEffect, useState, use, useCallback } from 'react';
 import Link from 'next/link';
-import { api, InspectionDetail, Finding, ApiError } from '@/lib/api';
+import { InspectionDetail, Finding, ApiError } from '@/lib/api';
+import { useApi } from '@/lib/use-api';
 import { StatusBadge, LoadingPage, ErrorPage, SectionList, FindingEditor } from '@/components';
 
 interface PageProps {
@@ -11,6 +12,7 @@ interface PageProps {
 
 export default function InspectionDetailPage({ params }: PageProps): React.ReactElement {
   const { id } = use(params);
+  const api = useApi();
   const [inspection, setInspection] = useState<InspectionDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,6 +29,8 @@ export default function InspectionDetailPage({ params }: PageProps): React.React
       if (err instanceof ApiError) {
         if (err.status === 404) {
           setError('Inspection not found');
+        } else if (err.status === 401) {
+          setError('Session expired. Please log in again.');
         } else {
           setError(err.message);
         }
@@ -36,7 +40,7 @@ export default function InspectionDetailPage({ params }: PageProps): React.React
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [api, id]);
 
   const handleGenerateReport = async (): Promise<void> => {
     if (!inspection) return;

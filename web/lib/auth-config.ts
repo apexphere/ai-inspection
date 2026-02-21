@@ -1,11 +1,28 @@
 /**
- * NextAuth Configuration — Issue #181
+ * NextAuth Configuration — Issue #181, #339
+ *
+ * Handles authentication via API credentials provider.
+ * Stores API token in JWT for authenticated API calls.
  */
 
-import type { NextAuthConfig } from 'next-auth';
+import type { NextAuthConfig, Session, User } from 'next-auth';
+import type { JWT } from 'next-auth/jwt';
 import Credentials from 'next-auth/providers/credentials';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
+// Extended types for API token
+interface ExtendedUser extends User {
+  apiToken?: string;
+}
+
+interface ExtendedJWT extends JWT {
+  apiToken?: string;
+}
+
+interface ExtendedSession extends Session {
+  apiToken?: string;
+}
 
 export const authConfig: NextAuthConfig = {
   providers: [
@@ -15,7 +32,7 @@ export const authConfig: NextAuthConfig = {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials) {
+      async authorize(credentials): Promise<ExtendedUser | null> {
         if (!credentials?.email || !credentials?.password) {
           return null;
         }
@@ -36,11 +53,12 @@ export const authConfig: NextAuthConfig = {
           }
 
           const data = await response.json();
-          
-          if (data.user) {
+
+          if (data.user && data.token) {
             return {
               id: data.user.id,
               email: data.user.email,
+              apiToken: data.token, // Store API token for authenticated requests
             };
           }
 
@@ -56,7 +74,7 @@ export const authConfig: NextAuthConfig = {
   },
   session: {
     strategy: 'jwt',
-    maxAge: 24 * 60 * 60, // 24 hours
+    maxAge: 24 * 60 * 60, // 24 hours — matches API token expiry
   },
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
@@ -80,19 +98,28 @@ export const authConfig: NextAuthConfig = {
 
       return true;
     },
-    jwt({ token, user }) {
+    jwt({ token, user }): ExtendedJWT {
       if (user) {
-        token.id = user.id;
-        token.email = user.email;
+        const extUser = user as ExtendedUser;
+        token.id = extUser.id;
+        token.email = extUser.email;
+        token.apiToken = extUser.apiToken; // Persist API token in JWT
       }
-      return token;
+      return token as ExtendedJWT;
     },
-    session({ session, token }) {
-      if (token && session.user) {
-        session.user.id = token.id as string;
-        session.user.email = token.email as string;
+    session({ session, token }): ExtendedSession {
+      const extToken = token as ExtendedJWT;
+      const extSession = session as ExtendedSession;
+      
+      if (extToken && extSession.user) {
+        extSession.user.id = extToken.id as string;
+        extSession.user.email = extToken.email as string;
       }
-      return session;
+      // Add apiToken to session for authenticated API calls
+      if (extToken.apiToken) {
+        extSession.apiToken = extToken.apiToken;
+      }
+      return extSession;
     },
   },
 };
