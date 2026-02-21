@@ -15,12 +15,18 @@ import { useSession } from 'next-auth/react';
 import { useMemo } from 'react';
 import { createApiClient } from './api';
 
+// Extended session type with apiToken
+interface ExtendedSession {
+  apiToken?: string;
+}
+
 export function useApi() {
   const { data: session } = useSession();
+  const extSession = session as ExtendedSession | null;
   
   const api = useMemo(() => {
-    return createApiClient(session?.apiToken);
-  }, [session?.apiToken]);
+    return createApiClient(extSession?.apiToken);
+  }, [extSession?.apiToken]);
 
   return api;
 }
@@ -30,5 +36,6 @@ export function useApi() {
  */
 export function useApiToken(): string | undefined {
   const { data: session } = useSession();
-  return session?.apiToken;
+  const extSession = session as ExtendedSession | null;
+  return extSession?.apiToken;
 }

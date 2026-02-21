@@ -161,9 +161,12 @@ export function createApiClient(token?: string) {
 
 // ============================================================================
 // Legacy API object (for backward compatibility)
-// Note: These calls won't have auth token - use createApiClient(token) instead
+// @deprecated Use useApi() hook or createApiClient(token) instead.
+// This export has NO authentication and will fail on protected endpoints.
+// TODO: Remove once all usages are migrated to useApi()
 // ============================================================================
 
+/** @deprecated Use useApi() hook instead */
 export const api = createApiClient();
 
 export { ApiError };
