@@ -8,7 +8,8 @@
   "scripts": {
     "postinstall": "prisma generate",
     "dev": "tsx watch src/index.ts",
-    "build": "tsc",
+    "build": "tsc && npm run build:seed",
+    "build:seed": "esbuild prisma/seed.ts --bundle --platform=node --format=esm --outfile=dist/seed.js --external:bcrypt --external:@prisma/client",
     "start": "node dist/index.js",
     "lint": "eslint src/",
     "typecheck": "tsc --noEmit",
@@ -41,6 +42,7 @@
     "zod": "^3.24.0"
   },
   "devDependencies": {
+    "esbuild": "^0.25.2",
     "@types/bcrypt": "^6.0.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/cookie-parser": "^1.4.10",
@@ -63,6 +65,6 @@
     "node": ">=20.0.0"
   },
   "prisma": {
-    "seed": "tsx prisma/seed.ts"
+    "seed": "node dist/seed.js"
   }
 }
