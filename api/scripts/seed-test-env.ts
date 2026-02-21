@@ -13,7 +13,7 @@
  */
 
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
@@ -39,61 +39,68 @@ async function seedTestUser(): Promise<void> {
 }
 
 async function seedTestProject(): Promise<void> {
-  // Check if test project exists
-  const existing = await prisma.project.findFirst({
-    where: { name: 'Test Project' },
+  // Check if test project exists by job number
+  const testJobNumber = 'TEST-001';
+  const existing = await prisma.project.findUnique({
+    where: { jobNumber: testJobNumber },
   });
 
   if (existing) {
-    console.log(`✅ Test project exists: ${existing.name} (id: ${existing.id})`);
-    return;
-  }
-
-  // Get test user
-  const user = await prisma.user.findUnique({
-    where: { email: TEST_EMAIL },
-  });
-
-  if (!user) {
-    console.log('⚠️  Test user not found, skipping project creation');
+    console.log(`✅ Test project exists: ${testJobNumber} (id: ${existing.id})`);
     return;
   }
 
   // Create test client
-  const client = await prisma.client.upsert({
-    where: { email: 'testclient@example.com' },
-    create: {
-      name: 'Test Client',
-      email: 'testclient@example.com',
-      phone: '021-555-0123',
-    },
-    update: {},
+  let client = await prisma.client.findFirst({
+    where: { name: 'Test Client' },
   });
 
+  if (!client) {
+    client = await prisma.client.create({
+      data: {
+        name: 'Test Client',
+        email: 'testclient@example.com',
+        phone: '021-555-0123',
+      },
+    });
+    console.log(`✅ Test client created: ${client.name} (id: ${client.id})`);
+  } else {
+    console.log(`✅ Test client exists: ${client.name} (id: ${client.id})`);
+  }
+
   // Create test property
-  const property = await prisma.property.create({
-    data: {
-      address: '123 Test Street',
-      suburb: 'Testville',
-      city: 'Auckland',
-      postcode: '1010',
-      propertyType: 'RESIDENTIAL',
-      clientId: client.id,
-    },
+  let property = await prisma.property.findFirst({
+    where: { streetAddress: '123 Test Street' },
   });
+
+  if (!property) {
+    property = await prisma.property.create({
+      data: {
+        streetAddress: '123 Test Street',
+        suburb: 'Testville',
+        city: 'Auckland',
+        postcode: '1010',
+        territorialAuthority: 'AKL',
+      },
+    });
+    console.log(`✅ Test property created: ${property.streetAddress} (id: ${property.id})`);
+  } else {
+    console.log(`✅ Test property exists: ${property.streetAddress} (id: ${property.id})`);
+  }
 
   // Create test project
   const project = await prisma.project.create({
     data: {
-      name: 'Test Project',
-      status: 'ACTIVE',
+      jobNumber: testJobNumber,
+      activity: 'Test Inspection',
+      reportType: 'COA',
+      status: 'DRAFT',
       propertyId: property.id,
       clientId: client.id,
-      createdById: user.id,
     },
   });
 
-  console.log(`✅ Test project created: ${project.name} (id: ${project.id})`);
+  console.log(`✅ Test project created: ${testJobNumber} (id: ${project.id})`);
 }
 
 async function main(): Promise<void> {
