@@ -28,7 +28,7 @@ if (!TEST_PASSWORD) {
 }
 
 const password = TEST_PASSWORD || 'test-password-123';
-const AUTH_FILE = 'e2e/.auth/user.json';
+const AUTH_FILE = './e2e/.auth/user.json';
 
 setup('authenticate', async ({ page }) => {
   await page.goto('/login');
