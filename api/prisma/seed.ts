@@ -1,10 +1,10 @@
 import { PrismaClient } from '@prisma/client';
 import { readFileSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { join } from 'path';
 import bcrypt from 'bcrypt';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+// Use cwd for paths - works with both tsx and compiled JS since railway.toml runs from api/
+const seedDataDir = join(process.cwd(), 'prisma', 'seed');
 const prisma = new PrismaClient();
 
 interface BuildingCodeClauseData {
@@ -33,7 +33,7 @@ async function seedBuildingCodeClauses() {
   }
 
   // Load data from JSON
-  const clausesPath = join(__dirname, 'seed', 'building-code-clauses.json');
+  const clausesPath = join(seedDataDir, 'building-code-clauses.json');
   const clauses: BuildingCodeClauseData[] = JSON.parse(readFileSync(clausesPath, 'utf-8'));
 
   // Insert clauses
@@ -64,7 +64,7 @@ async function seedNAReasonTemplates() {
   }
 
   // Load data from JSON
-  const templatesPath = join(__dirname, 'seed', 'na-reason-templates.json');
+  const templatesPath = join(seedDataDir, 'na-reason-templates.json');
   const templates: NAReasonTemplateData[] = JSON.parse(readFileSync(templatesPath, 'utf-8'));
 
   // Insert templates
