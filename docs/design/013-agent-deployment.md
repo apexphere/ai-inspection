@@ -1,8 +1,8 @@
 # Design: AI Agent Deployment
 
-**Status:** Draft  
+**Status:** Ready for Review  
 **Author:** Archer  
-**Date:** 2026-02-20  
+**Date:** 2026-02-21 (Updated)  
 **Ticket:** #290
 
 ---
@@ -15,10 +15,9 @@ We have built the inspection tools (MCP server) and backend API, but the AI agen
 - ✅ MCP server with inspection_* tools
 - ✅ Backend API (Railway)
 - ✅ Web UI (Vercel)
-- ✅ Skill definition (SKILL.md)
-- ❌ OpenClaw agent not configured
+- ✅ Skill definition (skill/SKILL.md)
+- ❌ OpenClaw agent not deployed
 - ❌ WhatsApp channel not connected
-- ❌ No production deployment
 
 ---
 
@@ -28,7 +27,7 @@ We have built the inspection tools (MCP server) and backend API, but the AI agen
 2. Full workflow: start → capture findings/photos → generate report
 3. Handles off-topic messages gracefully
 4. Supports multiple concurrent inspectors
-5. Production-ready (monitoring, error handling, scaling)
+5. Production-ready (monitoring, error handling)
 
 ---
 
@@ -42,46 +41,35 @@ We have built the inspection tools (MCP server) and backend API, but the AI agen
                                 │
                                 ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                      WHATSAPP BUSINESS API                               │
-│                                                                          │
-│  Provider options:                                                       │
-│  • Meta Cloud API (direct)                                              │
-│  • Twilio                                                               │
-│  • 360dialog                                                            │
-│  • MessageBird                                                          │
-└───────────────────────────────┬─────────────────────────────────────────┘
-                                │ webhook
-                                ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                            OPENCLAW                                      │
+│                     OPENCLAW GATEWAY (Railway)                           │
 │                                                                          │
 │  ┌─────────────────────────────────────────────────────────────────┐    │
-│  │ Gateway                                                          │    │
-│  │ • Receives webhooks from WhatsApp                               │    │
-│  │ • Manages sessions (per phone number)                           │    │
-│  │ • Routes to agent                                               │    │
+│  │ WhatsApp Channel (native via Baileys)                           │    │
+│  │ • QR code pairing (WhatsApp Web)                                │    │
+│  │ • Direct message handling                                       │    │
+│  │ • Media download (photos)                                       │    │
 │  └─────────────────────────────────────────────────────────────────┘    │
 │                                │                                         │
 │                                ▼                                         │
 │  ┌─────────────────────────────────────────────────────────────────┐    │
-│  │ Agent (Claude)                                                   │    │
-│  │ • System prompt from SKILL.md                                   │    │
-│  │ • Understands inspection workflow                               │    │
-│  │ • Calls MCP tools as needed                                     │    │
+│  │ Inspector Agent (dedicated)                                      │    │
+│  │ • SOUL.md — inspection assistant persona                        │    │
+│  │ • SKILL.md — inspection workflow                                │    │
+│  │ • Model: Claude Sonnet                                          │    │
 │  └──────────────────────────┬──────────────────────────────────────┘    │
 │                             │                                            │
 └─────────────────────────────┼────────────────────────────────────────────┘
-                              │ stdio
+                              │ stdio (MCP)
                               ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                      MCP SERVER (ai-inspection)                          │
+│                      MCP SERVER (same container)                         │
 │                                                                          │
 │  Tools:                                                                  │
-│  • inspection_start                                                     │
-│  • inspection_add_finding                                               │
-│  • inspection_navigate                                                  │
-│  • inspection_complete                                                  │
-│  • inspection_get_report                                                │
+│  • inspection_start(address, type)                                      │
+│  • inspection_add_finding(section, description, severity, photos)       │
+│  • inspection_navigate(section)                                         │
+│  • inspection_complete()                                                │
+│  • inspection_get_report(format)                                        │
 │                              │                                           │
 └──────────────────────────────┼───────────────────────────────────────────┘
                                │ HTTP
@@ -96,270 +84,188 @@ We have built the inspection tools (MCP server) and backend API, but the AI agen
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
----
-
-## Components
-
-### 1. WhatsApp Business API
-
-**Options:**
-
-| Provider | Pros | Cons | Cost |
-|----------|------|------|------|
-| **Meta Cloud API** | Direct, official | Complex setup, approval process | Per-conversation pricing |
-| **Twilio** | Easy integration, good docs | Middle-man | ~$0.005/msg + fees |
-| **360dialog** | WhatsApp partner, simple | Less known | Per-conversation |
-| **MessageBird** | Multi-channel | Overkill for single channel | Variable |
-
-**Recommendation:** Start with **Twilio** for ease of integration, evaluate Meta direct later for cost optimization.
-
-**Requirements:**
-- WhatsApp Business Account
-- Verified business
-- Phone number (dedicated)
-- Webhook endpoint (HTTPS)
+**Key simplification:** No Twilio or WhatsApp Business API needed. OpenClaw connects directly via WhatsApp Web (Baileys library).
 
 ---
 
-### 2. OpenClaw Configuration
+## Dedicated Agent Structure
 
-**Deployment options:**
+```
+agents/
+  inspector/
+    workspace/
+      SOUL.md          # Persona: helpful inspection assistant
+      SKILL.md         # Inspection workflow (from skill/)
+      MEMORY.md        # Persistent context
+      USER.md          # Inspector info template
+```
 
-| Option | Pros | Cons |
-|--------|------|------|
-| **Same server as API** | Simple, one deployment | Coupling, scaling together |
-| **Separate service** | Independent scaling, isolation | More infra to manage |
-| **Managed OpenClaw** | Zero ops | Dependency on service |
+**SOUL.md:**
+```markdown
+# Inspector Agent
 
-**Recommendation:** Start with **separate Railway service** for OpenClaw. Keeps concerns separated.
+You are a building inspection assistant. You help inspectors conduct 
+thorough building assessments via WhatsApp.
 
-**Config structure:**
+## Personality
+- Professional but friendly
+- Concise — inspectors are on-site, busy
+- Proactive — suggest next steps
+- Patient — handle photos, typos, interruptions
+
+## Core workflow
+1. Get address → start inspection
+2. Guide through sections (Exterior → Interior → ...)
+3. Capture findings + photos for each
+4. Generate report when complete
+```
+
+---
+
+## OpenClaw Configuration
 
 ```yaml
 # openclaw.yml
-gateway:
-  host: 0.0.0.0
-  port: 3001
-
+agents:
+  inspector:
+    enabled: true
+    model: claude-sonnet-4
+    
 channels:
   whatsapp:
-    provider: twilio  # or meta, 360dialog
-    account_sid: ${TWILIO_ACCOUNT_SID}
-    auth_token: ${TWILIO_AUTH_TOKEN}
-    phone_number: ${WHATSAPP_PHONE_NUMBER}
-    webhook_path: /webhook/whatsapp
-
-agent:
-  model: claude-sonnet-4-20250514
-  max_tokens: 1024
-  
-  # Skill loaded from file
-  skill: ./skill/SKILL.md
-  
-  # Or inline system prompt
-  system_prompt: |
-    You are a building inspection assistant...
+    enabled: true
+    dmPolicy: allowlist
+    allowFrom:
+      - "+6421..."  # Inspector 1
+      - "+6422..."  # Inspector 2
+    session:
+      dmScope: agent  # Each inspector gets own session
+    ackReaction:
+      emoji: "👀"
+      direct: true
 
 mcp:
   servers:
-    ai-inspection:
-      command: node
-      args: ["./server/dist/index.js"]
+    inspection:
+      command: ["node", "server/dist/index.js"]
       env:
-        API_URL: ${API_URL}
-        API_KEY: ${API_KEY}
-
-sessions:
-  # Session = one phone number
-  # Persist across messages
-  storage: redis  # or memory, postgres
-  ttl: 86400  # 24 hours
+        API_URL: "https://api.example.com"
+        API_KEY: "${API_KEY}"
 ```
 
 ---
 
-### 3. Session Management
-
-**Model:** One session per phone number
+## Media Handling (Photos)
 
 ```
-Phone: +64 21 123 4567
-  └── Session
-        ├── Conversation history
-        ├── Active inspection ID (if any)
-        └── Last activity timestamp
+Inspector sends photo via WhatsApp
+    │
+    ▼
+OpenClaw Gateway receives media
+    │ (Baileys downloads from WhatsApp servers)
+    ▼
+Agent receives image in context
+    │
+    ▼
+MCP tool: inspection_add_finding(..., photos: [base64])
+    │
+    ▼
+API uploads to R2, stores URL in finding
 ```
 
-**Session lifecycle:**
-1. First message → Create session
-2. Subsequent messages → Load session, continue conversation
-3. Idle timeout (24h) → Session expires
-4. "Start new inspection" → Can have active inspection
-5. "Done" → Inspection complete, session continues
-
-**Resumption:**
-```
-Inspector: "Hey"
-AI: (checks session, finds active inspection)
-    "Welcome back! You have an inspection in progress at 42 Oak Street.
-     Currently on Interior. Ready to continue?"
-```
+**Note:** WhatsApp media URLs are temporary (~5 min). OpenClaw downloads immediately on receipt.
 
 ---
 
-### 4. Conversation Boundaries
-
-**Skill update needed for:**
-
-#### Off-Topic Handling
-
-```markdown
 ## Conversation Boundaries
 
 ### During Active Inspection
 
-Stay focused. Acknowledge briefly, redirect.
-
 | User says | Response |
 |-----------|----------|
-| Weather, news, jokes | "Let's stay focused on the inspection. Still on [section] — anything to note?" |
-| "Hello" / "Hi" | "Hi! We're inspecting [address]. Currently on [section]." |
-| Unrelated question | "I'm here to help with inspections. What did you find in [section]?" |
+| Off-topic (weather, jokes) | "Let's stay focused. Still on [section] — anything to note?" |
+| "Hello" / "Hi" | "Hi! We're at [address], checking [section]." |
+| Unrelated question | "I'm here for inspections. What did you find?" |
 
 ### No Active Inspection
 
-Be helpful but purposeful.
-
 | User says | Response |
 |-----------|----------|
-| "Hey" / "Hello" | "Hi! Ready to start an inspection? Just tell me the address." |
-| Random question | "I'm a building inspection assistant. Give me an address to get started." |
-| "What can you do?" | "I guide building inspections via WhatsApp. Tell me an address to start, and I'll walk you through section by section, capture your findings and photos, then generate a PDF report." |
+| "Hey" | "Hi! Ready to inspect? Give me an address." |
+| "What can you do?" | "I guide building inspections via WhatsApp. Give me an address to start." |
 
-### Explicit Off-Topic Request
+### Error Recovery
 
-If user clearly wants to chat:
-
-"I'm focused on inspections — not great at small talk! 😄 Ready to inspect something?"
-```
-
-#### Error Recovery
-
-```markdown
-## Error Handling
-
-### API Failure
-
-"Hmm, having trouble saving that. Let me try again..."
-(retry)
-"Got it now — [confirm what was saved]"
-
-If persistent:
-"I'm having technical difficulties. Your inspection is saved up to [last section]. 
- Try again in a few minutes, or contact support."
-
-### Photo Processing Failed
-
-"Couldn't process that photo. Can you send it again?"
-
-### Context Too Long
-
-(Approaching token limit)
-Summarize and compact context internally.
-"Quick recap: [address], [X findings] so far. Continuing with [section]..."
-```
+| Situation | Response |
+|-----------|----------|
+| API failure | "Trouble saving that. Trying again..." (retry) |
+| Photo failed | "Couldn't process that photo. Send again?" |
+| Long inspection | Auto-summarize, continue from checkpoint |
 
 ---
 
-### 5. Multi-Tenant Considerations
+## Multi-Inspector Support
 
-**Option A: Single number, multiple inspectors**
-- Phone number identifies inspector (lookup in DB)
-- Pro: One number to manage
-- Con: Need phone → inspector mapping
+**Approach:** Single WhatsApp number, phone→inspector lookup.
 
-**Option B: Number per inspector**
-- Each inspector gets their own WhatsApp number
-- Pro: Clear separation
-- Con: Number provisioning cost
-
-**Recommendation:** Start with **Option A** (single number). Map phone → inspector via database lookup. Add provisioned numbers later if needed.
-
-**User identification flow:**
 ```
-Incoming message from +64 21 123 4567
-  → Lookup in inspectors table
-  → Found: Jake Li (inspector_id: abc123)
-  → All inspections tagged with inspector_id
+Incoming from +64 21 123 4567
+    │
+    ▼
+Lookup in inspectors table
+    │
+    ├─ Found: Inspector "Jake Li" (id: abc123)
+    │   └─ Tag all inspections with inspector_id
+    │
+    └─ Not found:
+        └─ "I don't have you registered. Contact admin."
 ```
 
-**First-time user:**
-```
-"Hi! I don't have you registered yet. 
- Please contact admin to set up your inspector profile."
-```
+**Session isolation:** Each phone number gets own OpenClaw session (dmScope: agent).
 
 ---
 
-### 6. Media Handling
+## Deployment
 
-**Photos from WhatsApp:**
+### Phase 1: Local Development (v1)
+
+OpenClaw runs on local machine, connects to Railway API.
 
 ```
-Inspector sends photo
-  → WhatsApp delivers media URL (temporary, expires ~5 min)
-  → OpenClaw downloads immediately
-  → Uploads to R2 storage
-  → Passes R2 URL to MCP tool
+Inspector (WhatsApp) → OpenClaw (local) → MCP Server (local) → Railway API
 ```
 
-**Implementation:**
-```typescript
-// In OpenClaw message handler
-if (message.hasMedia) {
-  const mediaUrl = message.mediaUrl;  // Temporary WhatsApp URL
-  const buffer = await fetch(mediaUrl).then(r => r.buffer());
-  const r2Url = await uploadToR2(buffer, `photos/${uuid()}.jpg`);
-  // Pass r2Url to agent context
-}
+**Setup:**
+```bash
+# Clone repo
+cd ai-inspection
+
+# Build MCP server
+cd server && npm ci && npm run build && cd ..
+
+# Configure OpenClaw
+openclaw init  # or copy config
+
+# Pair WhatsApp
+openclaw whatsapp pair  # scan QR with phone
+
+# Start gateway
+openclaw gateway start
 ```
 
----
-
-## Deployment Plan
-
-### Phase 1: Local Development
-- [ ] OpenClaw running locally
-- [ ] ngrok tunnel for WhatsApp webhook
-- [ ] Test with personal WhatsApp
-
-### Phase 2: Staging Deployment
-- [ ] Deploy OpenClaw to Railway (separate service)
-- [ ] Configure Twilio sandbox
-- [ ] Test full flow with team
-
-### Phase 3: Production
-- [ ] Provision production WhatsApp number
-- [ ] WhatsApp Business verification
-- [ ] Production OpenClaw deployment
-- [ ] Monitoring and alerting
-
----
-
-## Environment Variables
-
-**OpenClaw service (Railway):**
-
+**Environment Variables (local .env):**
 | Variable | Description |
 |----------|-------------|
 | `ANTHROPIC_API_KEY` | Claude API key |
-| `TWILIO_ACCOUNT_SID` | Twilio credentials |
-| `TWILIO_AUTH_TOKEN` | Twilio credentials |
-| `WHATSAPP_PHONE_NUMBER` | WhatsApp number |
-| `API_URL` | Backend API URL |
-| `API_KEY` | Backend API auth |
-| `R2_*` | R2 credentials for photo upload |
-| `REDIS_URL` | Session storage (optional) |
+| `API_URL` | `https://api-test-ai-inspection.apexphere.co.nz` |
+| `API_KEY` | Backend API auth key |
+
+### Phase 2: Railway Deployment (future)
+
+Move OpenClaw to Railway when ready for production:
+- Dockerfile for openclaw-inspector service
+- Persistent volume for WhatsApp auth
+- Auto-deploy from develop branch
 
 ---
 
@@ -368,41 +274,54 @@ if (message.hasMedia) {
 | Component | Cost |
 |-----------|------|
 | OpenClaw (Railway) | ~$5/mo |
-| Twilio WhatsApp | ~$0.005/msg sent, $0.005/msg received |
-| WhatsApp conversations | ~$0.03-0.08/conversation (24h window) |
-| Claude API | ~$0.003/1K input, $0.015/1K output |
+| Claude API | ~$0.03/inspection (~5K tokens) |
+| **Total per inspection** | **~$0.03** |
 
-**Per inspection estimate:**
-- ~20 messages × $0.005 = $0.10 (Twilio)
-- ~1 conversation = $0.05 (WhatsApp)
-- ~5K tokens = $0.03 (Claude)
-- **Total: ~$0.20/inspection**
+No Twilio or WhatsApp Business API fees.
+
+---
+
+## Implementation Stories
+
+### Phase 1: Local Setup (v1)
+1. **#344 Create inspector agent structure** — SOUL.md, config
+2. **#345 Configure WhatsApp channel** — pairing, allowlist
+3. **#346 Connect MCP server** — stdio transport, tools working
+
+### Phase 2: Polish
+4. **#350 Conversation boundaries** — off-topic handling in SKILL.md
+5. **#351 Multi-inspector support** — phone lookup (Alex)
+6. **#352 Monitoring and alerts** — health checks
+7. **#353 Ops runbook** — documentation
+
+### Phase 3: Railway Deployment (future)
+- Dockerfile for openclaw-inspector
+- Railway service configuration
+- Persistent WhatsApp auth
 
 ---
 
 ## Open Questions
 
-1. **WhatsApp approval timeline?** Business verification can take 1-4 weeks.
-2. **Phone number provisioning?** Use existing or provision new?
-3. **Redis for sessions?** Or simpler in-memory/postgres?
-4. **Rate limits?** WhatsApp has limits on messages per day for new numbers.
-5. **Compliance?** Data retention, GDPR, NZ Privacy Act considerations.
+1. ~~WhatsApp Business API provider?~~ → Not needed, use native WhatsApp Web
+2. **Phone number:** Use existing or provision new?
+3. **Auth persistence:** Volume mount or external store?
+4. **Rate limits:** WhatsApp Web has informal limits (~200 msg/day for new numbers)
 
 ---
 
 ## Next Steps
 
-1. [ ] Review and approve this design
-2. [ ] Decision on WhatsApp provider (Twilio recommended)
-3. [ ] Provision WhatsApp Business account
-4. [ ] Break into implementation tickets
-5. [ ] Phase 1: Local development setup
+1. ✅ Design approved
+2. Create implementation tickets (#1-12 above)
+3. Taylor: Railway service setup (#4, #5)
+4. Alex: API inspector lookup endpoint (#8)
+5. Archer: Agent config and skill (#1, #2, #7)
 
 ---
 
 ## References
 
-- [OpenClaw Documentation](https://docs.openclaw.ai)
-- [Twilio WhatsApp API](https://www.twilio.com/docs/whatsapp)
-- [WhatsApp Business Platform](https://developers.facebook.com/docs/whatsapp)
+- [OpenClaw WhatsApp Docs](https://docs.openclaw.ai/channels/whatsapp)
 - [MCP Protocol](https://modelcontextprotocol.io)
+- [Baileys Library](https://github.com/WhiskeySockets/Baileys)
