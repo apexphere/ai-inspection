@@ -93,9 +93,11 @@ authRouter.post('/register', authLimiter, async (req: Request, res: Response) =>
     // Set HttpOnly cookie
     setTokenCookie(res, token);
 
+    // Return token in response for cross-origin clients (NextAuth)
     res.status(201).json({
       message: 'Registration successful',
       user: { id: user.id, email: user.email },
+      token,
     });
   } catch (err) {
     console.error('Registration error:', err);
@@ -150,9 +152,11 @@ authRouter.post('/login', authLimiter, async (req: Request, res: Response) => {
     // Set HttpOnly cookie
     setTokenCookie(res, token);
 
+    // Return token in response for cross-origin clients (NextAuth)
     res.json({
       message: 'Login successful',
       user: { id: user.id, email: user.email },
+      token,
     });
   } catch (err) {
     console.error('Login error:', err);
