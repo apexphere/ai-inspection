@@ -227,42 +227,45 @@ Lookup in inspectors table
 
 ## Deployment
 
-### Railway Service: `openclaw-inspector`
+### Phase 1: Local Development (v1)
 
-**Dockerfile:**
-```dockerfile
-FROM node:22-alpine
+OpenClaw runs on local machine, connects to Railway API.
 
-# Install OpenClaw
-RUN npm install -g openclaw
-
-# Copy agent config and MCP server
-COPY agents/inspector /app/agents/inspector
-COPY server /app/server
-
-WORKDIR /app
-
-# Build MCP server
-RUN cd server && npm ci && npm run build
-
-# Start OpenClaw gateway
-CMD ["openclaw", "gateway", "start"]
+```
+Inspector (WhatsApp) → OpenClaw (local) → MCP Server (local) → Railway API
 ```
 
-**Environment Variables:**
+**Setup:**
+```bash
+# Clone repo
+cd ai-inspection
+
+# Build MCP server
+cd server && npm ci && npm run build && cd ..
+
+# Configure OpenClaw
+openclaw init  # or copy config
+
+# Pair WhatsApp
+openclaw whatsapp pair  # scan QR with phone
+
+# Start gateway
+openclaw gateway start
+```
+
+**Environment Variables (local .env):**
 | Variable | Description |
 |----------|-------------|
 | `ANTHROPIC_API_KEY` | Claude API key |
-| `API_URL` | Backend API URL |
+| `API_URL` | `https://api-test-ai-inspection.apexphere.co.nz` |
 | `API_KEY` | Backend API auth key |
-| `R2_*` | R2 credentials (if agent uploads directly) |
 
-### WhatsApp Pairing
+### Phase 2: Railway Deployment (future)
 
-1. Deploy service
-2. Run `openclaw whatsapp pair` 
-3. Scan QR code with phone
-4. Session persists (auth stored in volume)
+Move OpenClaw to Railway when ready for production:
+- Dockerfile for openclaw-inspector service
+- Persistent volume for WhatsApp auth
+- Auto-deploy from develop branch
 
 ---
 
@@ -280,25 +283,21 @@ No Twilio or WhatsApp Business API fees.
 
 ## Implementation Stories
 
-### Phase 1: Foundation
-1. **Create inspector agent structure** — SOUL.md, config
-2. **Configure WhatsApp channel** — pairing, allowlist
-3. **Connect MCP server** — stdio transport, tools working
+### Phase 1: Local Setup (v1)
+1. **#344 Create inspector agent structure** — SOUL.md, config
+2. **#345 Configure WhatsApp channel** — pairing, allowlist
+3. **#346 Connect MCP server** — stdio transport, tools working
 
-### Phase 2: Deployment
-4. **Dockerfile for openclaw-inspector** — Railway service
-5. **Environment and secrets** — API keys, Railway config
-6. **WhatsApp pairing workflow** — QR code, auth persistence
+### Phase 2: Polish
+4. **#350 Conversation boundaries** — off-topic handling in SKILL.md
+5. **#351 Multi-inspector support** — phone lookup (Alex)
+6. **#352 Monitoring and alerts** — health checks
+7. **#353 Ops runbook** — documentation
 
-### Phase 3: Polish
-7. **Conversation boundaries** — off-topic handling in SKILL.md
-8. **Multi-inspector support** — phone lookup, session isolation
-9. **Monitoring and alerts** — health checks, error notifications
-
-### Phase 4: Production
-10. **Production WhatsApp number** — dedicated number
-11. **Inspector onboarding** — allowlist management
-12. **Documentation** — ops runbook
+### Phase 3: Railway Deployment (future)
+- Dockerfile for openclaw-inspector
+- Railway service configuration
+- Persistent WhatsApp auth
 
 ---
 
