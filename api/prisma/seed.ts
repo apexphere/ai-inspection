@@ -1,10 +1,10 @@
 import { PrismaClient } from '@prisma/client';
 import { readFileSync } from 'fs';
-import { join } from 'path';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import bcrypt from 'bcrypt';
 
-// Use process.cwd() so paths work when compiled to dist/seed.js
-const PRISMA_DIR = join(process.cwd(), 'prisma');
+const __dirname = dirname(fileURLToPath(import.meta.url));
 const prisma = new PrismaClient();
 
 interface BuildingCodeClauseData {
@@ -33,7 +33,7 @@ async function seedBuildingCodeClauses() {
   }
 
   // Load data from JSON
-  const clausesPath = join(PRISMA_DIR, 'seed', 'building-code-clauses.json');
+  const clausesPath = join(__dirname, 'seed', 'building-code-clauses.json');
   const clauses: BuildingCodeClauseData[] = JSON.parse(readFileSync(clausesPath, 'utf-8'));
 
   // Insert clauses
@@ -64,7 +64,7 @@ async function seedNAReasonTemplates() {
   }
 
   // Load data from JSON
-  const templatesPath = join(PRISMA_DIR, 'seed', 'na-reason-templates.json');
+  const templatesPath = join(__dirname, 'seed', 'na-reason-templates.json');
   const templates: NAReasonTemplateData[] = JSON.parse(readFileSync(templatesPath, 'utf-8'));
 
   // Insert templates
