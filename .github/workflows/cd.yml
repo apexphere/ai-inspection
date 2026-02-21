@@ -206,10 +206,44 @@ jobs:
           echo "Deployed: $DEPLOYED_SHA"
           exit 1
 
+  run-migrations:
+    name: Run Database Migrations
+    runs-on: ubuntu-latest
+    needs: wait-for-railway
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Install Prisma CLI
+        run: |
+          cd api
+          npm ci --ignore-scripts
+          npx prisma generate
+
+      - name: Run migrations
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+          RAILWAY_SERVICE_ID: ${{ secrets.RAILWAY_API_SERVICE_ID }}
+        run: |
+          echo "Running database migrations via Railway..."
+          cd api
+          # railway run executes command with Railway env vars (DATABASE_URL, etc.)
+          railway run npx prisma migrate deploy
+          echo "✅ Migrations complete"
+
   e2e-tests:
     name: Run E2E Tests
     runs-on: ubuntu-latest
-    needs: [wait-for-railway, wait-for-vercel]
+    needs: [run-migrations, wait-for-vercel]
     defaults:
       run:
         working-directory: ./web
