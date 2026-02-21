@@ -81,3 +81,37 @@ test.describe('Feature Name', () => {
 Tests run authenticated by default. The `auth.setup.ts` runs first to create auth state, which is reused by all tests.
 
 Test user: `test@example.com` (password from `TEST_PASSWORD` env var)
+
+## Seeding Test Data
+
+The `scripts/seed-test-env.ts` script creates test data in the database.
+
+### Local Seeding
+
+```bash
+# With .env file containing DATABASE_URL
+npm run seed
+
+# Or with explicit DATABASE_URL
+DATABASE_URL="postgresql://..." npm run seed
+```
+
+### Railway Seeding
+
+```bash
+# Link to Railway project first
+railway link
+
+# Run seed via Railway
+npm run seed:railway
+
+# Or use the shell script
+./scripts/seed-test-env.sh
+```
+
+### What Gets Seeded
+
+- Test user: `test@example.com` (password from TEST_PASSWORD or default)
+- Test client: "Test Client"
+- Test property: "123 Test Street, Auckland"
+- Test project: "TEST-001"

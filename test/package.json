@@ -7,10 +7,15 @@
     "test:headed": "playwright test --headed",
     "test:ui": "playwright test --ui",
     "test:debug": "playwright test --debug",
-    "test:report": "playwright show-report"
+    "test:report": "playwright show-report",
+    "seed": "tsx scripts/seed-test-env.ts",
+    "seed:railway": "railway run npm run seed"
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0",
-    "dotenv": "^16.5.0"
+    "@prisma/client": "^6.19.0",
+    "bcrypt": "^6.0.0",
+    "dotenv": "^16.5.0",
+    "tsx": "^4.0.0"
   }
 }

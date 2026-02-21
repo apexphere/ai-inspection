@@ -1,11 +1,12 @@
 /**
  * Seed script for test environment
  * 
- * Run manually against Railway:
- *   railway run npx tsx scripts/seed-test-env.ts
+ * Run from test/ directory:
+ *   npm run seed                    # local with .env
+ *   npm run seed:railway            # via Railway CLI
  * 
- * Or locally with DATABASE_URL:
- *   DATABASE_URL="postgresql://..." npx tsx scripts/seed-test-env.ts
+ * Or with explicit DATABASE_URL:
+ *   DATABASE_URL="postgresql://..." npm run seed
  * 
  * Required env vars:
  *   - DATABASE_URL: Postgres connection string
