@@ -6,9 +6,9 @@ builder = "dockerfile"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-# Run migrations and seed before starting the server
-# Note: Run seed directly (not via prisma db seed) to avoid deprecated package.json#prisma config
-startCommand = "npx prisma migrate deploy && node dist/seed.js && npm start"
+# Run migrations before starting the server
+# Seeding is done manually: railway run npm run db:seed
+startCommand = "npx prisma migrate deploy && npm start"
 healthcheckPath = "/health"
 healthcheckTimeout = 120
 restartPolicyType = "on_failure"
