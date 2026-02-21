@@ -1,0 +1,31 @@
+# Dependencies (installed in container)
+node_modules/
+
+# Development files
+*.md
+!README.md
+
+# Test files
+**/__tests__/
+**/*.test.ts
+**/*.spec.ts
+
+# Build artifacts (rebuilt in container)
+server/dist/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+
+# Environment files (secrets via Railway)
+.env*
+
+# Other workspaces (not needed for inspector service)
+api/
+web/
+test/
+docs/
