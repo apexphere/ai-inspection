@@ -6,8 +6,8 @@ builder = "dockerfile"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-# Run migrations before starting the server
-startCommand = "npx prisma migrate deploy && npm start"
+# Just start the server - migrations already applied
+startCommand = "npm start"
 healthcheckPath = "/health"
 healthcheckTimeout = 120
 restartPolicyType = "on_failure"
