@@ -1,0 +1,32 @@
+# OpenClaw Inspector Configuration
+# Environment variables: ANTHROPIC_API_KEY, API_URL, API_KEY
+
+agents:
+  inspector:
+    enabled: true
+    model: claude-sonnet-4
+    workspace: /app/agents/inspector/workspace
+
+channels:
+  whatsapp:
+    enabled: true
+    dmPolicy: allowlist
+    # allowFrom configured via OPENCLAW_WHATSAPP_ALLOWLIST env var
+    # Format: comma-separated phone numbers (+6421...,+6422...)
+    session:
+      dmScope: agent  # Each phone number gets own session
+    ackReaction:
+      emoji: "👀"
+      direct: true
+
+mcp:
+  servers:
+    inspection:
+      command: ["node", "/app/server/dist/index.js"]
+      env:
+        API_URL: "${API_URL}"
+        API_KEY: "${API_KEY}"
+
+gateway:
+  host: "0.0.0.0"
+  port: 3000
