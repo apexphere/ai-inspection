@@ -22,7 +22,7 @@ fi
 
 # Run the seed script
 cd "$(dirname "$0")/.."
-railway run npx tsx scripts/seed-test-env.ts
+railway run npm run seed
 
 echo ""
 echo "✅ Done!"
