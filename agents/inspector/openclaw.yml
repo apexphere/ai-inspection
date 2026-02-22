@@ -1,0 +1,39 @@
+# OpenClaw configuration for Building Inspection Agent
+# Copy this to ~/.openclaw/openclaw.yml or merge with existing config
+
+# Agent definition
+agents:
+  inspector:
+    enabled: true
+    model: claude-sonnet-4
+    workspace: ./workspace
+    
+# WhatsApp channel
+channels:
+  whatsapp:
+    enabled: true
+    dmPolicy: allowlist
+    allowFrom:
+      # Add inspector phone numbers (E.164 format)
+      # - "+64211234567"
+    session:
+      dmScope: agent  # Each phone gets own session
+    ackReaction:
+      emoji: "👀"
+      direct: true
+
+# MCP server for inspection tools
+mcp:
+  servers:
+    inspection:
+      command: ["node", "server/dist/index.js"]
+      cwd: "${INSPECTION_SERVER_PATH}"  # Set to path of server/
+      env:
+        API_URL: "${API_URL}"
+        API_KEY: "${API_KEY}"
+
+# Environment variables needed:
+# - ANTHROPIC_API_KEY: Claude API key
+# - API_URL: Backend API (e.g., https://api-test-ai-inspection.apexphere.co.nz)
+# - API_KEY: Backend API auth key
+# - INSPECTION_SERVER_PATH: Path to server/ directory (e.g., /path/to/ai-inspection/server)
