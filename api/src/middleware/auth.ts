@@ -48,6 +48,46 @@ export function generateToken(userId: string): string {
 }
 
 /**
+ * Service authentication middleware — Issue #351
+ * Allows either JWT token OR X-API-Key header for service-to-service auth.
+ * Used for endpoints that OpenClaw agent needs to call.
+ */
+export function serviceAuthMiddleware(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): void {
+  // Check for API key first (service-to-service auth)
+  const apiKey = req.headers['x-api-key'];
+  const expectedApiKey = process.env.SERVICE_API_KEY;
+
+  if (apiKey && expectedApiKey && apiKey === expectedApiKey) {
+    // Service auth successful - no userId needed
+    req.userId = 'service';
+    next();
+    return;
+  }
+
+  // Fall back to JWT auth
+  const cookieToken = req.cookies?.token;
+  const headerToken = req.headers.authorization?.replace('Bearer ', '');
+  const token = cookieToken || headerToken;
+
+  if (!token) {
+    res.status(401).json({ error: 'Authentication required' });
+    return;
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as { sub: string };
+    req.userId = decoded.sub;
+    next();
+  } catch {
+    res.status(401).json({ error: 'Invalid or expired token' });
+  }
+}
+
+/**
  * Require admin role for protected endpoints
  * For now, admins are identified by checking personnel role
  */
