@@ -2,6 +2,9 @@ import { Router } from 'express';
 import swaggerUi from 'swagger-ui-express';
 import { generateOpenAPISpec } from './generator.js';
 
+// Import schemas to register them with the registry
+import './schemas/index.js';
+
 export const openApiRouter = Router();
 
 // Generate spec once at startup
