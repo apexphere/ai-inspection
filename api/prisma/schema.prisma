@@ -103,12 +103,42 @@ model Photo {
 }
 
 model Report {
-  id            String    @id @default(uuid())
-  inspectionId  String
-  inspection    Inspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
-  format        String    @default("pdf")
-  path          String
-  createdAt     DateTime  @default(now())
+  id              String        @id @default(uuid())
+  
+  // Legacy inspection link (old system)
+  inspectionId    String?
+  inspection      Inspection?   @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  
+  // New inspection link (SiteInspection system)
+  siteInspectionId String?
+  siteInspection   SiteInspection? @relation(fields: [siteInspectionId], references: [id])
+  
+  type            ReportType    @default(COA)
+  status          ReportStatus  @default(DRAFT)
+  version         Int           @default(1)
+  
+  // Generated content
+  format          String        @default("pdf")
+  path            String?
+  pdfPath         String?
+  pdfSize         Int?
+  generatedAt     DateTime?
+  
+  // Personnel (plain UUID — will add FK when Personnel entity exists)
+  preparedById    String?
+  reviewedById    String?
+  reviewedAt      DateTime?
+  
+  // Form 9 data (structured JSON for council submission)
+  form9Data       Json?
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  @@index([inspectionId])
+  @@index([siteInspectionId])
+  @@index([status])
+  @@index([preparedById])
 }
 
 enum Status {
@@ -261,6 +291,8 @@ model SiteInspection {
   checklistItems    ChecklistItem[]
   clauseReviews     ClauseReview[]
   measurements      SiteMeasurement[]
+  reports           Report[]
+  defects           Defect[]
   
   @@index([projectId])
   @@index([status])
@@ -408,6 +440,7 @@ model BuildingCodeClause {
   
   clauseReviews     ClauseReview[]
   measurements      SiteMeasurement[]
+  defects           Defect[]
   
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
@@ -611,4 +644,72 @@ enum BuildingHistoryStatus {
   CANCELLED
   COMPLETE
   UNKNOWN
+}
+
+// ============================================
+// Defect Tracking — Issue #218
+// ============================================
+
+model Defect {
+  id              String              @id @default(uuid())
+  inspectionId    String
+  inspection      SiteInspection      @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  
+  defectNumber    String              // Auto-generated: D-001, D-002...
+  location        String              // Where in the building
+  element         BuildingElement     // Building element affected
+  description     String              // What the defect is
+  
+  cause           String?             // Root cause
+  remedialAction  String?             // Required remediation
+  priority        DefectPriority      @default(MEDIUM)
+  
+  // Link to Building Code clause
+  linkedClauseId  String?
+  linkedClause    BuildingCodeClause? @relation(fields: [linkedClauseId], references: [id])
+  
+  photoIds        String[]            @default([])
+  
+  sortOrder       Int                 @default(0)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  
+  @@unique([inspectionId, defectNumber])
+  @@index([inspectionId])
+  @@index([element])
+  @@index([priority])
+}
+
+enum BuildingElement {
+  ROOF
+  WALL
+  WINDOW
+  DOOR
+  DECK
+  BALCONY
+  CLADDING
+  FOUNDATION
+  FLOOR
+  CEILING
+  PLUMBING
+  ELECTRICAL
+  INSULATION
+  DRAINAGE
+  STRUCTURE
+  OTHER
+}
+
+enum DefectPriority {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum ReportStatus {
+  DRAFT
+  REVIEW
+  APPROVED
+  GENERATED
+  SUBMITTED
 }

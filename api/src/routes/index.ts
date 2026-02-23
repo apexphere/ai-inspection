@@ -14,3 +14,4 @@ export * from './clause-reviews.js';
 export * from './documents.js';
 export * from './na-reason-templates.js';
 export * from './inspectors.js';
+export * from './defects.js';
