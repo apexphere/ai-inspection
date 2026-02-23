@@ -87,6 +87,41 @@ curl https://openclaw-inspector.up.railway.app/health
 railway logs -f
 ```
 
+## Monitoring Setup
+
+### 1. View Logs (JSON format)
+
+```bash
+# Real-time logs
+railway logs --tail | jq .
+
+# Filter WhatsApp connection events
+railway logs | grep "whatsapp\|connection"
+```
+
+### 2. Discord Alerts (Optional)
+
+To receive alerts when things go wrong:
+
+1. Create a Discord webhook in your server (Server Settings → Integrations → Webhooks)
+2. Set the environment variable:
+   ```bash
+   railway variables set DISCORD_ALERT_WEBHOOK=https://discord.com/api/webhooks/...
+   ```
+
+### 3. External Uptime Monitoring
+
+Set up free uptime monitoring with [UptimeRobot](https://uptimerobot.com):
+- URL: `https://openclaw-inspector.up.railway.app/health`
+- Interval: 5 minutes
+- Alert on 2+ consecutive failures
+
+### 4. Railway Notifications
+
+Configure in Railway Dashboard:
+- Project → Settings → Notifications
+- Enable: Deploy failures, Health check failures
+
 ## Troubleshooting
 
 ### Container restarts repeatedly

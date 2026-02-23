@@ -52,6 +52,47 @@ openclaw whatsapp pair
 
 The gateway exposes `/health` endpoint on port 3000.
 
+```bash
+curl http://localhost:3000/health
+```
+
+## Monitoring
+
+### Logging
+
+All logs output as JSON for log aggregation:
+- `logging.consoleStyle: json` in openclaw.yml
+- WhatsApp connection events logged with `whatsapp.*` diagnostics flag
+
+### View Logs
+
+```bash
+# Railway logs
+railway logs --tail | jq .
+
+# Filter WhatsApp events
+railway logs | grep "whatsapp"
+```
+
+### Discord Alerts (Optional)
+
+Set `DISCORD_ALERT_WEBHOOK` environment variable to enable alerts:
+
+```bash
+railway variables set DISCORD_ALERT_WEBHOOK=https://discord.com/api/webhooks/...
+```
+
+Use the alert script:
+```bash
+./scripts/send-alert.sh "WhatsApp disconnected"
+```
+
+### Health Check Script
+
+```bash
+./scripts/healthcheck.sh
+```
+
 ## Volume Mounts
 
 | Path | Purpose |

@@ -1,11 +1,21 @@
 # OpenClaw Inspector Configuration
 # Environment variables: ANTHROPIC_API_KEY, API_URL, API_KEY
+# Optional: DISCORD_ALERT_WEBHOOK (for alerts)
 
 agents:
   inspector:
     enabled: true
     model: claude-sonnet-4
     workspace: /app/agents/inspector/workspace
+    # Heartbeat for connection monitoring (every 5 min during business hours)
+    heartbeat:
+      every: "5m"
+      activeHours:
+        start: "07:00"
+        end: "18:00"
+        timezone: "Pacific/Auckland"
+      prompt: "Connection health check"
+      target: "none"  # Internal only, no delivery
 
 channels:
   whatsapp:
@@ -30,3 +40,16 @@ mcp:
 gateway:
   host: "0.0.0.0"
   port: 3000
+
+# Logging configuration for Railway
+logging:
+  level: info
+  consoleLevel: info
+  consoleStyle: json  # JSON format for Railway log aggregation
+  redactSensitive: tools  # Redact sensitive data in tool outputs
+
+# Diagnostics for monitoring
+diagnostics:
+  enabled: true
+  flags:
+    - "whatsapp.*"  # Log WhatsApp connection events

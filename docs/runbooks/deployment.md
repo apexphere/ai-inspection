@@ -20,8 +20,9 @@ This is the single source of truth for deploying AI Inspection.
 9. [DNS Configuration](#dns-configuration)
 10. [CD Pipeline](#cd-pipeline)
 11. [Verification](#verification)
-12. [Troubleshooting](#troubleshooting)
-13. [Cost Summary](#cost-summary)
+12. [Monitoring](#monitoring)
+13. [Troubleshooting](#troubleshooting)
+14. [Cost Summary](#cost-summary)
 
 ---
 
@@ -578,6 +579,118 @@ openclaw status
 cd e2e
 npm test
 ```
+
+---
+
+## Monitoring
+
+### Health Endpoints
+
+| Service | Endpoint | Expected |
+|---------|----------|----------|
+| API | `/health` | `{"status":"ok","database":"connected"}` |
+| OpenClaw | `/health` | `OK` |
+
+### OpenClaw Inspector Monitoring
+
+The inspector agent is configured with built-in monitoring:
+
+1. **JSON Logging** - All logs output as JSON for Railway log aggregation
+2. **WhatsApp Diagnostics** - Connection state changes logged with `whatsapp.*` flag
+3. **Health Heartbeat** - Internal health check every 5 minutes during business hours
+
+#### View Real-Time Logs
+
+```bash
+# Railway (production)
+railway logs --tail | jq .
+
+# Local development
+openclaw gateway logs
+```
+
+#### WhatsApp Connection Status
+
+Check connection state in logs:
+```bash
+# Filter for WhatsApp events
+railway logs | grep -i "whatsapp\|connection\|disconnect"
+```
+
+Key log events:
+- `whatsapp.connected` - WhatsApp connected successfully
+- `whatsapp.disconnected` - WhatsApp disconnected (needs re-pairing)
+- `whatsapp.message` - Message received/sent
+
+### Discord Alerts (Optional)
+
+To enable Discord alerts for critical events, set the webhook:
+
+```bash
+railway variables set DISCORD_ALERT_WEBHOOK=https://discord.com/api/webhooks/...
+```
+
+Create a simple alert script (`scripts/alert.sh`):
+```bash
+#!/bin/bash
+# Send alert to Discord webhook
+WEBHOOK="${DISCORD_ALERT_WEBHOOK}"
+MESSAGE="$1"
+
+if [ -n "$WEBHOOK" ]; then
+  curl -X POST "$WEBHOOK" \
+    -H "Content-Type: application/json" \
+    -d "{\"content\":\"🚨 Inspector Alert: $MESSAGE\"}"
+fi
+```
+
+### Railway Monitoring
+
+1. **Dashboard** - Railway → Project → openclaw-inspector → Metrics
+2. **Alerts** - Configure in Railway Settings → Notifications
+3. **Log aggregation** - Integrate with external logging (Datadog, Papertrail)
+
+#### Recommended Railway Alerts
+
+| Metric | Threshold | Action |
+|--------|-----------|--------|
+| Container restarts | > 3 in 10 min | Check logs, WhatsApp auth |
+| Memory usage | > 80% | Investigate memory leaks |
+| Health check fails | > 2 consecutive | Check WhatsApp connection |
+
+### Manual Health Check
+
+```bash
+# Quick health check
+curl https://openclaw-inspector.up.railway.app/health
+
+# Check WhatsApp connection via Railway shell
+railway run openclaw status
+
+# Re-pair if disconnected
+railway run openclaw whatsapp pair
+```
+
+### Message Metrics
+
+OpenClaw logs include message counts. Extract with:
+```bash
+# Count messages in last hour
+railway logs --since 1h | grep "whatsapp.message" | wc -l
+
+# Error rate
+railway logs --since 1h | grep "error" | wc -l
+```
+
+### Uptime Monitoring (External)
+
+For external uptime monitoring, use a service like:
+- [UptimeRobot](https://uptimerobot.com) - Free tier available
+- [Betterstack](https://betterstack.com/uptime) - Free tier available
+
+Monitor:
+1. `https://openclaw-inspector.up.railway.app/health` (5 min interval)
+2. Alert on 2+ consecutive failures
 
 ---
 
