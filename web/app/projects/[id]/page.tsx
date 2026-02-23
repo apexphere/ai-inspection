@@ -89,10 +89,10 @@ async function getProject(id: string): Promise<Project | null> {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  DRAFT: 'bg-gray-100 text-gray-800',
-  IN_PROGRESS: 'bg-blue-100 text-blue-800',
-  REVIEW: 'bg-yellow-100 text-yellow-800',
-  COMPLETED: 'bg-green-100 text-green-800',
+  DRAFT: 'bg-gray-100 text-gray-700',
+  IN_PROGRESS: 'bg-blue-100 text-blue-700',
+  REVIEW: 'bg-yellow-100 text-yellow-700',
+  COMPLETED: 'bg-green-100 text-green-700',
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -151,10 +151,10 @@ export default async function ProjectPage({ params }: ProjectPageProps): Promise
       {/* Header */}
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-semibold text-gray-900">
             {project.property.streetAddress}
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-base text-gray-600 mt-1">
             {project.jobNumber && (
               <span className="mr-3">Job: {project.jobNumber}</span>
             )}
@@ -164,7 +164,7 @@ export default async function ProjectPage({ params }: ProjectPageProps): Promise
         <div className="flex items-center gap-3">
           <span
             className={`px-3 py-1 rounded-full text-sm font-medium ${
-              STATUS_COLORS[project.status] || 'bg-gray-100 text-gray-800'
+              STATUS_COLORS[project.status] || 'bg-gray-100 text-gray-700'
             }`}
           >
             {STATUS_LABELS[project.status] || project.status}

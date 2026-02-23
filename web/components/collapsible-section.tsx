@@ -46,11 +46,11 @@ export function CollapsibleSection({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden mb-4">
+    <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
       <button
         type="button"
         onClick={toggleExpanded}
-        className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 transition-colors"
+        className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 transition-colors"
         aria-expanded={isExpanded}
         aria-controls={`section-content-${id}`}
       >

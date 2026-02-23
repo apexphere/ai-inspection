@@ -72,7 +72,7 @@ export function ProjectFilters(): React.ReactElement {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by address or job number..."
-            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="block w-full h-10 pl-10 pr-3 border border-gray-200 rounded-lg text-base placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
       </div>
@@ -86,7 +86,7 @@ export function ProjectFilters(): React.ReactElement {
           id="status"
           value={status}
           onChange={(e) => handleStatusChange(e.target.value)}
-          className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+          className="block w-full h-10 px-3 border border-gray-200 rounded-lg text-base bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         >
           {STATUS_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>

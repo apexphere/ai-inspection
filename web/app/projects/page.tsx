@@ -17,7 +17,7 @@ function FiltersSkeleton(): React.ReactElement {
 
 function ListSkeleton(): React.ReactElement {
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden animate-pulse">
+    <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden animate-pulse">
       <div className="bg-gray-50 px-6 py-3">
         <div className="flex gap-4">
           {[1, 2, 3, 4, 5].map((i) => (
@@ -43,9 +43,10 @@ function ListSkeleton(): React.ReactElement {
 export default function ProjectsPage(): React.ReactElement {
   return (
     <div>
+      {/* Page Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Projects</h1>
-        <p className="text-gray-600 mt-1">
+        <h1 className="text-2xl font-semibold text-gray-900">Projects</h1>
+        <p className="text-base text-gray-600 mt-1">
           View and manage your inspection projects
         </p>
       </div>

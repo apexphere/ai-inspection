@@ -107,6 +107,7 @@ export default function InspectionDetailPage({ params }: PageProps): React.React
 
   return (
     <div>
+      {/* Header */}
       <div className="mb-8">
         <Link
           href="/inspections"
@@ -116,8 +117,8 @@ export default function InspectionDetailPage({ params }: PageProps): React.React
         </Link>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{inspection.address}</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className="text-2xl font-semibold text-gray-900">{inspection.address}</h1>
+            <p className="text-base text-gray-600 mt-1">
               Client: {inspection.clientName}
               {inspection.inspectorName && ` • Inspector: ${inspection.inspectorName}`}
             </p>
@@ -126,7 +127,8 @@ export default function InspectionDetailPage({ params }: PageProps): React.React
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* Main Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Findings */}
         <div className="lg:col-span-2">
           <h2 className="text-lg font-medium text-gray-900 mb-4">Findings</h2>
@@ -139,13 +141,13 @@ export default function InspectionDetailPage({ params }: PageProps): React.React
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Actions */}
-          <div className="bg-white shadow rounded-lg p-6">
+          <div className="bg-white shadow-sm rounded-xl p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Actions</h3>
             <div className="space-y-3">
               <button
                 onClick={handleGenerateReport}
                 disabled={generating || inspection.status !== 'COMPLETED'}
-                className="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {generating ? 'Generating...' : 'Generate Report'}
               </button>
@@ -158,7 +160,7 @@ export default function InspectionDetailPage({ params }: PageProps): React.React
           </div>
 
           {/* Summary */}
-          <div className="bg-white shadow rounded-lg p-6">
+          <div className="bg-white shadow-sm rounded-xl p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Summary</h3>
             <dl className="space-y-3 text-sm">
               <div className="flex justify-between">
@@ -189,7 +191,7 @@ export default function InspectionDetailPage({ params }: PageProps): React.React
           </div>
 
           {/* Details */}
-          <div className="bg-white shadow rounded-lg p-6">
+          <div className="bg-white shadow-sm rounded-xl p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Details</h3>
             <dl className="space-y-2 text-sm">
               <div className="flex justify-between">
