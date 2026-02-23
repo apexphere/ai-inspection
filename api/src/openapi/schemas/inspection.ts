@@ -1,10 +1,11 @@
 /**
  * OpenAPI Schemas for Inspection Endpoints
- * Issue #429
+ * Issue #429, #432
  */
 
 import { z } from '../setup.js';
 import { registry } from '../registry.js';
+import { BadRequestErrorSchema, NotFoundErrorSchema } from './errors.js';
 
 // ============================================
 // Enums
@@ -22,15 +23,15 @@ export const InspectionStatusSchema = z.enum(['STARTED', 'IN_PROGRESS', 'COMPLET
 export const CreateInspectionSchema = z.object({
   address: z.string().min(1).openapi({
     description: 'Property address being inspected',
-    example: '123 Main Street, Auckland',
+    example: '42 Oak Street, Ponsonby, Auckland',
   }),
   clientName: z.string().min(1).openapi({
     description: 'Name of the client requesting the inspection',
-    example: 'John Smith',
+    example: 'Sarah Johnson',
   }),
   inspectorName: z.string().optional().openapi({
     description: 'Name of the inspector conducting the inspection',
-    example: 'Jane Doe',
+    example: 'Jake Li',
   }),
   checklistId: z.string().min(1).openapi({
     description: 'ID of the checklist template to use',
@@ -64,7 +65,7 @@ export const UpdateInspectionSchema = z.object({
   }),
   completedAt: z.string().datetime().optional().openapi({
     description: 'Completion timestamp (ISO 8601)',
-    example: '2026-02-23T10:00:00Z',
+    example: '2026-02-23T14:30:00Z',
   }),
 }).openapi('UpdateInspectionRequest');
 
@@ -79,15 +80,15 @@ export const InspectionResponseSchema = z.object({
   }),
   address: z.string().openapi({
     description: 'Property address',
-    example: '123 Main Street, Auckland',
+    example: '42 Oak Street, Ponsonby, Auckland',
   }),
   clientName: z.string().openapi({
     description: 'Client name',
-    example: 'John Smith',
+    example: 'Sarah Johnson',
   }),
   inspectorName: z.string().nullable().openapi({
     description: 'Inspector name',
-    example: 'Jane Doe',
+    example: 'Jake Li',
   }),
   checklistId: z.string().openapi({
     description: 'Checklist template ID',
@@ -96,7 +97,7 @@ export const InspectionResponseSchema = z.object({
   status: InspectionStatusSchema,
   currentSection: z.string().openapi({
     description: 'Current section',
-    example: 'exterior',
+    example: 'interior',
   }),
   metadata: z.any().nullable().openapi({
     description: 'Additional metadata',
@@ -107,37 +108,15 @@ export const InspectionResponseSchema = z.object({
   }),
   updatedAt: z.string().datetime().openapi({
     description: 'Last update timestamp',
-    example: '2026-02-23T10:00:00Z',
+    example: '2026-02-23T11:30:00Z',
   }),
   completedAt: z.string().datetime().nullable().openapi({
     description: 'Completion timestamp',
-    example: '2026-02-23T12:00:00Z',
+    example: '2026-02-23T14:30:00Z',
   }),
 }).openapi('InspectionResponse');
 
 export const InspectionListResponseSchema = z.array(InspectionResponseSchema).openapi('InspectionListResponse');
-
-// ============================================
-// Error Schemas
-// ============================================
-
-export const ValidationErrorSchema = z.object({
-  error: z.string().openapi({
-    description: 'Error message',
-    example: 'Validation failed',
-  }),
-  details: z.record(z.array(z.string())).optional().openapi({
-    description: 'Field-specific validation errors',
-    example: { address: ['Address is required'] },
-  }),
-}).openapi('ValidationError');
-
-export const NotFoundErrorSchema = z.object({
-  error: z.string().openapi({
-    description: 'Error message',
-    example: 'Inspection not found',
-  }),
-}).openapi('NotFoundError');
 
 // ============================================
 // Register Schemas
@@ -148,8 +127,6 @@ registry.register('CreateInspectionRequest', CreateInspectionSchema);
 registry.register('UpdateInspectionRequest', UpdateInspectionSchema);
 registry.register('InspectionResponse', InspectionResponseSchema);
 registry.register('InspectionListResponse', InspectionListResponseSchema);
-registry.register('ValidationError', ValidationErrorSchema);
-registry.register('NotFoundError', NotFoundErrorSchema);
 
 // ============================================
 // Register Routes
@@ -160,6 +137,7 @@ registry.registerPath({
   path: '/api/inspections',
   tags: ['Inspections'],
   summary: 'Create a new inspection',
+  description: 'Start a new property inspection with address, client info, and checklist.',
   request: {
     body: {
       content: {
@@ -182,7 +160,7 @@ registry.registerPath({
       description: 'Validation error',
       content: {
         'application/json': {
-          schema: ValidationErrorSchema,
+          schema: BadRequestErrorSchema,
         },
       },
     },
@@ -194,6 +172,7 @@ registry.registerPath({
   path: '/api/inspections',
   tags: ['Inspections'],
   summary: 'List all inspections',
+  description: 'Retrieve all inspections, optionally filtered by status.',
   responses: {
     200: {
       description: 'List of inspections',
@@ -211,6 +190,7 @@ registry.registerPath({
   path: '/api/inspections/{id}',
   tags: ['Inspections'],
   summary: 'Get inspection by ID',
+  description: 'Retrieve details of a specific inspection.',
   request: {
     params: z.object({
       id: z.string().uuid().openapi({
@@ -244,6 +224,7 @@ registry.registerPath({
   path: '/api/inspections/{id}',
   tags: ['Inspections'],
   summary: 'Update an inspection',
+  description: 'Update inspection details, status, or mark as completed.',
   request: {
     params: z.object({
       id: z.string().uuid().openapi({
@@ -271,7 +252,7 @@ registry.registerPath({
       description: 'Validation error',
       content: {
         'application/json': {
-          schema: ValidationErrorSchema,
+          schema: BadRequestErrorSchema,
         },
       },
     },

@@ -2,8 +2,11 @@
  * OpenAPI Schema Registry
  * 
  * Import all schema files to register them with the OpenAPI registry.
- * Issues #429, #431
+ * Issues #429, #431, #432
  */
+
+// Common schemas
+export * from './errors.js';
 
 // Core endpoint schemas
 export * from './inspection.js';
