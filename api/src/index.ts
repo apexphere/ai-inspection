@@ -22,6 +22,7 @@ import { projectPhotosRouter } from './routes/project-photos.js';
 import { buildingHistoryRouter } from './routes/building-history.js';
 import { siteMeasurementsRouter } from './routes/site-measurements.js';
 import { inspectorsRouter } from './routes/inspectors.js';
+import { openApiRouter } from './openapi/index.js';
 import { authMiddleware, serviceAuthMiddleware } from './middleware/auth.js';
 import { getAllowedOrigins } from './config/domain.js';
 import { logStartupDiagnostics } from './config/startup.js';
@@ -61,6 +62,7 @@ app.use(express.json({ limit: '10mb' })); // Increased limit for base64 photos
 
 // Public routes (no auth required)
 app.use('/health', healthRouter);
+app.use('/api', openApiRouter);  // OpenAPI docs (no auth required)
 app.use('/api/auth', authRouter);
 
 // Service routes (JWT or API key auth)
