@@ -363,3 +363,12 @@ Add to `web/AGENTS.md`:
 - [Tailwind CSS](https://tailwindcss.com/)
 - [Radix UI](https://www.radix-ui.com/)
 - [Stripe Dashboard](https://dashboard.stripe.com/) (visual reference)
+
+---
+
+## See Also
+
+- [Web Interface](005-web-interface.md) — Frontend architecture
+- [UI Audit](ui-audit.md) — Current state audit
+- [Design Tokens](tokens.yaml) — Token definitions
+- [UI Specs](ui/) — Page specifications
