@@ -111,8 +111,8 @@ export function FindingEditor({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+      <div className="bg-white rounded-2xl shadow-lg w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">Edit Finding</h2>
@@ -121,7 +121,7 @@ export function FindingEditor({
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
           {error && (
-            <div className="p-3 text-sm text-red-700 bg-red-100 rounded-lg">
+            <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">
               {error}
             </div>
           )}
@@ -140,7 +140,7 @@ export function FindingEditor({
               onChange={(e) => setText(e.target.value)}
               rows={3}
               disabled={saving || deleting}
-              className="block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed resize-none"
+              className="block w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed resize-none"
               placeholder="Describe the finding..."
             />
           </div>
@@ -218,7 +218,7 @@ export function FindingEditor({
                   type="button"
                   onClick={() => setShowDeleteConfirm(false)}
                   disabled={deleting}
-                  className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                  className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
                 >
                   Cancel
                 </button>
@@ -226,7 +226,7 @@ export function FindingEditor({
                   type="button"
                   onClick={handleDelete}
                   disabled={deleting}
-                  className="px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50"
+                  className="px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50"
                 >
                   {deleting ? 'Deleting...' : 'Delete'}
                 </button>
@@ -247,7 +247,7 @@ export function FindingEditor({
                   type="button"
                   onClick={onCancel}
                   disabled={saving || deleting}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
                 >
                   Cancel
                 </button>
@@ -255,7 +255,7 @@ export function FindingEditor({
                   type="button"
                   onClick={handleSave}
                   disabled={saving || deleting || !hasChanges}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {saving ? 'Saving...' : 'Save'}
                 </button>
