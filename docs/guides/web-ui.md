@@ -164,6 +164,28 @@ Photos are shown in the **Photos** section of each project and within each inspe
 3. Add a caption describing what it shows
 4. The photo is linked to the current section
 
+### Photo Source
+
+Set who provided the photo:
+
+| Source | Use for |
+|--------|---------|
+| **Site Inspection** | Photos you took on-site |
+| **Owner Provided** | Photos from the client/homeowner |
+| **Contractor Provided** | Photos from the builder/trades |
+
+The source appears in reports: "(Photo provided by owner)"
+
+### Linking to Clauses
+
+For COA/CCC reports, link photos to Building Code clauses:
+
+1. Open the photo details
+2. Click **Link to Clause**
+3. Select relevant clauses (B1, E2, E3, etc.)
+
+Linked photos appear in the report appendix with clause references.
+
 ---
 
 ## Reports

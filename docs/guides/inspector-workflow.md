@@ -143,6 +143,32 @@ You: [photo] "Water damage on soffit"
 Assistant: Noted — water damage on soffit (minor). Photo saved.
 ```
 
+### Photo Source
+
+Specify who provided the photo:
+
+| Source | When to use |
+|--------|-------------|
+| **Site Inspection** | You took it on-site (default) |
+| **Owner Provided** | Client/homeowner supplied it |
+| **Contractor Provided** | Builder or tradesperson supplied it |
+
+```
+You: [photo] "Owner provided this photo of the original work"
+Assistant: Photo saved (owner provided). Caption: original work.
+```
+
+### Linking Photos to Clauses
+
+For COA/CCC inspections, link photos to Building Code clauses:
+
+```
+You: [photo] "E3 evidence - tanking installed"
+Assistant: Photo saved and linked to E3 (Internal Moisture).
+```
+
+The photo will appear in the report appendix with the clause reference.
+
 ### Severity Levels
 
 The assistant infers severity, but you can specify:
