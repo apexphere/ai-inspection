@@ -20,6 +20,58 @@ The AI Inspection assistant guides you through property inspections via WhatsApp
 
 ---
 
+## Inspection Modes
+
+The system supports two inspection modes for different purposes:
+
+### Simple Checklist (Council Format)
+
+Use for standard council inspections:
+- Pre-line (INS-05)
+- Post-line (INS-06)
+- Final inspections
+
+**How it works:**
+- Walk through predefined checklist items
+- Mark each as Pass / Fail / N/A
+- Add notes and photos for failed items
+- LBP verification included
+
+**To start:**
+```
+You: "Council inspection at 45 Oak Avenue, pre-line"
+```
+
+### Clause Review (COA/CCC Format)
+
+Use for compliance reports:
+- Certificate of Acceptance (COA)
+- Code Compliance Certificate (CCC)
+- CCC Gap Analysis
+
+**How it works:**
+- Review Building Code clauses one by one (B1, E2, E3, etc.)
+- Record observations and evidence per clause
+- Link photos to specific clauses
+- Note required documentation (PS forms, warranties)
+
+**To start:**
+```
+You: "COA inspection at 45 Oak Avenue, bathroom renovation"
+```
+
+### Which Mode to Use?
+
+| Situation | Mode |
+|-----------|------|
+| Council progress inspection | Simple Checklist |
+| Pre-line, post-line, final | Simple Checklist |
+| Certificate of Acceptance | Clause Review |
+| CCC application | Clause Review |
+| Gap analysis for existing work | Clause Review |
+
+---
+
 ## Quick Start
 
 1. **Message the agent** with the property address
@@ -270,8 +322,79 @@ If you're stuck:
 
 ---
 
+---
+
+## Clause Review Workflow (COA/CCC)
+
+For compliance reports, the workflow differs from standard inspections:
+
+### Starting a Clause Review
+
+Specify the report type:
+```
+You: "Starting COA at 42 Smith Street, bathroom conversion"
+```
+
+The assistant confirms scope and starts with the first relevant clause:
+```
+Assistant: COA inspection started.
+Property: 42 Smith Street
+Scope: Bathroom conversion
+
+Starting with B1 Structure. Check wall framing if visible.
+Send photos + observations.
+```
+
+### Reviewing Clauses
+
+For each Building Code clause:
+
+1. **Observe and document**
+   ```
+   You: [photo] "Wall framing visible through access panel, looks compliant"
+   ```
+
+2. **Mark applicability**
+   ```
+   You: "B1 not applicable, no structural work done"
+   Assistant: Noted — B1 marked N/A (no structural work).
+   Moving to B2 Durability.
+   ```
+
+3. **Note required documents**
+   ```
+   You: "Need PS3 for this"
+   Assistant: Noted — PS3 required for B2.
+   ```
+
+### Common Clauses for COA/CCC
+
+| Clause | Title | Typical Scope |
+|--------|-------|---------------|
+| B1 | Structure | Framing, foundations |
+| B2 | Durability | Timber treatment, materials |
+| E2 | External Moisture | Cladding, flashings |
+| E3 | Internal Moisture | Wet area tanking, ventilation |
+| G1 | Personal Hygiene | Bathroom fixtures |
+| G12 | Water Supply | Plumbing, hot water |
+| G13 | Foul Water | Drainage |
+
+### Completing a Clause Review
+
+```
+You: "That's all clauses, generate report"
+```
+
+The assistant creates a COA/CCC-format report with:
+- Clause-by-clause compliance summary
+- Photo appendix with references
+- Required documentation checklist
+- Remedial works (if any)
+
+---
+
 ## See Also
 
-- [Workflow Scenario](../workflow-scenario.md) — Complete example inspection
+- [Workflow Scenario](../workflow-scenario.md) — Complete COA example
 - [Inspector Agent Ops](../ops/inspector-agent.md) — For administrators
 - [WhatsApp Pairing](../runbooks/whatsapp-pairing.md) — Setup guide
