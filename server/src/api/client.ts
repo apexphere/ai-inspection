@@ -2,10 +2,13 @@
  * API Client for MCP Server
  * 
  * Thin HTTP client that calls the inspection API.
- * Configurable via API_URL environment variable.
+ * Configurable via environment variables:
+ * - API_URL: Backend API base URL
+ * - SERVICE_API_KEY: API key for service-to-service authentication
  */
 
 const API_URL = process.env.API_URL || 'http://localhost:3000';
+const SERVICE_API_KEY = process.env.SERVICE_API_KEY;
 
 export interface ApiError {
   error: string;
@@ -21,6 +24,7 @@ export interface ApiResponse<T> {
 
 /**
  * Make an HTTP request to the API.
+ * Includes SERVICE_API_KEY header if configured.
  */
 async function request<T>(
   method: string,
@@ -29,12 +33,19 @@ async function request<T>(
 ): Promise<ApiResponse<T>> {
   const url = `${API_URL}${path}`;
   
+  // Build headers with optional API key authentication
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  
+  if (SERVICE_API_KEY) {
+    headers['X-API-Key'] = SERVICE_API_KEY;
+  }
+  
   try {
     const response = await fetch(url, {
       method,
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: body ? JSON.stringify(body) : undefined,
     });
 
