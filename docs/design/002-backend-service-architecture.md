@@ -264,3 +264,12 @@ enum Severity {
 - [Sprint 1 MVP Design](001-mvp-inspection-workflow.md)
 - [MCP Specification](https://modelcontextprotocol.io)
 - [Prisma Docs](https://www.prisma.io/docs)
+
+---
+
+## See Also
+
+- [CI/CD Pipeline](003-ci-cd-pipeline.md) — Build and deploy
+- [Web Interface](005-web-interface.md) — Frontend architecture
+- [API Reference](../api/README.md) — Endpoint documentation *(coming soon)*
+- [Developer Setup](../setup/developer.md) — Local development
