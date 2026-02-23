@@ -34,7 +34,11 @@ Add these in Railway Dashboard → Service → Variables:
 | `ANTHROPIC_API_KEY` | `sk-ant-...` | Claude API key |
 | `API_URL` | `https://ai-inspection-api.up.railway.app` | Backend API URL |
 | `API_KEY` | `(generate)` | Backend API auth key |
+| `WHATSAPP_ALLOW` | `+64211234567,+64221234567` | Allowed phone numbers (E.164) |
 | `NODE_ENV` | `production` | |
+
+**Note:** `WHATSAPP_ALLOW` controls which phone numbers can message the inspector.
+Format: comma-separated E.164 numbers (e.g., `+64211234567`).
 
 ## 4. Add Persistent Volume
 
