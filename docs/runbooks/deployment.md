@@ -149,9 +149,10 @@ Set in `.env` or environment:
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `ANTHROPIC_API_KEY` | Yes | Claude API key |
 | `API_URL` | Yes | Backend API URL |
 | `SERVICE_API_KEY` | Yes | API auth key (same as Railway) |
+
+> **Note:** `ANTHROPIC_API_KEY` is configured globally in OpenClaw — no need to set it per agent.
 
 ---
 
@@ -449,12 +450,13 @@ openclaw whatsapp pair
 #### 7. Start Gateway
 
 ```bash
-export ANTHROPIC_API_KEY=sk-ant-...
 export API_URL=https://api-test-ai-inspection.apexphere.co.nz
 export SERVICE_API_KEY=sk-...
 
 openclaw gateway start
 ```
+
+> **Note:** `ANTHROPIC_API_KEY` is configured globally in OpenClaw, not per agent.
 
 ### Verify Agent
 
