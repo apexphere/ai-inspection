@@ -173,10 +173,22 @@ docker-compose up api db     # Start only API + database
 
 ## Documentation
 
+📚 **[Documentation Index](docs/INDEX.md)** — Start here to find any doc.
+
+### Key Docs
+- [Deployment Runbook](docs/runbooks/deployment.md) — How to deploy
+- [Inspector Agent Ops](docs/ops/inspector-agent.md) — Operating the agent
+- [WhatsApp Pairing](docs/runbooks/whatsapp-pairing.md) — Link WhatsApp
+- [Skill Guide](skill/SKILL.md) — Agent conversation guidance
+
+### Design & Architecture
 - [MVP Design](docs/design/001-mvp-inspection-workflow.md)
+- [Backend Architecture](docs/design/002-backend-service-architecture.md)
+- [Design System](docs/design/014-design-system.md)
+
+### Research
 - [Competitive Analysis](docs/research/competitive-analysis.md)
 - [Template Analysis](docs/research/template-analysis.md)
-- [Skill Guide](skill/SKILL.md)
 
 ## License
 
