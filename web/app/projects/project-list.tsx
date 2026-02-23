@@ -21,10 +21,10 @@ interface Project {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  DRAFT: 'bg-gray-100 text-gray-800',
-  IN_PROGRESS: 'bg-blue-100 text-blue-800',
-  REVIEW: 'bg-yellow-100 text-yellow-800',
-  COMPLETED: 'bg-green-100 text-green-800',
+  DRAFT: 'bg-gray-100 text-gray-700',
+  IN_PROGRESS: 'bg-blue-100 text-blue-700',
+  REVIEW: 'bg-yellow-100 text-yellow-700',
+  COMPLETED: 'bg-green-100 text-green-700',
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -36,7 +36,7 @@ const STATUS_LABELS: Record<string, string> = {
 
 function ProjectListSkeleton(): React.ReactElement {
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden animate-pulse">
+    <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden animate-pulse">
       <div className="bg-gray-50 px-6 py-3">
         <div className="flex gap-4">
           {[1, 2, 3, 4, 5].map((i) => (
@@ -167,7 +167,7 @@ export function ProjectList(): React.ReactElement {
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+      <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-600">
         {error}
       </div>
     );
@@ -175,14 +175,14 @@ export function ProjectList(): React.ReactElement {
 
   if (projects.length === 0) {
     return (
-      <div className="bg-white border border-gray-200 rounded-lg p-8 text-center">
-        <div className="text-gray-500 mb-4">
+      <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-8 text-center">
+        <div className="text-gray-400 mb-4">
           <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
         </div>
         <h3 className="text-lg font-medium text-gray-900 mb-1">No projects found</h3>
-        <p className="text-gray-500">
+        <p className="text-base text-gray-500">
           {search || status ? 'Try adjusting your filters' : 'Create your first project to get started'}
         </p>
       </div>
@@ -190,41 +190,41 @@ export function ProjectList(): React.ReactElement {
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+    <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
             <th
               scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+              className="px-6 py-3 text-left text-sm font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
               onClick={() => handleSort('jobNumber')}
             >
               Job # <SortIcon column="jobNumber" />
             </th>
             <th
               scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+              className="px-6 py-3 text-left text-sm font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
               onClick={() => handleSort('address')}
             >
               Address <SortIcon column="address" />
             </th>
             <th
               scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+              className="px-6 py-3 text-left text-sm font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
               onClick={() => handleSort('client')}
             >
               Client <SortIcon column="client" />
             </th>
             <th
               scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+              className="px-6 py-3 text-left text-sm font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
               onClick={() => handleSort('status')}
             >
               Status <SortIcon column="status" />
             </th>
             <th
               scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+              className="px-6 py-3 text-left text-sm font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
               onClick={() => handleSort('updatedAt')}
             >
               Last Updated <SortIcon column="updatedAt" />
@@ -248,7 +248,7 @@ export function ProjectList(): React.ReactElement {
                 {project.client?.name || '—'}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${STATUS_COLORS[project.status] || 'bg-gray-100 text-gray-800'}`}>
+                <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${STATUS_COLORS[project.status] || 'bg-gray-100 text-gray-700'}`}>
                   {STATUS_LABELS[project.status] || project.status}
                 </span>
               </td>
