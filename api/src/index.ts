@@ -24,6 +24,7 @@ import { buildingHistoryRouter } from './routes/building-history.js';
 import { siteMeasurementsRouter } from './routes/site-measurements.js';
 import { inspectorsRouter } from './routes/inspectors.js';
 import { defectsRouter } from './routes/defects.js';
+import { companiesRouter } from './routes/companies.js';
 import { openApiRouter } from './openapi/index.js';
 import { authMiddleware, serviceAuthMiddleware } from './middleware/auth.js';
 import { getAllowedOrigins } from './config/domain.js';
@@ -90,6 +91,7 @@ app.use('/api', authMiddleware, projectPhotosRouter);
 app.use('/api', authMiddleware, buildingHistoryRouter);
 app.use('/api', authMiddleware, siteMeasurementsRouter);
 app.use('/api', authMiddleware, defectsRouter);
+app.use('/api/companies', authMiddleware, companiesRouter);
 
 // Error handling with detailed logging
 app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
