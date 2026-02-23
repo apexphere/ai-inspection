@@ -31,9 +31,12 @@ export function generateOpenAPISpec() {
       { name: 'Inspections', description: 'Inspection management' },
       { name: 'Projects', description: 'Project management' },
       { name: 'Properties', description: 'Property management' },
+      { name: 'Clients', description: 'Client management' },
+      { name: 'Inspectors', description: 'Inspector lookup (service auth)' },
       { name: 'Findings', description: 'Inspection findings' },
       { name: 'Photos', description: 'Photo attachments' },
       { name: 'Reports', description: 'Report generation' },
+      { name: 'Building Code', description: 'NZ Building Code reference data' },
     ],
   });
 }
