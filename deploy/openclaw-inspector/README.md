@@ -29,9 +29,23 @@ docker run -it --rm \
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `ANTHROPIC_API_KEY` | Yes | Claude API key |
-| `API_URL` | Yes | Backend API URL |
+| `API_URL` | Yes | Backend API URL (e.g., `https://api.example.com`) |
 | `API_KEY` | Yes | Backend API auth key |
-| `OPENCLAW_WHATSAPP_ALLOWLIST` | No | Comma-separated allowed phone numbers |
+| `WHATSAPP_ALLOW` | Yes | Allowed phone numbers in E.164 format |
+
+### Configuring WhatsApp Allowlist
+
+Only numbers in `WHATSAPP_ALLOW` can message the inspector:
+
+```bash
+# Single number
+WHATSAPP_ALLOW="+64211234567"
+
+# Multiple numbers (comma-separated)
+WHATSAPP_ALLOW="+64211234567,+64221234567,+64231234567"
+```
+
+**Note:** Numbers must be in E.164 format (+ country code, no spaces/dashes).
 
 ## WhatsApp Pairing
 
