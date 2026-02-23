@@ -5,6 +5,9 @@ import { generateOpenAPISpec } from './generator.js';
 // Import schemas to register them with the registry
 import './schemas/index.js';
 
+// Import routes to register them with the registry
+import './routes/index.js';
+
 export const openApiRouter = Router();
 
 // Generate spec once at startup
