@@ -13,6 +13,9 @@ import './reports.js';
 
 // Supporting routes
 import './projects.js';
+import './clients.js';
+import './inspectors.js';
 
 // Reference routes
 import './health.js';
+import './building-code.js';
