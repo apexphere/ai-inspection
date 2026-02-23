@@ -1,5 +1,9 @@
 # Runbook: WhatsApp Pairing
 
+**Status:** Current  
+**Last Verified:** 2026-02-23  
+**Owner:** Sage
+
 Operations guide for pairing and managing WhatsApp connection with OpenClaw inspector service.
 
 ## Overview
@@ -157,3 +161,11 @@ cat whatsapp-auth-backup.tar.gz | railway run tar -xzf - -C /
 - Volume should not be shared between services
 - Consider dedicated phone number for production
 - Phone can revoke access anytime via "Linked Devices"
+
+---
+
+## See Also
+
+- [Inspector Agent Ops](../ops/inspector-agent.md) — Full operations guide
+- [Deployment Runbook](deployment.md) — Initial setup
+- [Inspector Workflow Guide](../guides/inspector-workflow.md) — User guide for inspectors
