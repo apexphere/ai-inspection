@@ -1,6 +1,7 @@
 import { Router, type Request, type Response, type NextFunction, type Router as RouterType } from 'express';
 import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
+// Personnel routes — manages CRUD operations for personnel records
 import { PrismaPersonnelRepository } from '../repositories/prisma/personnel.js';
 import { PersonnelService, PersonnelNotFoundError, PersonnelEmailConflictError } from '../services/personnel.js';
 
