@@ -226,7 +226,7 @@ export class Form9ExportService {
     // Also store on the report for caching
     await this.prisma.report.update({
       where: { id: reportId },
-      data: { form9Data: form9Data as unknown as Record<string, unknown> },
+      data: { form9Data: JSON.parse(JSON.stringify(form9Data)) },
     });
 
     return form9Data;
