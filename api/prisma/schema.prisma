@@ -1026,29 +1026,3 @@ model CostLineItem {
   @@index([costEstimateId])
   @@index([category])
 }
-
-// Personnel Management — Issue #199
-// ============================================
-
-enum PersonnelRole {
-  REGISTERED_BUILDING_SURVEYOR
-  BUILDING_SURVEYOR
-  INSPECTOR
-  ADMIN
-}
-
-model Personnel {
-  id        String        @id @default(uuid())
-  name      String
-  email     String        @unique
-  phone     String?
-  mobile    String?
-  role      PersonnelRole
-  active    Boolean       @default(true)
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-
-  @@index([role])
-  @@index([active])
-  @@index([email])
-}
