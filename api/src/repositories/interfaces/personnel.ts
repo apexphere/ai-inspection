@@ -6,6 +6,7 @@ export interface CreatePersonnelInput {
   phone?: string;
   mobile?: string;
   role: PersonnelRole;
+  companyId?: string;
 }
 
 export interface UpdatePersonnelInput {
@@ -15,6 +16,7 @@ export interface UpdatePersonnelInput {
   mobile?: string;
   role?: PersonnelRole;
   active?: boolean;
+  companyId?: string | null;
 }
 
 export interface PersonnelSearchParams {

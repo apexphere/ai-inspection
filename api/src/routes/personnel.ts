@@ -26,6 +26,7 @@ const CreatePersonnelSchema = z.object({
   phone: z.string().optional(),
   mobile: z.string().optional(),
   role: PersonnelRoleEnum,
+  companyId: z.string().uuid().optional(),
 });
 
 const UpdatePersonnelSchema = z.object({
@@ -35,6 +36,7 @@ const UpdatePersonnelSchema = z.object({
   mobile: z.string().optional(),
   role: PersonnelRoleEnum.optional(),
   active: z.boolean().optional(),
+  companyId: z.string().uuid().nullable().optional(),
 });
 
 // POST /api/personnel - Create personnel

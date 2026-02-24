@@ -266,6 +266,10 @@ model Personnel {
   mobile    String?
   role      PersonnelRole
   active    Boolean       @default(true)
+  
+  companyId String?
+  company   Company?      @relation(fields: [companyId], references: [id])
+  
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 
@@ -274,6 +278,7 @@ model Personnel {
   @@index([role])
   @@index([active])
   @@index([email])
+  @@index([companyId])
 }
 
 enum CredentialType {
@@ -290,6 +295,7 @@ model Credential {
   personnel         Personnel      @relation(fields: [personnelId], references: [id], onDelete: Cascade)
   credentialType    CredentialType
   membershipCode    String?        // "MNZIBS", "MEngNZ"
+  membershipFull    String?        // "Member of NZ Institute of Building Surveyors"
   registrationTitle String?        // "Registered Building Surveyor"
   licenseNumber     String?        // LBP or other license
   qualifications    String[]       @default([])  // ["BE (Hons)", "MBA"]
@@ -882,6 +888,8 @@ model Company {
   
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
+  
+  personnel   Personnel[]
   
   @@index([name])
 }
