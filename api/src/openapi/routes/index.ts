@@ -37,3 +37,9 @@ import './na-reason-templates.js';
 
 // Sprint 4c routes
 import './personnel.js';
+import './companies.js';
+import './report-management.js';
+import './report-generation.js';
+import './report-templates.js';
+import './review-comments.js';
+import './defects.js';
