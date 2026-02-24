@@ -26,7 +26,7 @@ const CreateReportSchema = z.object({
 });
 
 const UpdateReportSchema = z.object({
-  status: z.enum(['DRAFT', 'REVIEW', 'APPROVED', 'GENERATED', 'SUBMITTED']).optional(),
+  status: z.enum(['DRAFT', 'IN_REVIEW', 'APPROVED', 'FINALIZED', 'SUBMITTED']).optional(),
   preparedById: z.string().optional(),
   reviewedById: z.string().optional(),
   form9Data: z.record(z.unknown()).optional(),
@@ -59,7 +59,7 @@ reportManagementRouter.get('/', async (req: Request, res: Response, next: NextFu
     const reports = await service.findAll({
       siteInspectionId: siteInspectionId as string | undefined,
       type: type as 'COA' | 'CCC_GAP' | 'PPI' | 'SAFE_SANITARY' | 'TFA' | undefined,
-      status: status as 'DRAFT' | 'REVIEW' | 'APPROVED' | 'GENERATED' | 'SUBMITTED' | undefined,
+      status: status as 'DRAFT' | 'IN_REVIEW' | 'APPROVED' | 'FINALIZED' | 'SUBMITTED' | undefined,
       preparedById: preparedById as string | undefined,
     });
     res.json(reports);

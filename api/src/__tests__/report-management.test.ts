@@ -101,14 +101,14 @@ describe('ReportManagementService', () => {
     it('should allow DRAFT → REVIEW', async () => {
       const report = createMockReport({ status: 'DRAFT' });
       vi.mocked(repo.findById).mockResolvedValue(report);
-      vi.mocked(repo.update).mockResolvedValue(createMockReport({ status: 'REVIEW' }));
+      vi.mocked(repo.update).mockResolvedValue(createMockReport({ status: 'IN_REVIEW' }));
 
       const result = await service.submitForReview('report-1');
-      expect(result.status).toBe('REVIEW');
+      expect(result.status).toBe('IN_REVIEW');
     });
 
     it('should allow REVIEW → DRAFT (request changes)', async () => {
-      const report = createMockReport({ status: 'REVIEW' });
+      const report = createMockReport({ status: 'IN_REVIEW' });
       vi.mocked(repo.findById).mockResolvedValue(report);
       vi.mocked(repo.update).mockResolvedValue(createMockReport({ status: 'DRAFT' }));
 
@@ -117,7 +117,7 @@ describe('ReportManagementService', () => {
     });
 
     it('should allow REVIEW → APPROVED', async () => {
-      const report = createMockReport({ status: 'REVIEW' });
+      const report = createMockReport({ status: 'IN_REVIEW' });
       vi.mocked(repo.findById).mockResolvedValue(report);
       vi.mocked(repo.update).mockResolvedValue(createMockReport({ status: 'APPROVED' }));
 
@@ -132,19 +132,19 @@ describe('ReportManagementService', () => {
     it('should allow APPROVED → GENERATED', async () => {
       const report = createMockReport({ status: 'APPROVED' });
       vi.mocked(repo.findById).mockResolvedValue(report);
-      vi.mocked(repo.update).mockResolvedValue(createMockReport({ status: 'GENERATED' }));
+      vi.mocked(repo.update).mockResolvedValue(createMockReport({ status: 'FINALIZED' }));
 
       const result = await service.markGenerated('report-1', '/reports/test.pdf', 1024);
       expect(repo.update).toHaveBeenCalledWith('report-1', expect.objectContaining({
-        status: 'GENERATED',
+        status: 'FINALIZED',
         pdfPath: '/reports/test.pdf',
         pdfSize: 1024,
       }));
-      expect(result.status).toBe('GENERATED');
+      expect(result.status).toBe('FINALIZED');
     });
 
     it('should allow GENERATED → SUBMITTED', async () => {
-      const report = createMockReport({ status: 'GENERATED' });
+      const report = createMockReport({ status: 'FINALIZED' });
       vi.mocked(repo.findById).mockResolvedValue(report);
       vi.mocked(repo.update).mockResolvedValue(createMockReport({ status: 'SUBMITTED' }));
 
@@ -166,7 +166,7 @@ describe('ReportManagementService', () => {
       vi.mocked(repo.findById).mockResolvedValue(report);
 
       await expect(
-        service.update('report-1', { status: 'GENERATED' })
+        service.update('report-1', { status: 'FINALIZED' })
       ).rejects.toThrow(InvalidStatusTransitionError);
     });
 

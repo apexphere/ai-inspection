@@ -737,9 +737,9 @@ enum DefectPriority {
 
 enum ReportStatus {
   DRAFT
-  REVIEW
+  IN_REVIEW
   APPROVED
-  GENERATED
+  FINALIZED
   SUBMITTED
 }
 

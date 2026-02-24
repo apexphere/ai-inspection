@@ -34,10 +34,10 @@ export class InvalidStatusTransitionError extends Error {
  * REVIEW → DRAFT (request changes)
  */
 const VALID_TRANSITIONS: Record<ReportStatus, ReportStatus[]> = {
-  DRAFT: ['REVIEW'],
-  REVIEW: ['DRAFT', 'APPROVED'],
-  APPROVED: ['GENERATED'],
-  GENERATED: ['SUBMITTED'],
+  DRAFT: ['IN_REVIEW'],
+  IN_REVIEW: ['DRAFT', 'APPROVED'],
+  APPROVED: ['FINALIZED'],
+  FINALIZED: ['SUBMITTED'],
   SUBMITTED: [],
 };
 
@@ -87,7 +87,7 @@ export class ReportManagementService {
    * Submit report for review (DRAFT → REVIEW)
    */
   async submitForReview(id: string): Promise<Report> {
-    return this.update(id, { status: 'REVIEW' });
+    return this.update(id, { status: 'IN_REVIEW' });
   }
 
   /**
@@ -113,7 +113,7 @@ export class ReportManagementService {
    */
   async markGenerated(id: string, pdfPath: string, pdfSize: number): Promise<Report> {
     return this.update(id, {
-      status: 'GENERATED',
+      status: 'FINALIZED',
       pdfPath,
       pdfSize,
       generatedAt: new Date(),
