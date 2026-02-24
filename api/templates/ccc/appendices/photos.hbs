@@ -1,0 +1,21 @@
+<section class="appendix" id="appendix-photos">
+  <h2>Appendix: Inspection Photographs</h2>
+
+  {{#if photos}}
+  <div class="photo-grid">
+    {{#each photos}}
+    <figure class="photo-item">
+      <img src="{{path}}" alt="{{caption}}" />
+      <figcaption>
+        <strong>Photo {{photoNumber}}:</strong> {{caption}}
+        {{#if location}}
+        <span class="photo-location">({{location}})</span>
+        {{/if}}
+      </figcaption>
+    </figure>
+    {{/each}}
+  </div>
+  {{else}}
+  <p>No photographs included.</p>
+  {{/if}}
+</section>

@@ -1,0 +1,58 @@
+<section class="report-section" id="section-6">
+  <h2>6. Cost Estimate</h2>
+
+  {{#if costEstimate}}
+  <p>The following cost estimate has been prepared for the remedial works required:</p>
+
+  {{#if costEstimate.lineItems}}
+  <table class="cost-table">
+    <thead>
+      <tr>
+        <th>Category</th>
+        <th>Description</th>
+        <th>Qty</th>
+        <th>Unit</th>
+        <th>Rate ($)</th>
+        <th>Amount ($)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each costEstimate.lineItems}}
+      <tr>
+        <td>{{category}}</td>
+        <td>{{description}}</td>
+        <td>{{quantity}}</td>
+        <td>{{unit}}</td>
+        <td class="currency">{{formatCurrency rate}}</td>
+        <td class="currency">{{formatCurrency amount}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+    <tfoot>
+      <tr class="subtotal-row">
+        <td colspan="5">Subtotal</td>
+        <td class="currency">{{formatCurrency costEstimate.subtotal}}</td>
+      </tr>
+      {{#if costEstimate.contingencyRate}}
+      <tr class="contingency-row">
+        <td colspan="5">Contingency ({{costEstimate.contingencyRate}}%)</td>
+        <td class="currency">{{formatCurrency costEstimate.contingencyAmount}}</td>
+      </tr>
+      {{/if}}
+      <tr class="total-row">
+        <td colspan="5"><strong>Total (excl. GST)</strong></td>
+        <td class="currency"><strong>{{formatCurrency costEstimate.totalExGst}}</strong></td>
+      </tr>
+    </tfoot>
+  </table>
+  {{/if}}
+
+  {{#if costEstimate.notes}}
+  <h3>Notes</h3>
+  <p>{{costEstimate.notes}}</p>
+  {{/if}}
+
+  {{else}}
+  <p>No cost estimate has been prepared for this report.</p>
+  {{/if}}
+</section>

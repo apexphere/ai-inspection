@@ -1,0 +1,41 @@
+<section class="report-section" id="section-3">
+  <h2>3. General Information</h2>
+
+  <h3>Property Details</h3>
+  <table class="property-table">
+    <tr><th>Legal Description</th><td>{{property.lotDp}}</td></tr>
+    <tr><th>Council Property ID</th><td>{{property.councilPropertyId}}</td></tr>
+    {{#if property.construction}}
+    <tr><th>Construction Type</th><td>{{property.construction}}</td></tr>
+    {{/if}}
+    {{#if property.yearBuilt}}
+    <tr><th>Year Built</th><td>{{property.yearBuilt}}</td></tr>
+    {{/if}}
+  </table>
+
+  {{#if buildingHistory}}
+  <h3>Building History</h3>
+  <table class="history-table">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Reference</th>
+        <th>Year</th>
+        <th>Status</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each buildingHistory}}
+      <tr>
+        <td>{{type}}</td>
+        <td>{{reference}}</td>
+        <td>{{year}}</td>
+        <td>{{status}}</td>
+        <td>{{description}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+  {{/if}}
+</section>

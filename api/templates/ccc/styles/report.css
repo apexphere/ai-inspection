@@ -1,0 +1,387 @@
+/* CCC Gap Analysis Report — Print-Optimized Styles */
+
+/* ─── Page Setup ─── */
+@page {
+  size: A4;
+  margin: 25mm 20mm;
+}
+
+@media print {
+  body { margin: 0; }
+  .report-section { page-break-inside: avoid; }
+  .appendix { page-break-before: always; }
+  .signatures { page-break-before: always; }
+  .photo-item { page-break-inside: avoid; }
+  .defect-item { page-break-inside: avoid; }
+}
+
+/* ─── Base ─── */
+body {
+  font-family: 'Arial', 'Helvetica Neue', sans-serif;
+  font-size: 11pt;
+  line-height: 1.5;
+  color: #1a1a1a;
+  max-width: 210mm;
+  margin: 0 auto;
+}
+
+h1 { font-size: 20pt; margin-bottom: 4mm; color: #003366; }
+h2 { font-size: 14pt; margin-top: 8mm; margin-bottom: 4mm; color: #003366; border-bottom: 1px solid #003366; padding-bottom: 2mm; }
+h3 { font-size: 12pt; margin-top: 6mm; margin-bottom: 3mm; color: #333; }
+h4 { font-size: 11pt; margin-top: 4mm; margin-bottom: 2mm; color: #333; }
+
+p { margin: 3mm 0; }
+
+/* ─── Header / Footer ─── */
+.report-header {
+  border-bottom: 2px solid #003366;
+  padding-bottom: 4mm;
+  margin-bottom: 8mm;
+}
+
+.report-header h1 { margin: 0; }
+.job-number { font-size: 12pt; color: #666; margin: 1mm 0; }
+.report-date { font-size: 10pt; color: #666; }
+
+.report-footer {
+  margin-top: 10mm;
+  padding-top: 4mm;
+  border-top: 1px solid #ccc;
+  font-size: 9pt;
+  color: #666;
+  text-align: center;
+}
+
+.confidential { font-weight: bold; text-transform: uppercase; letter-spacing: 0.5mm; }
+
+/* ─── Tables ─── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 4mm 0;
+  font-size: 10pt;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 2mm 3mm;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  background: #f0f4f8;
+  font-weight: bold;
+  color: #003366;
+}
+
+.summary-table th { width: 35%; }
+.property-table th { width: 35%; }
+.personnel-table th { width: 25%; }
+.history-table th { background: #003366; color: white; }
+
+/* ─── Defect Schedule ─── */
+.defect-item {
+  margin: 6mm 0;
+  padding: 4mm;
+  border: 1px solid #ddd;
+  border-radius: 2mm;
+  background: #fafafa;
+}
+
+.defect-item h3 {
+  margin-top: 0;
+  color: #003366;
+  border-bottom: 1px solid #003366;
+  padding-bottom: 2mm;
+}
+
+.defect-table th { width: 25%; }
+.defect-table td { width: 75%; }
+
+.defect-photos {
+  margin-top: 4mm;
+}
+
+.defect-photos h4 {
+  margin-bottom: 2mm;
+}
+
+/* Priority Styling */
+.priority-high { color: #c0392b; font-weight: bold; }
+.priority-medium { color: #e67e22; font-weight: bold; }
+.priority-low { color: #27ae60; }
+
+/* ─── Moisture Readings Table ─── */
+.moisture-table th { background: #003366; color: white; font-size: 9pt; }
+.moisture-table td { text-align: center; }
+.moisture-table td:first-child { text-align: left; }
+
+/* Result Color Coding */
+.result-acceptable { background: #d4edda; color: #155724; font-weight: bold; }
+.result-marginal { background: #fff3cd; color: #856404; font-weight: bold; }
+.result-unacceptable { background: #f8d7da; color: #721c24; font-weight: bold; }
+
+.moisture-acceptable { background: #f8fff8; }
+.moisture-marginal { background: #fffef8; }
+.moisture-unacceptable { background: #fff8f8; }
+
+.moisture-legend {
+  margin-top: 4mm;
+  padding: 3mm;
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+  font-size: 9pt;
+}
+
+.moisture-legend h4 {
+  margin: 0 0 2mm 0;
+  font-size: 10pt;
+}
+
+.moisture-legend ul {
+  margin: 0;
+  padding-left: 5mm;
+}
+
+.moisture-legend li { margin: 1mm 0; }
+
+.legend-acceptable {
+  display: inline-block;
+  padding: 1mm 2mm;
+  background: #d4edda;
+  color: #155724;
+  font-weight: bold;
+  font-size: 8pt;
+}
+
+.legend-marginal {
+  display: inline-block;
+  padding: 1mm 2mm;
+  background: #fff3cd;
+  color: #856404;
+  font-weight: bold;
+  font-size: 8pt;
+}
+
+.legend-unacceptable {
+  display: inline-block;
+  padding: 1mm 2mm;
+  background: #f8d7da;
+  color: #721c24;
+  font-weight: bold;
+  font-size: 8pt;
+}
+
+/* ─── Cost Estimate Table ─── */
+.cost-table th { background: #003366; color: white; font-size: 9pt; }
+.cost-table .currency { text-align: right; font-family: 'Courier New', monospace; }
+
+.cost-table tfoot td {
+  background: #f0f4f8;
+  font-weight: bold;
+}
+
+.subtotal-row td { border-top: 2px solid #003366; }
+.contingency-row td { font-style: italic; }
+.total-row td {
+  background: #003366;
+  color: white;
+  font-size: 11pt;
+}
+
+/* ─── Signatures ─── */
+.signature-blocks {
+  display: flex;
+  gap: 20mm;
+  margin-top: 10mm;
+}
+
+.signature-block {
+  flex: 1;
+}
+
+.signature-line {
+  border-bottom: 1px solid #333;
+  height: 15mm;
+  margin-bottom: 2mm;
+}
+
+.sig-name { font-weight: bold; margin: 1mm 0; }
+.sig-credentials { font-size: 10pt; color: #666; margin: 1mm 0; }
+.sig-date { font-size: 10pt; color: #666; margin: 1mm 0; }
+
+/* ─── Photo Grid ─── */
+.photo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6mm;
+  margin: 4mm 0;
+}
+
+.photo-item {
+  border: 1px solid #ddd;
+  padding: 2mm;
+}
+
+.photo-item img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.photo-item figcaption {
+  font-size: 9pt;
+  padding: 2mm 0;
+  text-align: center;
+}
+
+.photo-location { color: #666; font-style: italic; }
+
+/* ─── Cover Page ─── */
+.cover-page {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  text-align: center;
+  padding: 20mm;
+}
+
+.cover-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15mm;
+  max-width: 160mm;
+}
+
+.cover-header {
+  margin-bottom: 10mm;
+}
+
+.cover-logo {
+  max-width: 80mm;
+  max-height: 30mm;
+  object-fit: contain;
+}
+
+.cover-logo-placeholder {
+  font-size: 18pt;
+  font-weight: bold;
+  color: #003366;
+  padding: 10mm 20mm;
+  border: 2px solid #003366;
+}
+
+.cover-title h1 {
+  font-size: 24pt;
+  color: #003366;
+  margin: 0;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.cover-details {
+  margin: 10mm 0;
+}
+
+.cover-address {
+  font-size: 16pt;
+  font-weight: bold;
+  margin-bottom: 8mm;
+  color: #1a1a1a;
+}
+
+.cover-client,
+.cover-job-number,
+.cover-date {
+  font-size: 12pt;
+  margin: 3mm 0;
+  color: #333;
+}
+
+.cover-details .label,
+.cover-footer .label {
+  font-weight: bold;
+  color: #003366;
+}
+
+.cover-footer {
+  margin-top: 20mm;
+  padding-top: 10mm;
+  border-top: 1px solid #ccc;
+}
+
+.cover-prepared-by,
+.cover-reviewed-by {
+  font-size: 11pt;
+  margin: 3mm 0;
+}
+
+.cover-footer .credentials {
+  font-size: 10pt;
+  color: #666;
+}
+
+/* ─── Table of Contents ─── */
+.table-of-contents {
+  margin: 8mm 0;
+  padding: 6mm;
+}
+
+.table-of-contents h2 {
+  font-size: 14pt;
+  color: #003366;
+  margin-bottom: 6mm;
+  border-bottom: 1px solid #003366;
+  padding-bottom: 2mm;
+}
+
+.toc-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.toc-entry {
+  display: flex;
+  align-items: baseline;
+  padding: 2mm 0;
+  border-bottom: 1px dotted #ccc;
+}
+
+.toc-number {
+  font-weight: bold;
+  color: #003366;
+  min-width: 8mm;
+}
+
+.toc-title {
+  flex: 1;
+}
+
+.toc-link {
+  display: flex;
+  align-items: baseline;
+  width: 100%;
+  text-decoration: none;
+  color: inherit;
+}
+
+.toc-link:hover {
+  color: #003366;
+  text-decoration: underline;
+}
+
+/* ─── Print: Cover & TOC Pages ─── */
+@media print {
+  .cover-page {
+    page-break-after: always;
+  }
+
+  .table-of-contents {
+    page-break-after: always;
+  }
+}

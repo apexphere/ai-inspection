@@ -1,0 +1,42 @@
+<section class="report-section" id="section-4">
+  <h2>4. Defect Schedule</h2>
+
+  {{#if defects}}
+  <p>The following defects were identified during the inspection:</p>
+
+  {{#each defects}}
+  <div class="defect-item">
+    <h3>Defect {{defectNumber}}</h3>
+    <table class="defect-table">
+      <tr><th>Location</th><td>{{location}}</td></tr>
+      <tr><th>Element</th><td>{{element}}</td></tr>
+      <tr><th>Description</th><td>{{description}}</td></tr>
+      {{#if cause}}
+      <tr><th>Probable Cause</th><td>{{cause}}</td></tr>
+      {{/if}}
+      <tr><th>Remedial Action</th><td>{{remedialAction}}</td></tr>
+      <tr><th>Priority</th><td class="priority-{{lowercase priority}}">{{priority}}</td></tr>
+    </table>
+
+    {{#if photos}}
+    <div class="defect-photos">
+      <h4>Supporting Photographs</h4>
+      <div class="photo-grid">
+        {{#each photos}}
+        <figure class="photo-item">
+          <img src="{{path}}" alt="{{caption}}" />
+          <figcaption>
+            <strong>Photo {{photoNumber}}:</strong> {{caption}}
+          </figcaption>
+        </figure>
+        {{/each}}
+      </div>
+    </div>
+    {{/if}}
+  </div>
+  {{/each}}
+
+  {{else}}
+  <p>No defects were identified during the inspection.</p>
+  {{/if}}
+</section>
