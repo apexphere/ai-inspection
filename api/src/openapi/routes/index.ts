@@ -34,3 +34,6 @@ import './health.js';
 import './building-code.js';
 import './building-history.js';
 import './na-reason-templates.js';
+
+// Sprint 4c routes
+import './personnel.js';
