@@ -34,3 +34,18 @@ import './health.js';
 import './building-code.js';
 import './building-history.js';
 import './na-reason-templates.js';
+
+// Sprint 4c routes (Issue #497)
+import './companies.js';
+import './cost-estimates.js';
+import './credentials.js';
+import './defects.js';
+import './generated-reports.js';
+import './moisture-readings.js';
+import './personnel.js';
+import './report-audit-log.js';
+import './report-generation.js';
+import './report-management.js';
+import './report-templates.js';
+import './report-transitions.js';
+import './review-comments.js';
