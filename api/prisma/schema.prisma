@@ -139,6 +139,7 @@ model Report {
   generatedReports GeneratedReport[]
   
   auditLogs       ReportAuditLog[]
+  costEstimate    CostEstimate?
   
   @@index([inspectionId])
   @@index([siteInspectionId])
@@ -890,4 +891,46 @@ enum MoistureResult {
   ACCEPTABLE       // <18%
   MARGINAL          // 18-25%
   UNACCEPTABLE      // >25%
+}
+
+// ============================================
+// Cost Estimates — Issue #220
+// ============================================
+
+model CostEstimate {
+  id              String         @id @default(uuid())
+  reportId        String         @unique
+  report          Report         @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  contingencyRate Float          @default(0.20) // e.g. 0.20 = 20%
+  subtotal        Float          @default(0)
+  totalExGst      Float          @default(0)
+  notes           String?        // Assumptions and notes
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  lineItems       CostLineItem[]
+
+  @@index([reportId])
+}
+
+model CostLineItem {
+  id              String         @id @default(uuid())
+  costEstimateId  String
+  costEstimate    CostEstimate   @relation(fields: [costEstimateId], references: [id], onDelete: Cascade)
+
+  category        String         // Grouping category (e.g. "Plumbing", "Roofing")
+  description     String
+  quantity        Float
+  unit            String         // e.g. "m2", "hours", "each"
+  rate            Float          // Rate per unit
+  amount          Float          // quantity * rate (auto-calculated)
+
+  sortOrder       Int            @default(0)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([costEstimateId])
+  @@index([category])
 }
