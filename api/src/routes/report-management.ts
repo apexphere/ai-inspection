@@ -12,6 +12,7 @@ import { PrismaReportManagementRepository } from '../repositories/prisma/report.
 import { ReportManagementService, ReportNotFoundError, InvalidStatusTransitionError } from '../services/report-management.js';
 import { ReportValidationService, ReportNotFoundError as ValidationReportNotFoundError } from '../services/report-validation.js';
 import { generateSignatureBlock } from '../services/signature-block.js';
+import { Form9ExportService, ReportNotFoundError as Form9ReportNotFoundError, InspectionNotLinkedError } from '../services/form9-export.js';
 
 const prisma = new PrismaClient();
 const repository = new PrismaReportManagementRepository(prisma);
@@ -248,6 +249,27 @@ reportManagementRouter.get('/:id/signature-block', async (req: Request, res: Res
 
     res.json(signatureBlock);
   } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/reports/:id/form9 - Export Form 9 data (#196)
+const form9Service = new Form9ExportService(prisma);
+
+reportManagementRouter.get('/:id/form9', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const id = req.params.id as string;
+    const form9Data = await form9Service.extract(id);
+    res.json(form9Data);
+  } catch (error) {
+    if (error instanceof Form9ReportNotFoundError) {
+      res.status(404).json({ error: error.message });
+      return;
+    }
+    if (error instanceof InspectionNotLinkedError) {
+      res.status(400).json({ error: error.message });
+      return;
+    }
     next(error);
   }
 });
