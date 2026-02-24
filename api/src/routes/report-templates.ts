@@ -3,6 +3,11 @@ import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
 import { PrismaReportTemplateRepository } from '../repositories/prisma/report-template.js';
 import { ReportTemplateService, ReportTemplateNotFoundError } from '../services/report-template.js';
+import {
+  substituteVariables,
+  getAvailableVariables,
+  type VariableContext,
+} from '../services/variable-substitution.js';
 
 const prisma = new PrismaClient();
 const repository = new PrismaReportTemplateRepository(prisma);
@@ -35,6 +40,85 @@ const CreateVersionSchema = z.object({
   variables: z.array(z.string()).optional(),
   isDefault: z.boolean().optional(),
 });
+
+const RenderContextSchema = z.object({
+  context: z.object({
+    project: z.object({
+      address: z.string(),
+      activity: z.string(),
+      jobNumber: z.string(),
+      reportType: z.string(),
+    }),
+    property: z.object({
+      lotDp: z.string(),
+      councilPropertyId: z.string(),
+      territorialAuthority: z.string(),
+    }),
+    client: z.object({
+      name: z.string(),
+      address: z.string(),
+      phone: z.string(),
+      email: z.string(),
+      contactPerson: z.string(),
+    }),
+    company: z.object({
+      name: z.string(),
+      address: z.string(),
+      phone: z.string(),
+      email: z.string(),
+    }),
+    personnel: z.object({
+      inspectorName: z.string(),
+      authorName: z.string(),
+      authorCredentials: z.string(),
+      reviewerName: z.string(),
+      reviewerCredentials: z.string(),
+    }),
+    inspection: z.object({
+      date: z.string(),
+      weather: z.string(),
+    }),
+  }),
+});
+
+// Sample context for preview endpoint
+const SAMPLE_CONTEXT: VariableContext = {
+  project: {
+    address: '123 Sample Street, Auckland 1010',
+    activity: 'Pre-Purchase Inspection',
+    jobNumber: 'JOB-2026-001',
+    reportType: 'COA',
+  },
+  property: {
+    lotDp: 'Lot 1 DP 12345',
+    councilPropertyId: 'AKL-12345',
+    territorialAuthority: 'Auckland Council',
+  },
+  client: {
+    name: 'John Smith',
+    address: '456 Client Road, Wellington 6011',
+    phone: '+64 21 123 4567',
+    email: 'john.smith@example.com',
+    contactPerson: 'John Smith',
+  },
+  company: {
+    name: 'Acme Inspections Ltd',
+    address: '789 Inspector Lane, Christchurch 8011',
+    phone: '+64 3 987 6543',
+    email: 'info@acme-inspections.co.nz',
+  },
+  personnel: {
+    inspectorName: 'Jane Inspector',
+    authorName: 'Jane Inspector',
+    authorCredentials: 'LBP, NZIBS',
+    reviewerName: 'Bob Reviewer',
+    reviewerCredentials: 'LBP, NZIBS, BOINZ',
+  },
+  inspection: {
+    date: '25 February 2026',
+    weather: 'Fine, 22°C',
+  },
+};
 
 function notFound(res: Response, err: unknown): void {
   if (err instanceof ReportTemplateNotFoundError) {
@@ -79,6 +163,16 @@ reportTemplatesRouter.get(
     } catch (error) {
       next(error);
     }
+  }
+);
+
+// GET /api/templates/variables — List all available variables
+// IMPORTANT: This route MUST be registered BEFORE /templates/:id to avoid :id capturing "variables"
+reportTemplatesRouter.get(
+  '/templates/variables',
+  (_req: Request, res: Response) => {
+    const variables = getAvailableVariables();
+    res.json({ variables });
   }
 );
 
@@ -169,6 +263,44 @@ reportTemplatesRouter.post(
     try {
       const template = await service.setDefault(req.params.id as string);
       res.json(template);
+    } catch (error) {
+      if (error instanceof ReportTemplateNotFoundError) { notFound(res, error); return; }
+      next(error);
+    }
+  }
+);
+
+// POST /api/templates/:id/render — Render template with provided context
+reportTemplatesRouter.post(
+  '/templates/:id/render',
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const parsed = RenderContextSchema.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(400).json({ error: 'Validation failed', details: parsed.error.flatten().fieldErrors });
+        return;
+      }
+
+      const template = await service.findById(req.params.id as string);
+      const result = substituteVariables(template.content, parsed.data.context as VariableContext);
+
+      res.json(result);
+    } catch (error) {
+      if (error instanceof ReportTemplateNotFoundError) { notFound(res, error); return; }
+      next(error);
+    }
+  }
+);
+
+// POST /api/templates/:id/preview — Preview template with sample data
+reportTemplatesRouter.post(
+  '/templates/:id/preview',
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const template = await service.findById(req.params.id as string);
+      const result = substituteVariables(template.content, SAMPLE_CONTEXT);
+
+      res.json(result);
     } catch (error) {
       if (error instanceof ReportTemplateNotFoundError) { notFound(res, error); return; }
       next(error);
