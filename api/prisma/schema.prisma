@@ -134,6 +134,9 @@ model Report {
   
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
+
+  // Generated report files
+  generatedReports GeneratedReport[]
   
   auditLogs       ReportAuditLog[]
   
@@ -168,6 +171,30 @@ enum ReportAuditAction {
   CONTENT_UPDATED
   VERSION_CREATED
   DELETED
+}
+
+// ============================================
+// Generated Report Storage — Issue #226
+// ============================================
+
+model GeneratedReport {
+  id          String   @id @default(uuid())
+
+  reportId    String
+  report      Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  format      String   // "pdf" | "docx"
+  filename    String
+  r2Key       String?  // Set when stored in R2
+  localPath   String?  // Set when stored locally
+  fileSize    Int?     // bytes
+  pageCount   Int?
+  photoCount  Int?
+  version     Int      @default(1)
+
+  createdAt   DateTime @default(now())
+
+  @@index([reportId])
 }
 
 enum Status {

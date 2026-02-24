@@ -30,6 +30,7 @@ import { reportTransitionsRouter } from './routes/report-transitions.js';
 import { reportGenerationRouter } from './routes/report-generation.js';
 import { startReportWorker, stopReportWorker } from './workers/report-worker.js';
 import { reportTemplatesRouter } from './routes/report-templates.js';
+import { generatedReportsRouter } from './routes/generated-reports.js';
 import { openApiRouter } from './openapi/index.js';
 import { authMiddleware, serviceAuthMiddleware } from './middleware/auth.js';
 import { getAllowedOrigins } from './config/domain.js';
@@ -101,6 +102,7 @@ app.use('/api/companies', authMiddleware, companiesRouter);
 app.use('/api', authMiddleware, reportAuditLogRouter);
 app.use('/api', authMiddleware, reportGenerationRouter);
 app.use('/api', authMiddleware, reportTemplatesRouter);
+app.use('/api/reports', authMiddleware, generatedReportsRouter);
 
 // Error handling with detailed logging
 app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
