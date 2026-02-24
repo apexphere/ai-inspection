@@ -16,3 +16,4 @@ export * from './na-reason-templates.js';
 export * from './inspectors.js';
 export * from './defects.js';
 export * from './report-generation.js';
+export * from './personnel.js';
