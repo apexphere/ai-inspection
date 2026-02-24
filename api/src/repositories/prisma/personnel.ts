@@ -18,6 +18,7 @@ export class PrismaPersonnelRepository implements IPersonnelRepository {
   async findById(id: string): Promise<Personnel | null> {
     return this.prisma.personnel.findUnique({
       where: { id },
+      include: { credentials: true, company: true },
     });
   }
 
@@ -36,6 +37,7 @@ export class PrismaPersonnelRepository implements IPersonnelRepository {
 
     return this.prisma.personnel.findMany({
       where,
+      include: { credentials: true, company: true },
       orderBy: { name: 'asc' },
     });
   }
