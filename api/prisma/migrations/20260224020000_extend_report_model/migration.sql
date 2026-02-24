@@ -16,7 +16,11 @@ ALTER TABLE "Report"
   ADD COLUMN "reviewedById"    TEXT,
   ADD COLUMN "reviewedAt"      TIMESTAMP(3),
   ADD COLUMN "form9Data"       JSONB,
-  ADD COLUMN "updatedAt"       TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+  ADD COLUMN "updatedAt"       TIMESTAMP(3);
+
+-- Backfill updatedAt then make NOT NULL (Prisma @updatedAt has no SQL default)
+UPDATE "Report" SET "updatedAt" = NOW() WHERE "updatedAt" IS NULL;
+ALTER TABLE "Report" ALTER COLUMN "updatedAt" SET NOT NULL;
 
 -- CreateIndex
 CREATE INDEX "Report_inspectionId_idx"     ON "Report"("inspectionId");
