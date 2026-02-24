@@ -274,6 +274,19 @@ th {
   flex: 1;
 }
 
+.toc-link {
+  display: flex;
+  align-items: baseline;
+  width: 100%;
+  text-decoration: none;
+  color: inherit;
+}
+
+.toc-link:hover {
+  color: #003366;
+  text-decoration: underline;
+}
+
 /* ─── Print: Cover & TOC Pages ─── */
 @media print {
   .cover-page {

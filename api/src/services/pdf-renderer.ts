@@ -82,14 +82,14 @@ export class PdfRendererService {
         },
         displayHeaderFooter: true,
         headerTemplate: `
-          <div style="font-size: 8px; width: 100%; padding: 0 20mm; display: flex; justify-content: space-between; color: #666;">
+          <div style="font-size: 8px; width: 100%; padding: 0 20mm; display: flex; justify-content: center; color: #666;">
             <span>${this.escapeHtml(reportTitle)}</span>
-            <span>${this.escapeHtml(jobNumber)}</span>
           </div>
         `,
         footerTemplate: `
           <div style="font-size: 8px; width: 100%; padding: 0 20mm; display: flex; justify-content: space-between; color: #666;">
             <span>Confidential</span>
+            <span>${this.escapeHtml(jobNumber)}</span>
             <span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span>
           </div>
         `,
@@ -164,7 +164,19 @@ export class PdfRendererService {
   }
 
   /**
-   * Generate table of contents HTML.
+   * Generate the anchor ID for a section.
+   * Matches the `id` attributes in the Handlebars section templates
+   * (e.g. `section-1`, `section-2`, …).
+   */
+  static sectionAnchorId(_title: string, index: number): string {
+    return `section-${index + 1}`;
+  }
+
+  /**
+   * Generate table of contents HTML with clickable anchor links.
+   *
+   * Each entry links to the corresponding `id="section-N"` anchor
+   * already present in the Handlebars section templates.
    */
   generateTableOfContents(sectionTitles: string[]): string {
     if (sectionTitles.length === 0) {
@@ -172,10 +184,10 @@ export class PdfRendererService {
     }
 
     const entries = sectionTitles
-      .map(
-        (title, index) =>
-          `<li class="toc-entry"><span class="toc-number">${index + 1}.</span> <span class="toc-title">${this.escapeHtml(title)}</span></li>`,
-      )
+      .map((title, index) => {
+        const anchorId = PdfRendererService.sectionAnchorId(title, index);
+        return `<li class="toc-entry"><a href="#${anchorId}" class="toc-link"><span class="toc-number">${index + 1}.</span> <span class="toc-title">${this.escapeHtml(title)}</span></a></li>`;
+      })
       .join('\n');
 
     return `

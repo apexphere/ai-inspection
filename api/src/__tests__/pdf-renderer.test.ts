@@ -105,14 +105,7 @@ describe('PdfRendererService', () => {
       );
     });
 
-    it('includes header with job number', async () => {
-      await service.renderPdf(defaultOptions);
-
-      const pdfCall = mockPagePdf.mock.calls[0][0];
-      expect(pdfCall?.headerTemplate).toContain('JOB-2026-001');
-    });
-
-    it('includes header with custom report title', async () => {
+    it('includes header with report title', async () => {
       await service.renderPdf({
         ...defaultOptions,
         reportTitle: 'Custom Report',
@@ -120,6 +113,13 @@ describe('PdfRendererService', () => {
 
       const pdfCall = mockPagePdf.mock.calls[0][0];
       expect(pdfCall?.headerTemplate).toContain('Custom Report');
+    });
+
+    it('includes footer with job number', async () => {
+      await service.renderPdf(defaultOptions);
+
+      const pdfCall = mockPagePdf.mock.calls[0][0];
+      expect(pdfCall?.footerTemplate).toContain('JOB-2026-001');
     });
 
     it('includes footer with page numbers', async () => {
@@ -306,6 +306,15 @@ describe('PdfRendererService', () => {
       expect(html).toContain('toc-entry');
       expect(html).toContain('toc-number');
       expect(html).toContain('toc-title');
+    });
+
+    it('generates clickable anchor links to sections', () => {
+      const sections = ['Executive Summary', 'Introduction'];
+      const html = service.generateTableOfContents(sections);
+
+      expect(html).toContain('href="#section-1"');
+      expect(html).toContain('href="#section-2"');
+      expect(html).toContain('toc-link');
     });
 
     it('escapes HTML in section titles', () => {
