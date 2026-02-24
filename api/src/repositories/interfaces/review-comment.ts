@@ -14,7 +14,7 @@ export interface CreateReviewCommentData {
 
 export interface UpdateReviewCommentData {
   content?: string;
-  section?: string;
+  section?: string | null;
   priority?: 'LOW' | 'MEDIUM' | 'HIGH';
   status?: 'OPEN' | 'RESOLVED';
 }
