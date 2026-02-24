@@ -135,10 +135,39 @@ model Report {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   
+  auditLogs       ReportAuditLog[]
+  
   @@index([inspectionId])
   @@index([siteInspectionId])
   @@index([status])
   @@index([preparedById])
+}
+
+// ============================================
+// Report Audit Trail — Issue #212
+// ============================================
+
+model ReportAuditLog {
+  id        String            @id @default(uuid())
+  reportId  String
+  report    Report            @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  action    ReportAuditAction
+  userId    String?           // Plain UUID — no FK until User linkage is formalised
+  changes   Json?             // Before/after snapshot of changed fields
+
+  createdAt DateTime          @default(now())
+
+  @@index([reportId])
+  @@index([reportId, createdAt])
+}
+
+enum ReportAuditAction {
+  CREATED
+  STATUS_CHANGED
+  CONTENT_UPDATED
+  VERSION_CREATED
+  DELETED
 }
 
 enum Status {
