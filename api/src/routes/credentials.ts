@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type NextFunction } from 'express';
 import { z } from 'zod';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, type CredentialType } from '@prisma/client';
 import { PrismaCredentialRepository } from '../repositories/prisma/credential.js';
 import {
   CredentialService,
@@ -8,7 +8,7 @@ import {
   PersonnelNotFoundError,
   InvalidLBPLicenseError,
 } from '../services/credential.js';
-import { CredentialExpiryService } from '../services/credential-expiry.js';
+import { CredentialExpiryService, type AlertLevel } from '../services/credential-expiry.js';
 
 const prisma = new PrismaClient();
 const repository = new PrismaCredentialRepository(prisma);
@@ -60,8 +60,8 @@ credentialsRouter.get(
       const results = await expiryService.findExpiring({
         days,
         personnelId,
-        credentialType: credentialType as Parameters<typeof expiryService.findExpiring>[0]['credentialType'],
-        alertLevel: alertLevel as Parameters<typeof expiryService.findExpiring>[0]['alertLevel'],
+        credentialType: credentialType as CredentialType | undefined,
+        alertLevel: alertLevel as AlertLevel | undefined,
       });
 
       res.json({
