@@ -44,7 +44,5 @@ export class PrismaReportAuditLogRepository implements IReportAuditLogRepository
     });
   }
 
-  async delete(id: string): Promise<void> {
-    await this.prisma.reportAuditLog.delete({ where: { id } });
-  }
+  // Audit logs are append-only — no delete method
 }

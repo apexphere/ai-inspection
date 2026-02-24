@@ -9,7 +9,7 @@ function createMockRepository(): IReportAuditLogRepository {
     findById: vi.fn(),
     findByReportId: vi.fn(),
     findAll: vi.fn(),
-    delete: vi.fn(),
+    // No delete — audit logs are append-only
   };
 }
 
@@ -183,23 +183,5 @@ describe('ReportAuditLogService', () => {
     });
   });
 
-  // ─── delete ───────────────────────────────────────────────────────────────
-
-  describe('delete', () => {
-    it('should delete an existing entry', async () => {
-      vi.mocked(mockRepo.findById).mockResolvedValue(sampleEntry);
-      vi.mocked(mockRepo.delete).mockResolvedValue(undefined);
-
-      await service.delete('log-1');
-
-      expect(mockRepo.delete).toHaveBeenCalledWith('log-1');
-    });
-
-    it('should throw ReportAuditLogNotFoundError when deleting non-existent entry', async () => {
-      vi.mocked(mockRepo.findById).mockResolvedValue(null);
-
-      await expect(service.delete('nonexistent')).rejects.toThrow(ReportAuditLogNotFoundError);
-      expect(mockRepo.delete).not.toHaveBeenCalled();
-    });
-  });
+  // No delete tests — audit logs are append-only.
 });

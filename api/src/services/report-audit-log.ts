@@ -96,11 +96,6 @@ export class ReportAuditLogService {
     return this.repository.findAll(params);
   }
 
-  /**
-   * Delete a specific audit log entry (admin use only).
-   */
-  async delete(id: string): Promise<void> {
-    await this.findById(id);
-    await this.repository.delete(id);
-  }
+  // Audit logs are append-only — no delete method.
+  // Data cleanup, if ever needed, is a DBA operation.
 }

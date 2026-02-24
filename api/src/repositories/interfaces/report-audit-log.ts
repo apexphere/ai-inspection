@@ -19,5 +19,5 @@ export interface IReportAuditLogRepository {
   findById(id: string): Promise<ReportAuditLog | null>;
   findByReportId(reportId: string): Promise<ReportAuditLog[]>;
   findAll(params?: ReportAuditLogSearchParams): Promise<ReportAuditLog[]>;
-  delete(id: string): Promise<void>;
+  // Audit logs are append-only — no delete
 }

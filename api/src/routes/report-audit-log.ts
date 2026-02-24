@@ -101,20 +101,4 @@ reportAuditLogRouter.get(
   }
 );
 
-// DELETE /api/audit-log/:id — Delete a single entry (admin)
-reportAuditLogRouter.delete(
-  '/audit-log/:id',
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const id = req.params.id as string;
-      await service.delete(id);
-      res.status(204).send();
-    } catch (error) {
-      if (error instanceof ReportAuditLogNotFoundError) {
-        res.status(404).json({ error: error.message });
-        return;
-      }
-      next(error);
-    }
-  }
-);
+// No DELETE endpoint — audit logs are append-only.
