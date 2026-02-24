@@ -349,6 +349,7 @@ model SiteInspection {
   measurements      SiteMeasurement[]
   reports           Report[]
   defects           Defect[]
+  moistureReadings  MoistureReading[]
   
   @@index([projectId])
   @@index([status])
@@ -497,6 +498,7 @@ model BuildingCodeClause {
   clauseReviews     ClauseReview[]
   measurements      SiteMeasurement[]
   defects           Defect[]
+  moistureReadings  MoistureReading[]
   
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
@@ -726,6 +728,8 @@ model Defect {
   
   photoIds        String[]            @default([])
   
+  moistureReadings MoistureReading[]
+  
   sortOrder       Int                 @default(0)
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
@@ -846,4 +850,44 @@ enum TemplateType {
   SECTION
   BOILERPLATE
   METHODOLOGY
+}
+
+// ============================================
+// Moisture Readings — Issue #219
+// ============================================
+
+model MoistureReading {
+  id              String              @id @default(uuid())
+  inspectionId    String
+  inspection      SiteInspection      @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+
+  location        String              // e.g. "shower base", "north wall"
+  substrate       String?             // e.g. "timber framing", "particle board"
+  reading         Float               // Percentage (0-100)
+  depth           Float?              // Probe depth in mm
+  result          MoistureResult      @default(PENDING)
+
+  // Optional links
+  defectId        String?
+  defect          Defect?             @relation(fields: [defectId], references: [id])
+  linkedClauseId  String?
+  linkedClause    BuildingCodeClause? @relation(fields: [linkedClauseId], references: [id])
+
+  notes           String?
+  takenAt         DateTime?           // When reading was taken
+
+  sortOrder       Int                 @default(0)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@index([inspectionId])
+  @@index([result])
+  @@index([defectId])
+}
+
+enum MoistureResult {
+  PENDING
+  ACCEPTABLE       // <18%
+  MARGINAL          // 18-25%
+  UNACCEPTABLE      // >25%
 }
