@@ -8,10 +8,12 @@ import {
   PersonnelNotFoundError,
   InvalidLBPLicenseError,
 } from '../services/credential.js';
+import { CredentialExpiryService } from '../services/credential-expiry.js';
 
 const prisma = new PrismaClient();
 const repository = new PrismaCredentialRepository(prisma);
 const service = new CredentialService(repository, prisma);
+const expiryService = new CredentialExpiryService(prisma);
 
 export const credentialsRouter = Router();
 
@@ -39,6 +41,53 @@ const UpdateCredentialSchema = z.object({
   expiryDate: z.string().datetime().nullable().optional(),
   verified: z.boolean().optional(),
 });
+
+// GET /api/credentials/expiring - List expiring credentials (#202)
+credentialsRouter.get(
+  '/credentials/expiring',
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const days = req.query.days ? parseInt(req.query.days as string, 10) : undefined;
+      const personnelId = req.query.personnelId as string | undefined;
+      const credentialType = req.query.credentialType as string | undefined;
+      const alertLevel = req.query.alertLevel as string | undefined;
+
+      if (days !== undefined && (isNaN(days) || days < 1)) {
+        res.status(400).json({ error: 'days must be a positive integer' });
+        return;
+      }
+
+      const results = await expiryService.findExpiring({
+        days,
+        personnelId,
+        credentialType: credentialType as Parameters<typeof expiryService.findExpiring>[0]['credentialType'],
+        alertLevel: alertLevel as Parameters<typeof expiryService.findExpiring>[0]['alertLevel'],
+      });
+
+      res.json({
+        count: results.length,
+        thresholdDays: days ?? 90,
+        credentials: results,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// GET /api/credentials/expiring/summary - Summary counts by alert level (#202)
+credentialsRouter.get(
+  '/credentials/expiring/summary',
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const days = req.query.days ? parseInt(req.query.days as string, 10) : undefined;
+      const summary = await expiryService.getSummary(days);
+      res.json(summary);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
 // POST /api/personnel/:personnelId/credentials - Create credential
 credentialsRouter.post(
