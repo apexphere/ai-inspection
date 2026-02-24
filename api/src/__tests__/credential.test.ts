@@ -32,6 +32,7 @@ const mockPersonnel: Personnel = {
   mobile: null,
   role: 'BUILDING_SURVEYOR',
   active: true,
+  companyId: null,
   createdAt: new Date(),
   updatedAt: new Date(),
 };
@@ -41,6 +42,7 @@ const mockCredential: Credential = {
   personnelId: 'personnel-1',
   credentialType: 'NZIBS',
   membershipCode: 'MNZIBS',
+  membershipFull: null,
   registrationTitle: null,
   licenseNumber: null,
   qualifications: ['BE (Hons)'],
