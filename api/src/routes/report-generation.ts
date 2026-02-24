@@ -4,6 +4,7 @@
  * POST   /api/reports/:id/generate              — queue a generation job (:id = inspectionId)
  * GET    /api/reports/:id/generate/status       — poll job status (:id = inspectionId)
  * DELETE /api/reports/jobs/:jobId/generate      — cancel a pending job (:jobId = GenerationJob id)
+ * POST   /api/reports/:id/generate/docx         — generate DOCX from report data (:id = reportId)
  */
 
 import { Router, type Request, type Response, type NextFunction, type Router as RouterType } from 'express';
@@ -13,6 +14,8 @@ import {
   JobNotFoundError,
   JobAlreadyActiveError,
 } from '../services/generation-queue.js';
+import { DocxGeneratorService } from '../services/docx-generator.js';
+import type { DocxReportData } from '../services/docx-generator.js';
 
 const prisma = new PrismaClient();
 const queueService = new GenerationQueueService(prisma);
@@ -92,6 +95,48 @@ reportGenerationRouter.delete(
         res.status(409).json({ error: error.message });
         return;
       }
+      next(error);
+    }
+  }
+);
+
+/**
+ * POST /api/reports/:id/generate/docx
+ * Generate a DOCX document from report data.
+ * :id is the reportId.
+ * Body should contain DocxReportData structure.
+ */
+reportGenerationRouter.post(
+  '/reports/:id/generate/docx',
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const reportId = req.params.id as string;
+      const reportData = req.body as DocxReportData;
+
+      // Validate required fields
+      if (!reportData.companyName || !reportData.reportTitle || !reportData.address) {
+        res.status(400).json({
+          error: 'Missing required fields: companyName, reportTitle, and address are required',
+        });
+        return;
+      }
+
+      const docxService = new DocxGeneratorService();
+      const outputPath = `/tmp/report-${reportId}-${Date.now()}.docx`;
+
+      const result = await docxService.generate({
+        reportData,
+        outputPath,
+      });
+
+      res.status(201).json({
+        reportId,
+        format: 'docx',
+        outputPath: result.outputPath,
+        fileSize: result.fileSize,
+        message: 'DOCX report generated successfully',
+      });
+    } catch (error) {
       next(error);
     }
   }
