@@ -4,6 +4,7 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaPersonnelRepository } from '../repositories/prisma/personnel.js';
 import { PersonnelService, PersonnelNotFoundError, PersonnelEmailConflictError } from '../services/personnel.js';
 import { formatCredentials } from '../services/credential-formatter.js';
+import { getAuthorRoles, getReviewerRoles } from '../services/personnel-role-validation.js';
 
 const prisma = new PrismaClient();
 const repository = new PrismaPersonnelRepository(prisma);
@@ -71,6 +72,36 @@ personnelRouter.get('/', async (req: Request, res: Response, next: NextFunction)
       name: name as string | undefined,
     });
     res.json(personnel);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/personnel/authors - List personnel eligible to author reports (#204)
+personnelRouter.get('/authors', async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const roles = getAuthorRoles();
+    const authors = await prisma.personnel.findMany({
+      where: { role: { in: roles }, active: true },
+      include: { credentials: true },
+      orderBy: { name: 'asc' },
+    });
+    res.json(authors);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/personnel/reviewers - List personnel eligible to review reports (#204)
+personnelRouter.get('/reviewers', async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const roles = getReviewerRoles();
+    const reviewers = await prisma.personnel.findMany({
+      where: { role: { in: roles }, active: true },
+      include: { credentials: true },
+      orderBy: { name: 'asc' },
+    });
+    res.json(reviewers);
   } catch (error) {
     next(error);
   }
