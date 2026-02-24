@@ -787,6 +787,7 @@ enum GenerationJobStatus {
   COMPLETED
   FAILED
   CANCELLED
+}
 
 // ============================================
 // Report Templates — Issue #207
