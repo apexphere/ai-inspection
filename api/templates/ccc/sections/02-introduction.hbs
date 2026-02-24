@@ -1,0 +1,18 @@
+<section class="report-section" id="section-2">
+  <h2>2. Introduction</h2>
+
+  <p>This CCC Gap Analysis Report has been prepared to identify outstanding items and defects
+  that must be addressed prior to the issuance of a Code Compliance Certificate (CCC) for the
+  building work at <strong>{{project.address}}</strong>.</p>
+
+  <p>The purpose of this report is to document the current state of the building work, identify
+  any defects or non-compliances, and provide recommendations for remedial action to achieve
+  compliance with the New Zealand Building Code.</p>
+
+  <p>The inspection was carried out on <strong>{{formatDate inspection.date}}</strong>
+  by <strong>{{personnel.author.name}}</strong> ({{personnel.author.credentials}}).</p>
+
+  {{#if inspection.weather}}
+  <p>Weather conditions at the time of inspection: <strong>{{inspection.weather}}</strong>.</p>
+  {{/if}}
+</section>

@@ -1,0 +1,44 @@
+<section class="report-section" id="section-5">
+  <h2>5. Moisture Readings</h2>
+
+  {{#if moistureReadings}}
+  <p>The following moisture readings were recorded during the inspection:</p>
+
+  <table class="moisture-table">
+    <thead>
+      <tr>
+        <th>Location</th>
+        <th>Substrate</th>
+        <th>Reading (%)</th>
+        <th>Depth (mm)</th>
+        <th>Result</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each moistureReadings}}
+      <tr class="moisture-{{lowercase result}}">
+        <td>{{location}}</td>
+        <td>{{substrate}}</td>
+        <td>{{reading}}</td>
+        <td>{{depth}}</td>
+        <td class="result-{{lowercase result}}">{{result}}</td>
+        <td>{{notes}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+  <div class="moisture-legend">
+    <h4>Result Legend</h4>
+    <ul>
+      <li><span class="legend-acceptable">ACCEPTABLE</span> — Moisture levels within normal range</li>
+      <li><span class="legend-marginal">MARGINAL</span> — Elevated moisture levels requiring monitoring</li>
+      <li><span class="legend-unacceptable">UNACCEPTABLE</span> — Moisture levels exceeding acceptable limits</li>
+    </ul>
+  </div>
+
+  {{else}}
+  <p>No moisture readings were taken during this inspection.</p>
+  {{/if}}
+</section>
