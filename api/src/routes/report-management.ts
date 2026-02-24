@@ -10,10 +10,12 @@ import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
 import { PrismaReportManagementRepository } from '../repositories/prisma/report.js';
 import { ReportManagementService, ReportNotFoundError, InvalidStatusTransitionError } from '../services/report-management.js';
+import { ReportValidationService, ReportNotFoundError as ValidationReportNotFoundError } from '../services/report-validation.js';
 
 const prisma = new PrismaClient();
 const repository = new PrismaReportManagementRepository(prisma);
 const service = new ReportManagementService(repository);
+const validationService = new ReportValidationService(prisma);
 
 export const reportManagementRouter: RouterType = Router();
 
@@ -64,6 +66,21 @@ reportManagementRouter.get('/', async (req: Request, res: Response, next: NextFu
     });
     res.json(reports);
   } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/reports/:id/validate - Validate report for generation readiness
+reportManagementRouter.get('/:id/validate', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const id = req.params.id as string;
+    const result = await validationService.validate(id);
+    res.json(result);
+  } catch (error) {
+    if (error instanceof ValidationReportNotFoundError) {
+      res.status(404).json({ error: error.message });
+      return;
+    }
     next(error);
   }
 });
