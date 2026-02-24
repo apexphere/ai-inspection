@@ -1,0 +1,33 @@
+<section class="report-section" id="section-7">
+  <h2>7. Certification and Signatures</h2>
+
+  <div class="signature-block">
+    <h3>Prepared By</h3>
+    <div class="signature-line">
+      {{#if personnel.author.signature}}
+      <img src="{{personnel.author.signature}}" alt="Signature" class="signature-image" />
+      {{else}}
+      <div class="signature-placeholder"></div>
+      {{/if}}
+    </div>
+    <p class="signature-name"><strong>{{personnel.author.name}}</strong></p>
+    <p class="signature-credentials">{{personnel.author.credentials}}</p>
+    <p class="signature-date">Date: {{formatDate generatedDate}}</p>
+  </div>
+
+  {{#if personnel.reviewer}}
+  <div class="signature-block">
+    <h3>Reviewed By</h3>
+    <div class="signature-line">
+      {{#if personnel.reviewer.signature}}
+      <img src="{{personnel.reviewer.signature}}" alt="Signature" class="signature-image" />
+      {{else}}
+      <div class="signature-placeholder"></div>
+      {{/if}}
+    </div>
+    <p class="signature-name"><strong>{{personnel.reviewer.name}}</strong></p>
+    <p class="signature-credentials">{{personnel.reviewer.credentials}}</p>
+    <p class="signature-date">Date: {{formatDate generatedDate}}</p>
+  </div>
+  {{/if}}
+</section>

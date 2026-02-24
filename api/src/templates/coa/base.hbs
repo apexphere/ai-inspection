@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{reportTitle}} — {{project.jobNumber}}</title>
+  <style>{{{styles}}}</style>
+</head>
+<body>
+  {{> header}}
+
+  {{> 01-summary}}
+  {{> 02-introduction}}
+  {{> 03-building-description}}
+  {{> 04-methodology}}
+  {{> 05-clause-review}}
+  {{> 06-remedial-works}}
+  {{> 07-signatures}}
+
+  {{#if appendices.photos}}
+  {{> appendix-photos}}
+  {{/if}}
+
+  {{#if appendices.drawings}}
+  {{> appendix-drawings}}
+  {{/if}}
+
+  {{#if appendices.documents}}
+  {{> appendix-reports}}
+  {{/if}}
+
+  {{#if appendices.certificates}}
+  {{> appendix-certificates}}
+  {{/if}}
+
+  {{> footer}}
+</body>
+</html>

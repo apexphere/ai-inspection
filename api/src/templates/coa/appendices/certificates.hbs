@@ -1,0 +1,12 @@
+<section class="appendix" id="appendix-d">
+  <h2>Appendix D: Additional Certificates</h2>
+  {{#if appendices.certificates}}
+  <ul>
+    {{#each appendices.certificates}}
+    <li><strong>{{title}}</strong> — {{description}}</li>
+    {{/each}}
+  </ul>
+  {{else}}
+  <p>No additional certificates were provided.</p>
+  {{/if}}
+</section>

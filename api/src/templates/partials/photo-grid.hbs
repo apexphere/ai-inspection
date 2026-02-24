@@ -1,0 +1,13 @@
+<div class="photo-grid">
+  {{#each photos}}
+  <figure class="photo-item">
+    <img src="data:image/jpeg;base64,{{base64}}" alt="{{caption}}" />
+    <figcaption>
+      <strong>Photograph {{number}}</strong>: {{caption}}
+      {{#if source}}
+      <span class="photo-source">({{source}})</span>
+      {{/if}}
+    </figcaption>
+  </figure>
+  {{/each}}
+</div>
