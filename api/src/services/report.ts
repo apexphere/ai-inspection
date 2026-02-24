@@ -152,7 +152,7 @@ export class ReportService {
    */
   async getFilePath(inspectionId: string): Promise<string> {
     const report = await this.getLatest(inspectionId);
-    return report.path;
+    return report.path ?? '';
   }
 
   /**

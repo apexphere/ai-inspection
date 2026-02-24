@@ -82,9 +82,21 @@ const mockFinding: Finding = {
 const mockReport: Report = {
   id: 'report-1',
   inspectionId: 'insp-1',
+  siteInspectionId: null,
+  type: 'COA',
+  status: 'DRAFT',
+  version: 1,
   format: 'pdf',
   path: '/tmp/reports/insp-1.pdf',
+  pdfPath: null,
+  pdfSize: null,
+  generatedAt: null,
+  preparedById: null,
+  reviewedById: null,
+  reviewedAt: null,
+  form9Data: null,
   createdAt: new Date(),
+  updatedAt: new Date(),
 };
 
 describe('ReportService', () => {
