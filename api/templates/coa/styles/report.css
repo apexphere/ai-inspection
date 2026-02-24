@@ -149,3 +149,138 @@ th {
 .document-list li { margin: 2mm 0; }
 .certificate-list { padding-left: 6mm; }
 .certificate-list li { margin: 2mm 0; }
+
+/* ─── Cover Page ─── */
+.cover-page {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  text-align: center;
+  padding: 20mm;
+}
+
+.cover-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15mm;
+  max-width: 160mm;
+}
+
+.cover-header {
+  margin-bottom: 10mm;
+}
+
+.cover-logo {
+  max-width: 80mm;
+  max-height: 30mm;
+  object-fit: contain;
+}
+
+.cover-logo-placeholder {
+  font-size: 18pt;
+  font-weight: bold;
+  color: #003366;
+  padding: 10mm 20mm;
+  border: 2px solid #003366;
+}
+
+.cover-title h1 {
+  font-size: 24pt;
+  color: #003366;
+  margin: 0;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.cover-details {
+  margin: 10mm 0;
+}
+
+.cover-address {
+  font-size: 16pt;
+  font-weight: bold;
+  margin-bottom: 8mm;
+  color: #1a1a1a;
+}
+
+.cover-client,
+.cover-job-number,
+.cover-date {
+  font-size: 12pt;
+  margin: 3mm 0;
+  color: #333;
+}
+
+.cover-details .label,
+.cover-footer .label {
+  font-weight: bold;
+  color: #003366;
+}
+
+.cover-footer {
+  margin-top: 20mm;
+  padding-top: 10mm;
+  border-top: 1px solid #ccc;
+}
+
+.cover-prepared-by,
+.cover-reviewed-by {
+  font-size: 11pt;
+  margin: 3mm 0;
+}
+
+.cover-footer .credentials {
+  font-size: 10pt;
+  color: #666;
+}
+
+/* ─── Table of Contents ─── */
+.table-of-contents {
+  margin: 8mm 0;
+  padding: 6mm;
+}
+
+.table-of-contents h2 {
+  font-size: 14pt;
+  color: #003366;
+  margin-bottom: 6mm;
+  border-bottom: 1px solid #003366;
+  padding-bottom: 2mm;
+}
+
+.toc-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.toc-entry {
+  display: flex;
+  align-items: baseline;
+  padding: 2mm 0;
+  border-bottom: 1px dotted #ccc;
+}
+
+.toc-number {
+  font-weight: bold;
+  color: #003366;
+  min-width: 8mm;
+}
+
+.toc-title {
+  flex: 1;
+}
+
+/* ─── Print: Cover & TOC Pages ─── */
+@media print {
+  .cover-page {
+    page-break-after: always;
+  }
+
+  .table-of-contents {
+    page-break-after: always;
+  }
+}

@@ -8,6 +8,13 @@
 <body>
   {{> header}}
 
+  {{#if tableOfContents}}
+  <nav class="table-of-contents">
+    <h2>Table of Contents</h2>
+    {{{tableOfContents}}}
+  </nav>
+  {{/if}}
+
   <main class="report-content">
     {{{sections}}}
   </main>
