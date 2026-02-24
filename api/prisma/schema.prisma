@@ -248,6 +248,62 @@ enum Severity {
 }
 
 // ============================================
+// Personnel & Credentials — Issue #200
+// ============================================
+
+enum PersonnelRole {
+  REGISTERED_BUILDING_SURVEYOR
+  BUILDING_SURVEYOR
+  INSPECTOR
+  ADMIN
+}
+
+model Personnel {
+  id        String        @id @default(uuid())
+  name      String
+  email     String        @unique
+  phone     String?
+  mobile    String?
+  role      PersonnelRole
+  active    Boolean       @default(true)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  credentials Credential[]
+
+  @@index([role])
+  @@index([active])
+  @@index([email])
+}
+
+enum CredentialType {
+  NZIBS       // NZ Institute of Building Surveyors
+  LBP         // Licensed Building Practitioner
+  ENG_NZ      // Engineering New Zealand
+  ACADEMIC    // Degree/Diploma
+  OTHER       // Other certification
+}
+
+model Credential {
+  id                String         @id @default(uuid())
+  personnelId       String
+  personnel         Personnel      @relation(fields: [personnelId], references: [id], onDelete: Cascade)
+  credentialType    CredentialType
+  membershipCode    String?        // "MNZIBS", "MEngNZ"
+  registrationTitle String?        // "Registered Building Surveyor"
+  licenseNumber     String?        // LBP or other license
+  qualifications    String[]       @default([])  // ["BE (Hons)", "MBA"]
+  issuedDate        DateTime?
+  expiryDate        DateTime?
+  verified          Boolean        @default(false)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  @@index([personnelId])
+  @@index([expiryDate])
+}
+
+// ============================================
 // Project Management Entities
 // ============================================
 
