@@ -26,6 +26,8 @@ import { inspectorsRouter } from './routes/inspectors.js';
 import { defectsRouter } from './routes/defects.js';
 import { companiesRouter } from './routes/companies.js';
 import { reportAuditLogRouter } from './routes/report-audit-log.js';
+import { reportGenerationRouter } from './routes/report-generation.js';
+import { startReportWorker, stopReportWorker } from './workers/report-worker.js';
 import { openApiRouter } from './openapi/index.js';
 import { authMiddleware, serviceAuthMiddleware } from './middleware/auth.js';
 import { getAllowedOrigins } from './config/domain.js';
@@ -94,6 +96,7 @@ app.use('/api', authMiddleware, siteMeasurementsRouter);
 app.use('/api', authMiddleware, defectsRouter);
 app.use('/api/companies', authMiddleware, companiesRouter);
 app.use('/api', authMiddleware, reportAuditLogRouter);
+app.use('/api', authMiddleware, reportGenerationRouter);
 
 // Error handling with detailed logging
 app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
@@ -117,10 +120,25 @@ app.use((err: Error, req: express.Request, res: express.Response, _next: express
 // Start server with diagnostics
 async function start(): Promise<void> {
   await logStartupDiagnostics();
-  
-  app.listen(PORT, () => {
+
+  // Start background workers
+  await startReportWorker();
+
+  const server = app.listen(PORT, () => {
     console.log(`API server running on port ${PORT}`);
   });
+
+  // Graceful shutdown
+  const shutdown = async (signal: string): Promise<void> => {
+    console.log(`\n[Server] ${signal} received — shutting down gracefully`);
+    server.close(async () => {
+      await stopReportWorker();
+      process.exit(0);
+    });
+  };
+
+  process.once('SIGTERM', () => shutdown('SIGTERM'));
+  process.once('SIGINT', () => shutdown('SIGINT'));
 }
 
 start().catch(err => {
