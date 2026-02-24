@@ -713,3 +713,22 @@ enum ReportStatus {
   GENERATED
   SUBMITTED
 }
+
+// ============================================
+// Personnel & Credentials (Issue #155)
+// ============================================
+
+model Company {
+  id          String      @id @default(uuid())
+  name        String
+  logoPath    String?
+  address     String?
+  phone       String?
+  email       String?
+  website     String?
+  
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  @@index([name])
+}
