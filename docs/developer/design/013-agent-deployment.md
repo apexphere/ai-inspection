@@ -331,7 +331,7 @@ No Twilio or WhatsApp Business API fees.
 ## See Also
 
 - [MVP Inspection Workflow](001-mvp-inspection-workflow.md) — Core workflow design
-- [Deployment Runbook](../runbooks/deployment.md) — Production deployment
-- [WhatsApp Pairing](../runbooks/whatsapp-pairing.md) — WhatsApp setup
-- [Inspector Agent Ops](../ops/inspector-agent.md) — Operations guide
-- [Inspector Workflow Guide](../guides/inspector-workflow.md) — User guide
+- [Deployment Runbook](../../ops/deployment.md) — Production deployment
+- [WhatsApp Pairing](../../ops/whatsapp-pairing.md) — WhatsApp setup
+- [Inspector Agent Ops](../../ops/inspector-agent.md) — Operations guide
+- [Inspector Workflow Guide](../../user/inspector-workflow.md) — User guide

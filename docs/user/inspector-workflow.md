@@ -421,6 +421,6 @@ The assistant creates a COA/CCC-format report with:
 
 ## See Also
 
-- [Workflow Scenario](../workflow-scenario.md) — Complete COA example
+- [Workflow Scenario](../research/workflow-scenario.md) — Complete COA example
 - [Inspector Agent Ops](../ops/inspector-agent.md) — For administrators
-- [WhatsApp Pairing](../runbooks/whatsapp-pairing.md) — Setup guide
+- [WhatsApp Pairing](../ops/whatsapp-pairing.md) — Setup guide

@@ -335,6 +335,6 @@ docs(readme): update setup steps
 
 ## See Also
 
-- [Deployment Runbook](../runbooks/deployment.md) — Production deployment
-- [Architecture Overview](../architecture.md) — System design *(coming soon)*
-- [API Reference](../api/README.md) — Endpoint documentation *(coming soon)*
+- [Deployment Runbook](../ops/deployment.md) — Production deployment
+- [Architecture Overview](architecture.md) — System design *(coming soon)*
+- [API Reference](api/README.md) — Endpoint documentation *(coming soon)*

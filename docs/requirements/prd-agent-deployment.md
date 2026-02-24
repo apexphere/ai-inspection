@@ -273,7 +273,7 @@ Deploy the AI building inspection assistant so inspectors can use WhatsApp to co
 ### Reference Documents
 
 - Technical Design: `docs/design/013-agent-deployment.md` (PR #291)
-- User Workflow: `docs/showcase/a-day-with-ai-inspection.md`
+- User Workflow: `docs/user/a-day-with-ai-inspection.md`
 - Main Workflow: `docs/workflow-scenario.md`
 - Ticket: #290
 

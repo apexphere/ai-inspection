@@ -166,6 +166,6 @@ cat whatsapp-auth-backup.tar.gz | railway run tar -xzf - -C /
 
 ## See Also
 
-- [Inspector Agent Ops](../ops/inspector-agent.md) — Full operations guide
+- [Inspector Agent Ops](inspector-agent.md) — Full operations guide
 - [Deployment Runbook](deployment.md) — Initial setup
-- [Inspector Workflow Guide](../guides/inspector-workflow.md) — User guide for inspectors
+- [Inspector Workflow Guide](../user/inspector-workflow.md) — User guide for inspectors

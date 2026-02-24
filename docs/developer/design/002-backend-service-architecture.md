@@ -272,4 +272,4 @@ enum Severity {
 - [CI/CD Pipeline](003-ci-cd-pipeline.md) — Build and deploy
 - [Web Interface](005-web-interface.md) — Frontend architecture
 - [API Reference](../api/README.md) — Endpoint documentation *(coming soon)*
-- [Developer Setup](../setup/developer.md) — Local development
+- [Developer Setup](../setup.md) — Local development

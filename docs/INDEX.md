@@ -1,9 +1,9 @@
 # Documentation Index
 
-> Central map of all documentation. Find what you need, spot what's missing.
+> Central map of all documentation, organized by audience.
 
-**Last Updated:** 2026-02-23  
-**Maintainer:** Sage
+**Last Updated:** 2026-02-25  
+**Maintainer:** Riley
 
 ---
 
@@ -11,96 +11,105 @@
 
 | I want to... | Go to |
 |--------------|-------|
-| Set up local dev environment | [Developer Setup](setup/developer.md) *(coming soon)* |
-| Deploy the system | [Deployment Runbook](runbooks/deployment.md) |
-| Understand the architecture | [Architecture Overview](architecture.md) *(coming soon)* |
-| Learn how inspectors use WhatsApp | [Inspector Workflow Guide](guides/inspector-workflow.md) *(coming soon)* |
-| Use the web interface | [Web UI Guide](guides/web-ui.md) *(coming soon)* |
-| Operate the inspector agent | [Inspector Agent Ops](ops/inspector-agent.md) |
+| Start using the system | [Getting Started](user/getting-started.md) |
+| Conduct inspections via WhatsApp | [Inspector Workflow](user/inspector-workflow.md) |
+| Use the web interface | [Web UI Guide](user/web-ui.md) |
+| Set up local dev environment | [Developer Setup](developer/setup.md) |
+| Deploy the system | [Deployment Runbook](ops/deployment.md) |
+| Understand the architecture | [Architecture Overview](developer/architecture.md) |
+| Browse API endpoints | [API Reference](developer/api/README.md) |
 
 ---
 
-## Documentation by Category
+## 👤 User Docs
 
-### 📘 Guides (User-Facing)
-*How to USE the system*
-
-| Document | Description | Status |
-|----------|-------------|--------|
-| [Getting Started](guides/getting-started.md) | New user introduction | 🔴 To create |
-| [Inspector Workflow](guides/inspector-workflow.md) | WhatsApp inspection flow | 🔴 To create |
-| [Web UI Guide](guides/web-ui.md) | Using the web interface | 🔴 To create |
-
-### 🛠️ Setup & Operations
-*How to DEPLOY and RUN the system*
+*For inspectors and surveyors — how to USE the system.*
 
 | Document | Description | Status |
 |----------|-------------|--------|
-| [Deployment Runbook](runbooks/deployment.md) | Full deployment guide | ✅ Current |
-| [WhatsApp Pairing](runbooks/whatsapp-pairing.md) | Link WhatsApp to agent | ✅ Current |
+| [Getting Started](user/getting-started.md) | New user introduction | ✅ Current |
+| [Inspector Workflow](user/inspector-workflow.md) | WhatsApp inspection flow | ✅ Current |
+| [Web UI Guide](user/web-ui.md) | Using the web interface | ✅ Current |
+| [A Day with AI Inspection](user/a-day-with-ai-inspection.md) | Demo/showcase narrative | ✅ Current |
+
+---
+
+## 👨‍💻 Developer Docs
+
+*For developers — how to BUILD and extend the system.*
+
+| Document | Description | Status |
+|----------|-------------|--------|
+| [Developer Setup](developer/setup.md) | Local dev environment | ✅ Current |
+| [Architecture Overview](developer/architecture.md) | High-level system design | ⚠️ Needs review |
+| [API Reference](developer/api/README.md) | REST API (auto-generated via OpenAPI) | ✅ Current |
+| [Testing](developer/testing.md) | E2E test plan | ✅ Current |
+
+### Design Docs
+
+| Document | Description | Status |
+|----------|-------------|--------|
+| [001 MVP Inspection Workflow](developer/design/001-mvp-inspection-workflow.md) | Core inspection flow | ⚠️ Needs review |
+| [002 Backend Service Architecture](developer/design/002-backend-service-architecture.md) | API/service structure | ⚠️ Needs review |
+| [003 CI/CD Pipeline](developer/design/003-ci-cd-pipeline.md) | Build and deploy pipeline | ✅ Current |
+| [004 Inspection Checklist System](developer/design/004-inspection-checklist-system.md) | Checklist data model | ⚠️ Needs review |
+| [005 Building Code Reference](developer/design/005-building-code-reference.md) | NZ building code data | ⚠️ Needs review |
+| [006 Document & Photo Attachments](developer/design/006-document-photo-attachments.md) | Photo/file handling | ⚠️ Needs review |
+| [007 Project & Property Management](developer/design/007-project-property-management.md) | Project data model | ⚠️ Needs review |
+| [008 COA Report Generation](developer/design/008-coa-report-generation.md) | COA reports | ⚠️ Needs review |
+| [009 Personnel & Credentials](developer/design/009-personnel-credentials.md) | Inspector credentials | ⚠️ Needs review |
+| [010 Report Templates](developer/design/010-report-templates.md) | Template system | ⚠️ Needs review |
+| [011 Report Generation & Export](developer/design/011-report-generation-export.md) | PDF/DOCX export | ⚠️ Needs review |
+| [012 CCC Gap Analysis](developer/design/012-ccc-gap-analysis.md) | Code compliance reports | ⚠️ Needs review |
+| [013 Agent Deployment](developer/design/013-agent-deployment.md) | OpenClaw agent setup | ✅ Current |
+| [014 Design System](developer/design/014-design-system.md) | UI design system | ✅ Current |
+| [015 OpenAPI Spec](developer/design/015-openapi-spec.md) | API documentation | ✅ Current |
+| [015 Web Interface](developer/design/015-web-interface.md) | Web UI architecture | ⚠️ Needs review |
+| [016 Report Workflow](developer/design/016-report-workflow.md) | Report lifecycle | ⚠️ Needs review |
+
+### UI Specifications
+
+| Document | Description | Status |
+|----------|-------------|--------|
+| [Design Tokens](developer/design/tokens.yaml) | Colors, spacing, typography | ✅ Current |
+| [UI Audit](developer/design/ui-audit.md) | Current state audit | ✅ Current |
+| [Auth Pages](developer/design/ui/auth.spec.md) | Login/register design | ✅ Current |
+| [Inspection Detail](developer/design/ui/inspection-detail.spec.md) | Inspection view | ✅ Current |
+| [Project List](developer/design/ui/project-list.spec.md) | Project list | ✅ Current |
+| [Project Page](developer/design/ui/project-page.spec.md) | Project detail | ✅ Current |
+
+---
+
+## 🔧 Operations Docs
+
+*For operators — how to DEPLOY and maintain the system.*
+
+| Document | Description | Status |
+|----------|-------------|--------|
+| [Deployment Runbook](ops/deployment.md) | Full deployment guide | ✅ Current |
+| [WhatsApp Pairing](ops/whatsapp-pairing.md) | Link WhatsApp to agent | ✅ Current |
 | [Inspector Agent Ops](ops/inspector-agent.md) | Agent operations guide | ✅ Current |
-| [Infrastructure Overview](infrastructure/overview.md) | Infra components | ⚠️ Needs review |
-| [Developer Setup](setup/developer.md) | Local dev environment | 🔴 To create |
+| [Infrastructure Overview](ops/infrastructure.md) | Infra components | ⚠️ Needs review |
 
-### 🏗️ Architecture & Design
-*How the system is BUILT*
+---
 
-| Document | Description | Status |
-|----------|-------------|--------|
-| [Architecture Overview](architecture.md) | High-level system design | 🔴 To create |
-| [001 MVP Inspection Workflow](design/001-mvp-inspection-workflow.md) | Core inspection flow design | ⚠️ Needs review |
-| [002 Backend Service Architecture](design/002-backend-service-architecture.md) | API/service structure | ⚠️ Needs review |
-| [003 CI/CD Pipeline](design/003-ci-cd-pipeline.md) | Build and deploy pipeline | ✅ Current |
-| [004 Inspection Checklist System](design/004-inspection-checklist-system.md) | Checklist data model | ⚠️ Needs review |
-| [005 Building Code Reference](design/005-building-code-reference.md) | NZ building code data | ⚠️ Needs review |
-| [005 Web Interface](design/005-web-interface.md) | Web UI architecture | ⚠️ Needs review |
-| [006 Document & Photo Attachments](design/006-document-photo-attachments.md) | Photo/file handling | ⚠️ Needs review |
-| [007 Project & Property Management](design/007-project-property-management.md) | Project data model | ⚠️ Needs review |
-| [008 COA Report Generation](design/008-coa-report-generation.md) | Certificate of Accuracy reports | ⚠️ Needs review |
-| [009 Personnel & Credentials](design/009-personnel-credentials.md) | Inspector credentials | ⚠️ Needs review |
-| [010 Report Templates](design/010-report-templates.md) | Template system design | ⚠️ Needs review |
-| [011 Report Generation & Export](design/011-report-generation-export.md) | PDF/export generation | ⚠️ Needs review |
-| [011 Report Workflow](design/011-report-workflow.md) | Report lifecycle | ⚠️ Needs review |
-| [012 CCC Gap Analysis](design/012-ccc-gap-analysis.md) | Code compliance reports | ⚠️ Needs review |
-| [013 Agent Deployment](design/013-agent-deployment.md) | OpenClaw agent setup | ✅ Current |
-| [013 Report Generation & Export](design/013-report-generation-export.md) | *Duplicate — needs cleanup* | ⚠️ Duplicate |
-| [014 Design System](design/014-design-system.md) | UI design system | ✅ Current |
-
-### 🎨 UI Specifications
-*Component and page designs*
-
-| Document | Description | Status |
-|----------|-------------|--------|
-| [Design Tokens](design/tokens.yaml) | Colors, spacing, typography | ✅ Current |
-| [UI Audit](design/ui-audit.md) | Current state audit | ✅ Current |
-| [Auth Pages Spec](design/ui/auth.spec.md) | Login/register design | ✅ Current |
-| [Inspection Detail Spec](design/ui/inspection-detail.spec.md) | Inspection view design | ✅ Current |
-| [Project List Spec](design/ui/project-list.spec.md) | Project list design | ✅ Current |
-| [Project Page Spec](design/ui/project-page.spec.md) | Project detail design | ✅ Current |
-
-### 📋 Requirements & Research
-*What we're building and why*
+## 📋 Requirements & Research
 
 | Document | Description | Status |
 |----------|-------------|--------|
 | [PRD: Agent Deployment](requirements/prd-agent-deployment.md) | Agent deployment requirements | ✅ Current |
 | [Competitive Analysis](research/competitive-analysis.md) | Market research | ✅ Current |
 | [Template Analysis](research/template-analysis.md) | Report template research | ✅ Current |
+| [Workflow Scenario](research/workflow-scenario.md) | Example inspection walkthrough | ✅ Current |
 
-### 🧪 Testing
-*Quality assurance*
+---
 
-| Document | Description | Status |
-|----------|-------------|--------|
-| [E2E Test Plan](test-plan-e2e.md) | End-to-end testing approach | ✅ Current |
+## Meta
 
-### 📖 Other
-*Miscellaneous docs*
-
-| Document | Description | Status |
-|----------|-------------|--------|
-| [Workflow Scenario](workflow-scenario.md) | Example inspection walkthrough | ✅ Current |
-| [A Day with AI Inspection](showcase/a-day-with-ai-inspection.md) | Demo/showcase narrative | ✅ Current |
+| Document | Description |
+|----------|-------------|
+| [Style Guide](style-guide.md) | Documentation standards |
+| [Archive](archive/) | Superseded docs |
 
 ---
 
@@ -109,32 +118,11 @@
 | Status | Meaning |
 |--------|---------|
 | ✅ Current | Up-to-date and accurate |
-| ⚠️ Needs review | May be outdated, needs verification |
-| 🔴 To create | Planned but not yet written |
-| ⚠️ Duplicate | Naming conflict, needs cleanup |
+| ⚠️ Needs review | May be outdated |
+| 🔴 To create | Planned |
 
 ---
 
 ## Known Issues
 
-1. **Duplicate numbering in design docs:**
-   - Two `005-*.md` files (building-code-reference, web-interface)
-   - Two `011-*.md` files (report-generation-export, report-workflow)
-   - Two `013-*.md` files (agent-deployment, report-generation-export)
-   
-   See #394 for cleanup.
-
-2. **Missing directories:**
-   - `docs/guides/` — user-facing guides
-   - `docs/setup/` — setup documentation
-   - `docs/api/` — API reference
-
----
-
-## Contributing
-
-When adding docs:
-1. Add entry to this index
-2. Follow [Style Guide](style-guide.md) *(coming soon)*
-3. Use consistent naming: `XXX-kebab-case-title.md`
-4. Include status header in document
+1. **Duplicate numbering in design docs:** Two `015-*.md` files (openapi-spec, web-interface). See #394.
