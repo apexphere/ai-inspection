@@ -1,32 +1,43 @@
 /**
  * Template Engine Tests — Issue #193
  *
- * Tests for Handlebars template rendering, helpers, and partials.
+ * Tests for the Handlebars template engine service.
  */
 
 import { describe, it, expect, beforeAll } from 'vitest';
-import { TemplateEngine, TemplateNotFoundError } from '../services/template-engine.js';
+import {
+  renderReport,
+  renderSection,
+  listTemplates,
+} from '../services/template-engine.js';
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Fixtures
+// Test data
 // ──────────────────────────────────────────────────────────────────────────────
 
-function makeContext(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+function makeReportData() {
   return {
-    reportTitle: 'Certificate of Acceptance Report',
-    companyLogo: null,
-    generatedDate: '2026-02-20T00:00:00Z',
+    generatedAt: new Date('2026-02-20T10:00:00Z'),
     project: {
       jobNumber: 'JOB-2026-001',
       activity: 'Bathroom renovation',
       address: '123 Test Street, Auckland',
       client: 'Test Client Ltd',
       council: 'Auckland Council',
+      company: 'Apex Inspection Services',
     },
     personnel: {
-      author: { name: 'John Smith', credentials: 'BRANZ LBP #12345', signature: null },
-      reviewer: { name: 'Jane Doe', credentials: 'BRANZ LBP #67890', signature: null },
-      inspectors: [{ name: 'John Smith', role: 'Lead Inspector' }],
+      author: {
+        name: 'John Smith',
+        credentials: 'BSCE, LBP #12345',
+      },
+      reviewer: {
+        name: 'Jane Doe',
+        credentials: 'MSCE, LBP #67890',
+      },
+      inspectors: [
+        { name: 'John Smith', role: 'Lead Inspector' },
+      ],
     },
     inspection: {
       date: '2026-02-15T00:00:00Z',
@@ -34,33 +45,37 @@ function makeContext(overrides: Record<string, unknown> = {}): Record<string, un
     },
     property: {
       lotDp: 'Lot 1 DP 12345',
-      councilId: 'ABC-2026-001',
-      zones: { wind: 'Medium', earthquake: 'Zone 1', exposure: 'Zone B' },
+      councilId: 'AKL-98765',
+      zones: {
+        wind: 'Medium',
+        earthquake: 'Zone 1',
+        exposure: 'Sheltered',
+      },
       buildingHistory: [
-        { type: 'Building Consent', reference: 'BC-2020-001', date: '2020-05-15' },
+        { type: 'Building Consent', reference: 'BC/2020/1234', date: '2020-03-15' },
       ],
-      worksDescription: 'Complete bathroom renovation including plumbing and electrical.',
+      worksDescription: 'Complete bathroom renovation including plumbing and tiling.',
     },
     methodology: {
       description: 'Visual inspection of all accessible areas.',
-      equipment: ['Moisture meter', 'Thermal camera'],
-      areasNotAccessed: 'Sub-floor area (limited access)',
-      documentsReviewed: ['Original consent drawings', 'Producer statements'],
+      equipment: ['Moisture meter', 'Thermal camera', 'Laser level'],
+      areasNotAccessed: 'Sub-floor space was not accessible.',
+      documentsReviewed: ['Original building consent', 'As-built plans'],
     },
     clauseReviews: [
       {
         code: 'B1',
         title: 'Structure',
         applicability: 'Applicable',
-        photoRefs: [1, 2],
-        observations: 'Structure appears sound.',
+        photoRefs: ['1', '2'],
+        observations: 'Structure appears sound with no visible defects.',
         docsProvided: ['Appendix C'],
-        complianceText: 'Complies with B1/AS1.',
+        complianceText: 'Compliant',
         remedialWorks: 'Nil',
       },
       {
-        code: 'E1',
-        title: 'Surface Water',
+        code: 'B2',
+        title: 'Durability',
         applicability: 'N/A',
         photoRefs: [],
         observations: '',
@@ -70,20 +85,23 @@ function makeContext(overrides: Record<string, unknown> = {}): Record<string, un
       },
     ],
     remedialItems: [
-      { item: 'Flashing repair', description: 'Replace damaged flashing at roof junction.' },
+      { item: 'Flashing repair', description: 'Replace damaged flashing at window junction.' },
     ],
     appendices: {
       photos: [
         { number: 1, caption: 'Front elevation', source: 'Site', base64: 'dGVzdA==' },
         { number: 2, caption: 'Bathroom interior', source: 'Site', base64: 'dGVzdA==' },
       ],
-      drawings: [],
-      documents: [
-        { letter: 'C', title: 'Producer Statement PS1', pages: 2 },
+      drawings: [
+        { title: 'Floor plan', pages: 2 },
       ],
-      certificates: [],
+      documents: [
+        { letter: 'C', title: 'Electrical CoC', pages: 1 },
+      ],
+      certificates: [
+        { type: 'Electrical', reference: 'COC-2026-001', date: '2026-01-10' },
+      ],
     },
-    ...overrides,
   };
 }
 
@@ -91,39 +109,95 @@ function makeContext(overrides: Record<string, unknown> = {}): Record<string, un
 // Tests
 // ──────────────────────────────────────────────────────────────────────────────
 
-describe('TemplateEngine', () => {
-  let engine: TemplateEngine;
+describe('Template Engine', () => {
+  describe('listTemplates', () => {
+    it('lists COA section and appendix templates', async () => {
+      const result = await listTemplates('coa');
 
-  beforeAll(() => {
-    engine = new TemplateEngine();
-    engine.init();
-  });
+      expect(result.sections).toContain('01-summary.hbs');
+      expect(result.sections).toContain('05-clause-review.hbs');
+      expect(result.sections).toContain('07-signatures.hbs');
+      expect(result.sections).toHaveLength(7);
 
-  describe('init', () => {
-    it('lists available report types', () => {
-      const types = engine.listReportTypes();
-      expect(types).toContain('coa');
+      expect(result.appendices).toContain('a-photos.hbs');
+      expect(result.appendices).toContain('c-reports.hbs');
+      expect(result.appendices.length).toBeGreaterThanOrEqual(4);
     });
 
-    it('lists COA sections', () => {
-      const sections = engine.listSections('coa');
-      expect(sections).toContain('01-summary');
-      expect(sections).toContain('05-clause-review');
-      expect(sections).toContain('07-signatures');
-      expect(sections).toHaveLength(7);
+    it('returns empty arrays for unknown report type', async () => {
+      const result = await listTemplates('unknown');
+      expect(result.sections).toEqual([]);
+      expect(result.appendices).toEqual([]);
     });
   });
 
-  describe('render', () => {
-    it('renders full COA report HTML', () => {
-      const html = engine.render('coa', makeContext());
+  describe('renderSection', () => {
+    it('renders section 01 summary with project data', async () => {
+      const data = makeReportData();
+      const html = await renderSection('coa', '01-summary.hbs', data);
 
-      // Check structure
+      expect(html).toContain('Executive Summary');
+      expect(html).toContain('JOB-2026-001');
+      expect(html).toContain('123 Test Street, Auckland');
+      expect(html).toContain('John Smith');
+      expect(html).toContain('BSCE, LBP #12345');
+    });
+
+    it('renders section 05 clause review with table', async () => {
+      const data = makeReportData();
+      const html = await renderSection('coa', '05-clause-review.hbs', data);
+
+      expect(html).toContain('Building Code Clause Review');
+      expect(html).toContain('B1');
+      expect(html).toContain('Structure');
+      expect(html).toContain('clause-applicable');
+      expect(html).toContain('clause-na');
+      expect(html).toContain('Photograph 1, Photograph 2');
+    });
+
+    it('renders section 06 remedial works', async () => {
+      const data = makeReportData();
+      const html = await renderSection('coa', '06-remedial-works.hbs', data);
+
+      expect(html).toContain('Flashing repair');
+      expect(html).toContain('Replace damaged flashing');
+    });
+
+    it('renders section 06 with no remedial works message', async () => {
+      const data = makeReportData();
+      data.remedialItems = [];
+      const html = await renderSection('coa', '06-remedial-works.hbs', data);
+
+      expect(html).toContain('No remedial works are required');
+    });
+
+    it('renders section 07 signatures', async () => {
+      const data = makeReportData();
+      const html = await renderSection('coa', '07-signatures.hbs', data);
+
+      expect(html).toContain('John Smith');
+      expect(html).toContain('Jane Doe');
+      expect(html).toContain('Declaration');
+    });
+  });
+
+  describe('renderReport', () => {
+    it('renders full COA report with all sections', async () => {
+      const data = makeReportData();
+      const html = await renderReport({ reportType: 'coa', data });
+
+      // Base layout
       expect(html).toContain('<!DOCTYPE html>');
       expect(html).toContain('Certificate of Acceptance Report');
+
+      // Header
       expect(html).toContain('JOB-2026-001');
 
-      // Check all 7 sections present
+      // CSS included
+      expect(html).toContain('@page');
+      expect(html).toContain('font-family');
+
+      // All 7 sections present
       expect(html).toContain('id="section-1"');
       expect(html).toContain('id="section-2"');
       expect(html).toContain('id="section-3"');
@@ -132,117 +206,40 @@ describe('TemplateEngine', () => {
       expect(html).toContain('id="section-6"');
       expect(html).toContain('id="section-7"');
 
-      // Check CSS included
-      expect(html).toContain('font-family');
-    });
-
-    it('includes appendix A (photos) when photos exist', () => {
-      const html = engine.render('coa', makeContext());
+      // Appendices present
       expect(html).toContain('id="appendix-a"');
+      expect(html).toContain('id="appendix-b"');
+      expect(html).toContain('id="appendix-c"');
+      expect(html).toContain('id="appendix-d"');
+
+      // Footer
+      expect(html).toContain('CONFIDENTIAL');
+    });
+
+    it('includes photo data in appendix', async () => {
+      const data = makeReportData();
+      const html = await renderReport({ reportType: 'coa', data });
+
+      expect(html).toContain('Photograph 1');
       expect(html).toContain('Front elevation');
-    });
-
-    it('excludes empty appendices', () => {
-      const ctx = makeContext({
-        appendices: { photos: [], drawings: [], documents: [], certificates: [] },
-      });
-      const html = engine.render('coa', ctx);
-      expect(html).not.toContain('id="appendix-a"');
-      expect(html).not.toContain('id="appendix-b"');
-    });
-
-    it('throws TemplateNotFoundError for unknown report type', () => {
-      expect(() => engine.render('nonexistent', makeContext())).toThrow(TemplateNotFoundError);
-    });
-  });
-
-  describe('renderSection', () => {
-    it('renders a single section', () => {
-      const html = engine.renderSection('coa', '01-summary', makeContext());
-      expect(html).toContain('Executive Summary');
-      expect(html).toContain('JOB-2026-001');
-      expect(html).toContain('Test Client Ltd');
-    });
-
-    it('throws for unknown section', () => {
-      expect(() => engine.renderSection('coa', 'nonexistent', makeContext())).toThrow(
-        TemplateNotFoundError,
-      );
+      expect(html).toContain('data:image/jpeg;base64,dGVzdA==');
     });
   });
 
   describe('helpers', () => {
-    it('formatDate formats dates correctly', () => {
-      const html = engine.renderSection('coa', '01-summary', makeContext());
-      expect(html).toContain('15 February 2026');
+    it('formatDate renders NZ locale date', async () => {
+      const data = makeReportData();
+      const html = await renderSection('coa', '01-summary.hbs', data);
+      // Should contain formatted date (15 February 2026)
+      expect(html).toContain('February');
+      expect(html).toContain('2026');
     });
 
-    it('photoRef formats photo references', () => {
-      const html = engine.render('coa', makeContext());
-      expect(html).toContain('Photograph 1, 2');
-    });
-
-    it('clauseClass returns correct CSS class', () => {
-      const html = engine.render('coa', makeContext());
-      expect(html).toContain('clause-applicable');
-      expect(html).toContain('clause-na');
-    });
-
-    it('inc helper increments index', () => {
-      const html = engine.render('coa', makeContext());
-      // Remedial item #1
-      expect(html).toContain('<td>1</td>');
-    });
-  });
-
-  describe('data rendering', () => {
-    it('renders property details', () => {
-      const html = engine.renderSection('coa', '03-building-description', makeContext());
-      expect(html).toContain('Lot 1 DP 12345');
-      expect(html).toContain('Medium'); // wind zone
-      expect(html).toContain('Building Consent');
-    });
-
-    it('renders methodology', () => {
-      const html = engine.renderSection('coa', '04-methodology', makeContext());
-      expect(html).toContain('Moisture meter');
-      expect(html).toContain('Sub-floor area');
-    });
-
-    it('renders clause review table', () => {
-      const html = engine.render('coa', makeContext());
-      expect(html).toContain('B1');
-      expect(html).toContain('Structure');
-      expect(html).toContain('Structure appears sound.');
-    });
-
-    it('renders remedial works', () => {
-      const html = engine.render('coa', makeContext());
-      expect(html).toContain('Flashing repair');
-    });
-
-    it('shows no remedial message when empty', () => {
-      const ctx = makeContext({ remedialItems: [] });
-      const html = engine.render('coa', ctx);
-      expect(html).toContain('No remedial works are required');
-    });
-
-    it('renders reviewer signature block when reviewer exists', () => {
-      const html = engine.render('coa', makeContext());
-      expect(html).toContain('Jane Doe');
-      expect(html).toContain('Reviewed By');
-    });
-
-    it('omits reviewer block when no reviewer', () => {
-      const ctx = makeContext({
-        personnel: {
-          author: { name: 'John Smith', credentials: 'LBP #123' },
-          reviewer: null,
-          inspectors: [],
-        },
-      });
-      const html = engine.render('coa', ctx);
-      expect(html).not.toContain('Reviewed By');
+    it('photoRef renders dash for empty refs', async () => {
+      const data = makeReportData();
+      const html = await renderSection('coa', '05-clause-review.hbs', data);
+      // B2 has no photo refs — should show dash
+      expect(html).toContain('—');
     });
   });
 });

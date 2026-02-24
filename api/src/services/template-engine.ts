@@ -1,189 +1,245 @@
 /**
- * Template Engine Service — Issue #193
+ * Handlebars Template Engine — Issue #193
  *
- * Handlebars-based template engine for rendering COA report HTML.
- * Loads templates from the filesystem, registers helpers and partials,
- * and renders a complete report HTML string from a data context.
+ * Renders HTML from Handlebars templates for report generation.
+ * Templates live in api/templates/ with per-report-type subdirectories.
  */
 
 import Handlebars from 'handlebars';
-import { readFileSync, readdirSync, existsSync } from 'fs';
-import { join, basename, extname } from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import * as fs from 'node:fs/promises';
+import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const TEMPLATES_DIR = join(__dirname, '..', 'templates');
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const TEMPLATES_DIR = path.resolve(__dirname, '../../templates');
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Types
+// ──────────────────────────────────────────────────────────────────────────────
+
+export interface TemplateRenderOptions {
+  /** Report type directory (e.g. 'coa') */
+  reportType: string;
+  /** Template data context */
+  data: Record<string, unknown>;
+}
 
 export class TemplateNotFoundError extends Error {
-  constructor(name: string) {
-    super(`Template not found: ${name}`);
+  constructor(templatePath: string) {
+    super(`Template not found: ${templatePath}`);
     this.name = 'TemplateNotFoundError';
   }
 }
 
-export interface TemplateEngineOptions {
-  templatesDir?: string;
+// ──────────────────────────────────────────────────────────────────────────────
+// Helpers
+// ──────────────────────────────────────────────────────────────────────────────
+
+function registerHelpers(): void {
+  Handlebars.registerHelper('formatDate', (date: Date | string) => {
+    if (!date) return '';
+    const d = typeof date === 'string' ? new Date(date) : date;
+    return d.toLocaleDateString('en-NZ', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    });
+  });
+
+  Handlebars.registerHelper('photoRef', (photoRefs: string[] | undefined) => {
+    if (!photoRefs || photoRefs.length === 0) return '—';
+    return photoRefs.map((ref) => `Photograph ${ref}`).join(', ');
+  });
+
+  Handlebars.registerHelper('ifApplicable', function (
+    this: unknown,
+    applicability: string,
+    options: Handlebars.HelperOptions,
+  ) {
+    return applicability === 'Applicable'
+      ? options.fn(this)
+      : options.inverse(this);
+  });
+
+  Handlebars.registerHelper('clauseClass', (applicability: string) => {
+    return applicability === 'N/A' ? 'clause-na' : 'clause-applicable';
+  });
+
+  Handlebars.registerHelper('eq', (a: unknown, b: unknown) => a === b);
+
+  Handlebars.registerHelper('unless_last', function (
+    this: unknown,
+    options: Handlebars.HelperOptions,
+  ) {
+    const data = options.data as { last?: boolean };
+    return data?.last ? '' : options.fn(this);
+  });
+
+  Handlebars.registerHelper('inc', (value: number) => value + 1);
+
+  Handlebars.registerHelper('uppercase', (value: string) =>
+    value ? value.toUpperCase() : '',
+  );
+
+  Handlebars.registerHelper('lowercase', (value: string) =>
+    value ? value.toLowerCase() : '',
+  );
+
+  Handlebars.registerHelper('join', (arr: string[], separator: string) => {
+    if (!Array.isArray(arr)) return '';
+    return arr.join(typeof separator === 'string' ? separator : ', ');
+  });
 }
 
-export class TemplateEngine {
-  private handlebars: typeof Handlebars;
-  private templatesDir: string;
-  private initialized = false;
+// ──────────────────────────────────────────────────────────────────────────────
+// Engine
+// ──────────────────────────────────────────────────────────────────────────────
 
-  constructor(options?: TemplateEngineOptions) {
-    this.handlebars = Handlebars.create();
-    this.templatesDir = options?.templatesDir ?? TEMPLATES_DIR;
-  }
+let _initialized = false;
 
-  /**
-   * Initialize the engine: register helpers and partials.
-   * Safe to call multiple times (idempotent).
-   */
-  init(): void {
-    if (this.initialized) return;
-    this.registerHelpers();
-    this.registerPartials();
-    this.initialized = true;
-  }
+async function loadPartials(): Promise<void> {
+  const partialsDir = path.join(TEMPLATES_DIR, 'partials');
 
-  /**
-   * Render a report type (e.g. "coa") with the given data context.
-   * Returns the complete HTML string.
-   */
-  render(reportType: string, context: Record<string, unknown>): string {
-    this.init();
-
-    const baseTemplatePath = join(this.templatesDir, reportType, 'base.hbs');
-    if (!existsSync(baseTemplatePath)) {
-      throw new TemplateNotFoundError(`${reportType}/base.hbs`);
-    }
-
-    // Load and inject CSS
-    const cssPath = join(this.templatesDir, reportType, 'styles', 'report.css');
-    const styles = existsSync(cssPath) ? readFileSync(cssPath, 'utf-8') : '';
-
-    const source = readFileSync(baseTemplatePath, 'utf-8');
-    const template = this.handlebars.compile(source);
-
-    return template({ ...context, styles });
-  }
-
-  /**
-   * Render a single section template (for preview).
-   */
-  renderSection(reportType: string, sectionName: string, context: Record<string, unknown>): string {
-    this.init();
-
-    const sectionPath = join(this.templatesDir, reportType, 'sections', `${sectionName}.hbs`);
-    if (!existsSync(sectionPath)) {
-      throw new TemplateNotFoundError(`${reportType}/sections/${sectionName}.hbs`);
-    }
-
-    const source = readFileSync(sectionPath, 'utf-8');
-    const template = this.handlebars.compile(source);
-    return template(context);
-  }
-
-  /**
-   * List available report types (directories under templates/).
-   */
-  listReportTypes(): string[] {
-    return readdirSync(this.templatesDir, { withFileTypes: true })
-      .filter((d) => d.isDirectory() && d.name !== 'partials')
-      .map((d) => d.name);
-  }
-
-  /**
-   * List sections for a report type.
-   */
-  listSections(reportType: string): string[] {
-    const sectionsDir = join(this.templatesDir, reportType, 'sections');
-    if (!existsSync(sectionsDir)) return [];
-    return readdirSync(sectionsDir)
-      .filter((f) => f.endsWith('.hbs'))
-      .map((f) => basename(f, '.hbs'))
-      .sort();
-  }
-
-  // ────────────────────────────────────────────────────────────────────────────
-  // Helpers
-  // ────────────────────────────────────────────────────────────────────────────
-
-  private registerHelpers(): void {
-    // Format date to "dd MMMM yyyy" (e.g. "15 February 2026")
-    this.handlebars.registerHelper('formatDate', (date: string | Date) => {
-      if (!date) return '';
-      const d = typeof date === 'string' ? new Date(date) : date;
-      if (isNaN(d.getTime())) return String(date);
-      const months = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December',
-      ];
-      return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
-    });
-
-    // Photo reference: [1, 3, 5] → "Photograph 1, 3, 5"
-    this.handlebars.registerHelper('photoRef', (photoRefs: string[] | number[]) => {
-      if (!photoRefs || !Array.isArray(photoRefs) || photoRefs.length === 0) return '';
-      return `Photograph ${photoRefs.join(', ')}`;
-    });
-
-    // Conditional for applicability
-    this.handlebars.registerHelper('ifApplicable', function (
-      this: unknown,
-      applicability: string,
-      options: Handlebars.HelperOptions,
-    ) {
-      return applicability === 'Applicable'
-        ? options.fn(this)
-        : options.inverse(this);
-    });
-
-    // CSS class for clause row
-    this.handlebars.registerHelper('clauseClass', (applicability: string) => {
-      return applicability === 'N/A' ? 'clause-na' : 'clause-applicable';
-    });
-
-    // Increment index (for 1-based numbering)
-    this.handlebars.registerHelper('inc', (value: number) => {
-      return value + 1;
-    });
-
-    // Equality check
-    this.handlebars.registerHelper('eq', (a: unknown, b: unknown) => {
-      return a === b;
-    });
-  }
-
-  // ────────────────────────────────────────────────────────────────────────────
-  // Partials
-  // ────────────────────────────────────────────────────────────────────────────
-
-  private registerPartials(): void {
-    // Register shared partials
-    this.registerPartialsFromDir(join(this.templatesDir, 'partials'));
-
-    // Register report-type-specific partials (sections + appendices)
-    const reportTypes = this.listReportTypes();
-    for (const type of reportTypes) {
-      const sectionsDir = join(this.templatesDir, type, 'sections');
-      this.registerPartialsFromDir(sectionsDir);
-
-      const appendicesDir = join(this.templatesDir, type, 'appendices');
-      this.registerPartialsFromDir(appendicesDir, 'appendix-');
-    }
-  }
-
-  private registerPartialsFromDir(dir: string, prefix = ''): void {
-    if (!existsSync(dir)) return;
-
-    for (const file of readdirSync(dir)) {
+  try {
+    const files = await fs.readdir(partialsDir);
+    for (const file of files) {
       if (!file.endsWith('.hbs')) continue;
-      const name = prefix + basename(file, extname(file));
-      const source = readFileSync(join(dir, file), 'utf-8');
-      this.handlebars.registerPartial(name, source);
+      const name = path.basename(file, '.hbs');
+      const content = await fs.readFile(path.join(partialsDir, file), 'utf-8');
+      Handlebars.registerPartial(name, content);
     }
+  } catch {
+    // No partials directory — that's fine
   }
 }
+
+async function init(): Promise<void> {
+  if (_initialized) return;
+  registerHelpers();
+  await loadPartials();
+  _initialized = true;
+}
+
+/**
+ * Read and compile a single template file.
+ */
+async function compileTemplate(
+  templatePath: string,
+): Promise<HandlebarsTemplateDelegate> {
+  const fullPath = path.join(TEMPLATES_DIR, templatePath);
+  try {
+    const source = await fs.readFile(fullPath, 'utf-8');
+    return Handlebars.compile(source);
+  } catch {
+    throw new TemplateNotFoundError(templatePath);
+  }
+}
+
+/**
+ * Render the base layout with all sections inlined.
+ */
+export async function renderReport(
+  options: TemplateRenderOptions,
+): Promise<string> {
+  await init();
+
+  const { reportType, data } = options;
+
+  // Load base template
+  const baseTemplate = await compileTemplate(`${reportType}/base.hbs`);
+
+  // Load section templates
+  const sectionsDir = path.join(TEMPLATES_DIR, reportType, 'sections');
+  const sectionFiles = await fs.readdir(sectionsDir);
+  const sectionHtmls: string[] = [];
+
+  for (const file of sectionFiles.sort()) {
+    if (!file.endsWith('.hbs')) continue;
+    const sectionTemplate = await compileTemplate(
+      `${reportType}/sections/${file}`,
+    );
+    sectionHtmls.push(sectionTemplate(data));
+  }
+
+  // Load appendix templates
+  const appendicesDir = path.join(TEMPLATES_DIR, reportType, 'appendices');
+  const appendixHtmls: string[] = [];
+  try {
+    const appendixFiles = await fs.readdir(appendicesDir);
+    for (const file of appendixFiles.sort()) {
+      if (!file.endsWith('.hbs')) continue;
+      const appendixTemplate = await compileTemplate(
+        `${reportType}/appendices/${file}`,
+      );
+      appendixHtmls.push(appendixTemplate(data));
+    }
+  } catch {
+    // No appendices — fine
+  }
+
+  // Load CSS
+  let css = '';
+  try {
+    css = await fs.readFile(
+      path.join(TEMPLATES_DIR, reportType, 'styles', 'report.css'),
+      'utf-8',
+    );
+  } catch {
+    // No CSS — fine
+  }
+
+  // Render base with sections injected
+  return baseTemplate({
+    ...data,
+    sections: sectionHtmls.join('\n'),
+    appendixContent: appendixHtmls.join('\n'),
+    css,
+  });
+}
+
+/**
+ * Render a single section template (for preview).
+ */
+export async function renderSection(
+  reportType: string,
+  sectionFile: string,
+  data: Record<string, unknown>,
+): Promise<string> {
+  await init();
+  const template = await compileTemplate(
+    `${reportType}/sections/${sectionFile}`,
+  );
+  return template(data);
+}
+
+/**
+ * List available templates for a report type.
+ */
+export async function listTemplates(
+  reportType: string,
+): Promise<{ sections: string[]; appendices: string[] }> {
+  const sectionsDir = path.join(TEMPLATES_DIR, reportType, 'sections');
+  const appendicesDir = path.join(TEMPLATES_DIR, reportType, 'appendices');
+
+  const sections: string[] = [];
+  const appendices: string[] = [];
+
+  try {
+    const files = await fs.readdir(sectionsDir);
+    sections.push(...files.filter((f) => f.endsWith('.hbs')).sort());
+  } catch {
+    // No sections
+  }
+
+  try {
+    const files = await fs.readdir(appendicesDir);
+    appendices.push(...files.filter((f) => f.endsWith('.hbs')).sort());
+  } catch {
+    // No appendices
+  }
+
+  return { sections, appendices };
+}
+
+// Re-export for testing
+export { TEMPLATES_DIR, registerHelpers, init };

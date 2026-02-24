@@ -1,0 +1,13 @@
+<section class="appendix" id="appendix-d">
+  <h2>Appendix D: Compliance Certificates</h2>
+
+  {{#if appendices.certificates}}
+  <ul class="certificate-list">
+    {{#each appendices.certificates}}
+    <li><strong>{{type}}</strong> — {{reference}} ({{formatDate date}})</li>
+    {{/each}}
+  </ul>
+  {{else}}
+  <p>No compliance certificates included.</p>
+  {{/if}}
+</section>

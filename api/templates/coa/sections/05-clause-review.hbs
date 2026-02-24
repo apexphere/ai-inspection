@@ -1,0 +1,25 @@
+<section class="report-section" id="section-5">
+  <h2>5. Building Code Clause Review</h2>
+
+  <p>The following table details the assessment of each applicable Building Code clause.</p>
+
+  <table class="clause-review-table">
+    <thead>
+      <tr>
+        <th>Clause</th>
+        <th>Title</th>
+        <th>Applicability</th>
+        <th>Photographs</th>
+        <th>Observations</th>
+        <th>Docs Provided</th>
+        <th>Compliance</th>
+        <th>Remedial Works</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each clauseReviews}}
+      {{> clause-row}}
+      {{/each}}
+    </tbody>
+  </table>
+</section>

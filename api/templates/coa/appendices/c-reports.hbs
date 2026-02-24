@@ -1,0 +1,22 @@
+<section class="appendix" id="appendix-c">
+  <h2>Appendix C: Supporting Reports &amp; Certificates</h2>
+
+  {{#if appendices.documents}}
+  <table class="document-table">
+    <thead>
+      <tr><th>Ref</th><th>Document</th><th>Pages</th></tr>
+    </thead>
+    <tbody>
+      {{#each appendices.documents}}
+      <tr>
+        <td>{{letter}}</td>
+        <td>{{title}}</td>
+        <td>{{pages}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+  {{else}}
+  <p>No supporting documents included.</p>
+  {{/if}}
+</section>
