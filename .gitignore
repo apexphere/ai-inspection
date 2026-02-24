@@ -26,3 +26,5 @@ test-results/
 .env.local
 .env*.local
 web/e2e/.auth/
+MEMORY.md
+workspace/MEMORY.md

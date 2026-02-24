@@ -1,0 +1,33 @@
+<section class="report-section" id="section-3">
+  <h2>3. Building and Property Description</h2>
+
+  <h3>3.1 Legal Description</h3>
+  <table class="property-table">
+    <tr><th>Lot/DP</th><td>{{property.lotDp}}</td></tr>
+    <tr><th>Council Reference</th><td>{{property.councilId}}</td></tr>
+  </table>
+
+  <h3>3.2 Zones</h3>
+  <table class="zones-table">
+    <tr><th>Wind Zone</th><td>{{property.zones.wind}}</td></tr>
+    <tr><th>Earthquake Zone</th><td>{{property.zones.earthquake}}</td></tr>
+    <tr><th>Exposure Zone</th><td>{{property.zones.exposure}}</td></tr>
+  </table>
+
+  <h3>3.3 Building History</h3>
+  {{#if property.buildingHistory}}
+  <table class="history-table">
+    <thead><tr><th>Type</th><th>Reference</th><th>Date</th></tr></thead>
+    <tbody>
+    {{#each property.buildingHistory}}
+      <tr><td>{{type}}</td><td>{{reference}}</td><td>{{date}}</td></tr>
+    {{/each}}
+    </tbody>
+  </table>
+  {{else}}
+  <p>No relevant building history identified.</p>
+  {{/if}}
+
+  <h3>3.4 Description of Works</h3>
+  <p>{{property.worksDescription}}</p>
+</section>

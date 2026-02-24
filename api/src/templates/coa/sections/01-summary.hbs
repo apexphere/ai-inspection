@@ -1,0 +1,16 @@
+<section class="report-section" id="section-1">
+  <h2>1. Executive Summary</h2>
+  <table class="summary-table">
+    <tr><th>Job Number</th><td>{{project.jobNumber}}</td></tr>
+    <tr><th>Activity</th><td>{{project.activity}}</td></tr>
+    <tr><th>Property Address</th><td>{{project.address}}</td></tr>
+    <tr><th>Client</th><td>{{project.client}}</td></tr>
+    <tr><th>Territorial Authority</th><td>{{project.council}}</td></tr>
+    <tr><th>Inspection Date</th><td>{{formatDate inspection.date}}</td></tr>
+    <tr><th>Weather Conditions</th><td>{{inspection.weather}}</td></tr>
+    <tr><th>Prepared By</th><td>{{personnel.author.name}}, {{personnel.author.credentials}}</td></tr>
+    {{#if personnel.reviewer}}
+    <tr><th>Reviewed By</th><td>{{personnel.reviewer.name}}, {{personnel.reviewer.credentials}}</td></tr>
+    {{/if}}
+  </table>
+</section>

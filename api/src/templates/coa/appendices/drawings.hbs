@@ -1,0 +1,13 @@
+<section class="appendix" id="appendix-b">
+  <h2>Appendix B: Plans and Drawings</h2>
+  {{#if appendices.drawings}}
+  <p>The following plans and drawings were referenced:</p>
+  <ul>
+    {{#each appendices.drawings}}
+    <li>{{title}} ({{pages}} page{{#unless (eq pages 1)}}s{{/unless}})</li>
+    {{/each}}
+  </ul>
+  {{else}}
+  <p>No plans or drawings were provided.</p>
+  {{/if}}
+</section>

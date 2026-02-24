@@ -1,0 +1,31 @@
+<section class="report-section" id="section-4">
+  <h2>4. Inspection Methodology</h2>
+
+  <h3>4.1 Method</h3>
+  <p>{{methodology.description}}</p>
+
+  <h3>4.2 Equipment Used</h3>
+  {{#if methodology.equipment}}
+  <ul>
+    {{#each methodology.equipment}}
+    <li>{{this}}</li>
+    {{/each}}
+  </ul>
+  {{else}}
+  <p>Standard inspection equipment.</p>
+  {{/if}}
+
+  <h3>4.3 Areas Not Accessed</h3>
+  <p>{{#if methodology.areasNotAccessed}}{{methodology.areasNotAccessed}}{{else}}All areas were accessible during the inspection.{{/if}}</p>
+
+  <h3>4.4 Documents Reviewed</h3>
+  {{#if methodology.documentsReviewed}}
+  <ul>
+    {{#each methodology.documentsReviewed}}
+    <li>{{this}}</li>
+    {{/each}}
+  </ul>
+  {{else}}
+  <p>No documents were provided for review.</p>
+  {{/if}}
+</section>

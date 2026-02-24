@@ -1,0 +1,21 @@
+<section class="report-section" id="section-6">
+  <h2>6. Remedial Works</h2>
+
+  {{#if remedialItems}}
+  <p>The following remedial works are recommended:</p>
+  <table class="remedial-table">
+    <thead><tr><th>#</th><th>Item</th><th>Description</th></tr></thead>
+    <tbody>
+    {{#each remedialItems}}
+      <tr>
+        <td>{{inc @index}}</td>
+        <td>{{item}}</td>
+        <td>{{description}}</td>
+      </tr>
+    {{/each}}
+    </tbody>
+  </table>
+  {{else}}
+  <p>No remedial works are required. The building work is considered to comply with the applicable clauses of the Building Code.</p>
+  {{/if}}
+</section>

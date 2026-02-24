@@ -1,0 +1,216 @@
+/* COA Report — Print-Optimized Styles */
+
+/* ── Reset & Base ─────────────────────────────────────────── */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 11pt;
+  line-height: 1.5;
+  color: #1a1a1a;
+}
+
+/* ── Page Layout ──────────────────────────────────────────── */
+@page {
+  size: A4;
+  margin: 25mm 20mm 25mm 20mm;
+}
+
+/* ── Header & Footer ──────────────────────────────────────── */
+.report-header {
+  display: flex;
+  align-items: center;
+  border-bottom: 2px solid #333;
+  padding-bottom: 12pt;
+  margin-bottom: 24pt;
+}
+
+.report-header .logo {
+  max-height: 60px;
+  margin-right: 20px;
+}
+
+.report-title {
+  font-size: 18pt;
+  font-weight: bold;
+  color: #1a3a5c;
+}
+
+.report-subtitle {
+  font-size: 11pt;
+  color: #555;
+}
+
+.report-footer {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid #999;
+  padding-top: 6pt;
+  font-size: 9pt;
+  color: #666;
+  margin-top: 24pt;
+}
+
+/* ── Sections ─────────────────────────────────────────────── */
+.report-section {
+  margin-bottom: 24pt;
+  page-break-inside: avoid;
+}
+
+.report-section h2 {
+  font-size: 14pt;
+  color: #1a3a5c;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 4pt;
+  margin-bottom: 12pt;
+}
+
+.report-section h3 {
+  font-size: 12pt;
+  color: #333;
+  margin: 12pt 0 6pt;
+}
+
+.report-section p {
+  margin-bottom: 8pt;
+  text-align: justify;
+}
+
+/* ── Tables ───────────────────────────────────────────────── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8pt 0 16pt;
+  font-size: 10pt;
+}
+
+th, td {
+  border: 1px solid #999;
+  padding: 6pt 8pt;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  background-color: #e8edf2;
+  font-weight: bold;
+  color: #1a3a5c;
+}
+
+.summary-table th {
+  width: 200px;
+}
+
+/* ── Clause Review Table ──────────────────────────────────── */
+.clause-review-table {
+  font-size: 9pt;
+}
+
+.clause-review-table th {
+  font-size: 9pt;
+}
+
+.clause-code {
+  width: 60px;
+  font-weight: bold;
+}
+
+tr.clause-na {
+  background-color: #f5f5f5;
+  color: #888;
+}
+
+tr.clause-applicable {
+  background-color: #fff;
+}
+
+/* ── Signatures ───────────────────────────────────────────── */
+.signature-block {
+  margin: 24pt 0;
+  page-break-inside: avoid;
+}
+
+.signature-line {
+  border-bottom: 1px solid #333;
+  height: 60px;
+  margin-bottom: 8pt;
+  width: 300px;
+}
+
+.signature-image {
+  max-height: 50px;
+}
+
+.signature-placeholder {
+  height: 50px;
+}
+
+.signature-name {
+  margin-bottom: 2pt;
+}
+
+.signature-credentials {
+  color: #555;
+  font-style: italic;
+}
+
+/* ── Photos ───────────────────────────────────────────────── */
+.photo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16pt;
+}
+
+.photo-item {
+  page-break-inside: avoid;
+  margin-bottom: 12pt;
+}
+
+.photo-item img {
+  width: 100%;
+  max-height: 250px;
+  object-fit: contain;
+  border: 1px solid #ccc;
+}
+
+.photo-item figcaption {
+  font-size: 9pt;
+  margin-top: 4pt;
+  text-align: center;
+}
+
+.photo-source {
+  color: #888;
+  font-style: italic;
+}
+
+/* ── Appendix ─────────────────────────────────────────────── */
+.appendix {
+  page-break-before: always;
+  margin-bottom: 24pt;
+}
+
+.appendix h2 {
+  font-size: 14pt;
+  color: #1a3a5c;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 4pt;
+  margin-bottom: 12pt;
+}
+
+/* ── Lists ────────────────────────────────────────────────── */
+ul, ol {
+  margin: 8pt 0 8pt 24pt;
+}
+
+li {
+  margin-bottom: 4pt;
+}
+
+/* ── Print ────────────────────────────────────────────────── */
+@media print {
+  body { font-size: 11pt; }
+  .report-section { page-break-inside: avoid; }
+  .appendix { page-break-before: always; }
+  .signature-block { page-break-inside: avoid; }
+}
