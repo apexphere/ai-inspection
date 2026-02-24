@@ -139,6 +139,7 @@ model Report {
   generatedReports GeneratedReport[]
   
   auditLogs       ReportAuditLog[]
+  reviewComments  ReviewComment[]
   costEstimate    CostEstimate?
   
   @@index([inspectionId])
@@ -196,6 +197,41 @@ model GeneratedReport {
   createdAt   DateTime @default(now())
 
   @@index([reportId])
+}
+
+// ============================================
+// Review Comments — Issue #211
+// ============================================
+
+model ReviewComment {
+  id        String                @id @default(uuid())
+
+  reportId  String
+  report    Report                @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  authorId  String                // Plain UUID — no FK until User linkage is formalised
+  section   String?               // Report section reference (e.g. "findings", "moisture-readings")
+  content   String
+  priority  ReviewCommentPriority @default(MEDIUM)
+  status    ReviewCommentStatus   @default(OPEN)
+
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
+
+  @@index([reportId])
+  @@index([reportId, status])
+  @@index([authorId])
+}
+
+enum ReviewCommentPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum ReviewCommentStatus {
+  OPEN
+  RESOLVED
 }
 
 enum Status {

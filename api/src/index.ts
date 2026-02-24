@@ -32,6 +32,7 @@ import { costEstimatesRouter } from './routes/cost-estimates.js';
 import { reportGenerationRouter } from './routes/report-generation.js';
 import { startReportWorker, stopReportWorker } from './workers/report-worker.js';
 import { reportTemplatesRouter } from './routes/report-templates.js';
+import { reviewCommentsRouter } from './routes/review-comments.js';
 import { generatedReportsRouter } from './routes/generated-reports.js';
 import { personnelRouter } from './routes/personnel.js';
 import { openApiRouter } from './openapi/index.js';
@@ -108,6 +109,7 @@ app.use('/api', authMiddleware, moistureReadingsRouter);
 app.use('/api', authMiddleware, costEstimatesRouter);
 app.use('/api', authMiddleware, reportGenerationRouter);
 app.use('/api', authMiddleware, reportTemplatesRouter);
+app.use('/api', authMiddleware, reviewCommentsRouter);
 app.use('/api/reports', authMiddleware, generatedReportsRouter);
 
 // Error handling with detailed logging
