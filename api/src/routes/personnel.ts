@@ -64,8 +64,18 @@ personnelRouter.get('/', async (req: Request, res: Response, next: NextFunction)
   try {
     const { role, active, name } = req.query;
 
+    let parsedRole: z.infer<typeof PersonnelRoleEnum> | undefined;
+    if (role) {
+      const roleParsed = PersonnelRoleEnum.safeParse(role);
+      if (!roleParsed.success) {
+        res.status(400).json({ error: `Invalid role. Must be one of: ${PersonnelRoleEnum.options.join(', ')}` });
+        return;
+      }
+      parsedRole = roleParsed.data;
+    }
+
     const personnel = await service.findAll({
-      role: role ? PersonnelRoleEnum.parse(role) : undefined,
+      role: parsedRole,
       active: active !== undefined ? active === 'true' : undefined,
       name: name as string | undefined,
     });
