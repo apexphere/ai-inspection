@@ -91,5 +91,5 @@ The API uses **code-first OpenAPI** with `zod-to-openapi`:
 ## See Also
 
 - [Architecture Overview](../architecture.md) — System design
-- [Developer Setup](../setup/developer.md) — Local development
-- [Deployment Runbook](../runbooks/deployment.md) — Environment variables
+- [Developer Setup](../setup.md) — Local development
+- [Deployment Runbook](../../ops/deployment.md) — Environment variables

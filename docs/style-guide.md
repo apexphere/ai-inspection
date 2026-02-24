@@ -66,12 +66,12 @@ docs/
 ├── api/                  # API reference
 ├── design/               # Architecture & design specs
 │   └── ui/               # UI specifications
-├── guides/               # User-facing guides
+├── user/                 # End-user guides
 ├── ops/                  # Operations docs
 ├── requirements/         # PRDs and requirements
 ├── research/             # Analysis and research
-├── runbooks/             # Step-by-step procedures
-└── setup/                # Setup and installation
+├── developer/            # Developer docs
+└── ops/                  # Operations docs
 ```
 
 ---
@@ -188,7 +188,7 @@ Use consistent terms throughout:
 ### Internal Links
 Use relative paths:
 ```markdown
-See [Deployment Runbook](runbooks/deployment.md)
+See [Deployment Runbook](ops/deployment.md)
 ```
 
 ### External Links

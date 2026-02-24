@@ -731,4 +731,4 @@ See User Workflow section above for detailed interaction examples.
 - [Document & Photo Attachments](006-document-photo-attachments.md) — Photo handling
 - [COA Report Generation](008-coa-report-generation.md) — Report generation
 - [Agent Deployment](013-agent-deployment.md) — OpenClaw agent setup
-- [Inspector Workflow Guide](../guides/inspector-workflow.md) — User guide
+- [Inspector Workflow Guide](../../user/inspector-workflow.md) — User guide

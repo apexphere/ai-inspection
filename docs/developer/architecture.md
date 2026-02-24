@@ -190,7 +190,7 @@ GitHub (develop) ──▶ Railway (API) ──▶ Automatic deploy
                  ──▶ GitHub Actions ──▶ E2E tests
 ```
 
-See [Deployment Runbook](runbooks/deployment.md) for details.
+See [Deployment Runbook](../ops/deployment.md) for details.
 
 ---
 
@@ -245,6 +245,6 @@ For detailed design documentation:
 
 ## See Also
 
-- [Developer Setup](setup/developer.md) — Local development
-- [Deployment Runbook](runbooks/deployment.md) — Production deployment
+- [Developer Setup](setup.md) — Local development
+- [Deployment Runbook](../ops/deployment.md) — Production deployment
 - [Documentation Index](INDEX.md) — All documentation

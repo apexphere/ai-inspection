@@ -690,9 +690,9 @@ openclaw mcp tools <server> # List MCP tools
 
 ### Related Documentation
 
-- [Infrastructure Overview](../infrastructure/overview.md)
-- [CI/CD Pipeline Design](../design/003-ci-cd-pipeline.md)
-- [Agent Deployment Design](../design/013-agent-deployment.md)
+- [Infrastructure Overview](infrastructure.md)
+- [CI/CD Pipeline Design](../developer/design/003-ci-cd-pipeline.md)
+- [Agent Deployment Design](../developer/design/013-agent-deployment.md)
 
 ### Change Log
 

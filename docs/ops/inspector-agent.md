@@ -384,6 +384,6 @@ railway variables set KEY=value --service openclaw-inspector
 
 ## See Also
 
-- [WhatsApp Pairing Runbook](../runbooks/whatsapp-pairing.md)
-- [Deployment Runbook](../runbooks/deployment.md)
-- [Infrastructure Overview](../infrastructure/overview.md)
+- [WhatsApp Pairing Runbook](whatsapp-pairing.md)
+- [Deployment Runbook](deployment.md)
+- [Infrastructure Overview](infrastructure.md)
