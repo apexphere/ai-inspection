@@ -108,8 +108,8 @@ companiesRouter.post('/:id/logo', async (req, res) => {
   try {
     // For now, accept logoPath in body. File upload will be added later.
     const { logoPath } = req.body;
-    if (!logoPath || typeof logoPath !== 'string') {
-      res.status(400).json({ error: 'logoPath is required' });
+    if (!logoPath || typeof logoPath !== 'string' || logoPath.trim().length === 0) {
+      res.status(400).json({ error: 'logoPath is required and must be a non-empty string' });
       return;
     }
     const company = await companyService.updateLogo(req.params.id, logoPath);
