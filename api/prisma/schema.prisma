@@ -787,4 +787,35 @@ enum GenerationJobStatus {
   COMPLETED
   FAILED
   CANCELLED
+
+// ============================================
+// Report Templates — Issue #207
+// ============================================
+
+model ReportTemplate {
+  id          String       @id @default(uuid())
+
+  name        String
+  type        TemplateType
+  reportType  ReportType?  // null = applies to all report types
+
+  content     String       // Markdown with {{variable}} placeholders
+  variables   String[]     @default([])  // variable names used in content
+
+  version     Int          @default(1)
+  isDefault   Boolean      @default(false)
+  isActive    Boolean      @default(true)
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([type])
+  @@index([type, reportType])
+  @@index([name, version])
+}
+
+enum TemplateType {
+  SECTION
+  BOILERPLATE
+  METHODOLOGY
 }
