@@ -17,3 +17,4 @@ export * from './inspectors.js';
 export * from './defects.js';
 export * from './report-generation.js';
 export * from './personnel.js';
+export * from './credentials.js';
