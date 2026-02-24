@@ -1,0 +1,28 @@
+<section class="report-section" id="section-4">
+  <h2>4. Methodology</h2>
+
+  <p>{{methodology.description}}</p>
+
+  {{#if methodology.equipment}}
+  <h3>Equipment Used</h3>
+  <ul>
+    {{#each methodology.equipment}}
+    <li>{{this}}</li>
+    {{/each}}
+  </ul>
+  {{/if}}
+
+  {{#if methodology.areasNotAccessed}}
+  <h3>Areas Not Accessed</h3>
+  <p>{{methodology.areasNotAccessed}}</p>
+  {{/if}}
+
+  {{#if methodology.documentsReviewed}}
+  <h3>Documents Reviewed</h3>
+  <ul>
+    {{#each methodology.documentsReviewed}}
+    <li>{{this}}</li>
+    {{/each}}
+  </ul>
+  {{/if}}
+</section>

@@ -1,0 +1,27 @@
+<section class="report-section signatures" id="section-7">
+  <h2>7. Declaration &amp; Signatures</h2>
+
+  <p>I/we declare that this report has been prepared in accordance with recognised inspection
+  practices and that the observations and conclusions contained herein are accurate to the
+  best of our knowledge.</p>
+
+  <div class="signature-blocks">
+    <div class="signature-block">
+      <h3>Prepared By</h3>
+      <div class="signature-line"></div>
+      <p class="sig-name">{{personnel.author.name}}</p>
+      <p class="sig-credentials">{{personnel.author.credentials}}</p>
+      <p class="sig-date">Date: {{formatDate generatedAt}}</p>
+    </div>
+
+    {{#if personnel.reviewer}}
+    <div class="signature-block">
+      <h3>Reviewed By</h3>
+      <div class="signature-line"></div>
+      <p class="sig-name">{{personnel.reviewer.name}}</p>
+      <p class="sig-credentials">{{personnel.reviewer.credentials}}</p>
+      <p class="sig-date">Date: {{formatDate generatedAt}}</p>
+    </div>
+    {{/if}}
+  </div>
+</section>

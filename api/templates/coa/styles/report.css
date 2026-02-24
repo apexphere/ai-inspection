@@ -1,0 +1,151 @@
+/* COA Report — Print-Optimized Styles */
+
+/* ─── Page Setup ─── */
+@page {
+  size: A4;
+  margin: 25mm 20mm;
+}
+
+@media print {
+  body { margin: 0; }
+  .report-section { page-break-inside: avoid; }
+  .appendix { page-break-before: always; }
+  .signatures { page-break-before: always; }
+  .photo-item { page-break-inside: avoid; }
+}
+
+/* ─── Base ─── */
+body {
+  font-family: 'Arial', 'Helvetica Neue', sans-serif;
+  font-size: 11pt;
+  line-height: 1.5;
+  color: #1a1a1a;
+  max-width: 210mm;
+  margin: 0 auto;
+}
+
+h1 { font-size: 20pt; margin-bottom: 4mm; color: #003366; }
+h2 { font-size: 14pt; margin-top: 8mm; margin-bottom: 4mm; color: #003366; border-bottom: 1px solid #003366; padding-bottom: 2mm; }
+h3 { font-size: 12pt; margin-top: 6mm; margin-bottom: 3mm; color: #333; }
+
+p { margin: 3mm 0; }
+
+/* ─── Header / Footer ─── */
+.report-header {
+  border-bottom: 2px solid #003366;
+  padding-bottom: 4mm;
+  margin-bottom: 8mm;
+}
+
+.report-header h1 { margin: 0; }
+.job-number { font-size: 12pt; color: #666; margin: 1mm 0; }
+.report-date { font-size: 10pt; color: #666; }
+
+.report-footer {
+  margin-top: 10mm;
+  padding-top: 4mm;
+  border-top: 1px solid #ccc;
+  font-size: 9pt;
+  color: #666;
+  text-align: center;
+}
+
+.confidential { font-weight: bold; text-transform: uppercase; letter-spacing: 0.5mm; }
+
+/* ─── Tables ─── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 4mm 0;
+  font-size: 10pt;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 2mm 3mm;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  background: #f0f4f8;
+  font-weight: bold;
+  color: #003366;
+}
+
+.summary-table th { width: 35%; }
+.property-table th { width: 35%; }
+.zones-table th { width: 35%; }
+.personnel-table th { width: 25%; }
+
+/* ─── Clause Review Table ─── */
+.clause-review-table { font-size: 9pt; }
+.clause-review-table th { background: #003366; color: white; font-size: 8pt; }
+.clause-review-table .clause-code { width: 8%; font-weight: bold; }
+.clause-review-table .clause-title { width: 12%; }
+.clause-review-table .applicability { width: 8%; text-align: center; }
+.clause-review-table .photo-refs { width: 10%; }
+.clause-review-table .observations { width: 22%; }
+.clause-review-table .docs-provided { width: 10%; }
+.clause-review-table .compliance-text { width: 15%; }
+.clause-review-table .remedial { width: 15%; }
+
+.clause-na { background: #f9f9f9; color: #999; }
+.clause-applicable { background: #fff; }
+
+/* ─── Remedial Table ─── */
+.remedial-table th:first-child { width: 8%; text-align: center; }
+
+/* ─── Signatures ─── */
+.signature-blocks {
+  display: flex;
+  gap: 20mm;
+  margin-top: 10mm;
+}
+
+.signature-block {
+  flex: 1;
+}
+
+.signature-line {
+  border-bottom: 1px solid #333;
+  height: 15mm;
+  margin-bottom: 2mm;
+}
+
+.sig-name { font-weight: bold; margin: 1mm 0; }
+.sig-credentials { font-size: 10pt; color: #666; margin: 1mm 0; }
+.sig-date { font-size: 10pt; color: #666; margin: 1mm 0; }
+
+/* ─── Photo Grid ─── */
+.photo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6mm;
+  margin: 4mm 0;
+}
+
+.photo-item {
+  border: 1px solid #ddd;
+  padding: 2mm;
+}
+
+.photo-item img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.photo-item figcaption {
+  font-size: 9pt;
+  padding: 2mm 0;
+  text-align: center;
+}
+
+.photo-source { color: #666; font-style: italic; }
+
+/* ─── Document Lists ─── */
+.document-list { padding-left: 6mm; }
+.document-list li { margin: 2mm 0; }
+.certificate-list { padding-left: 6mm; }
+.certificate-list li { margin: 2mm 0; }

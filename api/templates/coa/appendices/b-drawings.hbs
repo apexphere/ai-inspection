@@ -1,0 +1,13 @@
+<section class="appendix" id="appendix-b">
+  <h2>Appendix B: Drawings</h2>
+
+  {{#if appendices.drawings}}
+  <ul class="document-list">
+    {{#each appendices.drawings}}
+    <li>{{title}} ({{pages}} pages)</li>
+    {{/each}}
+  </ul>
+  {{else}}
+  <p>No drawings included.</p>
+  {{/if}}
+</section>
