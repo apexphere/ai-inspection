@@ -2,8 +2,11 @@
  * OpenAPI Route Registry
  * 
  * Import all route files to register them with the OpenAPI registry.
- * Issue #431
+ * Issues #431, #453
  */
+
+// Auth (no auth required)
+import './auth.js';
 
 // Core routes
 import './inspections.js';
@@ -11,11 +14,23 @@ import './findings.js';
 import './photos.js';
 import './reports.js';
 
-// Supporting routes
+// Project management
 import './projects.js';
+import './properties.js';
 import './clients.js';
-import './inspectors.js';
+import './documents.js';
+import './project-photos.js';
 
-// Reference routes
+// Site inspection workflow
+import './site-inspections.js';
+import './checklist-items.js';
+import './clause-reviews.js';
+import './site-measurements.js';
+import './navigation.js';
+
+// Reference data
+import './inspectors.js';
 import './health.js';
 import './building-code.js';
+import './building-history.js';
+import './na-reason-templates.js';
