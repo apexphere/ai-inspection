@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPersonnelRepository } from '../repositories/prisma/personnel.js';
 import { PersonnelService, PersonnelNotFoundError, PersonnelEmailConflictError } from '../services/personnel.js';
+import { formatCredentials } from '../services/credential-formatter.js';
 
 const prisma = new PrismaClient();
 const repository = new PrismaPersonnelRepository(prisma);
@@ -127,6 +128,31 @@ personnelRouter.delete('/:id', async (req: Request, res: Response, next: NextFun
       res.status(404).json({ error: error.message });
       return;
     }
+    next(error);
+  }
+});
+
+// GET /api/personnel/:id/credentials-string - Formatted credential string (#201)
+personnelRouter.get('/:id/credentials-string', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const personnel = await prisma.personnel.findUnique({
+      where: { id: req.params.id as string },
+      include: { credentials: true },
+    });
+
+    if (!personnel) {
+      res.status(404).json({ error: `Personnel not found: ${req.params.id}` });
+      return;
+    }
+
+    const credentialsString = formatCredentials(personnel.credentials);
+
+    res.json({
+      personnelId: personnel.id,
+      name: personnel.name,
+      credentialsString,
+    });
+  } catch (error) {
     next(error);
   }
 });
