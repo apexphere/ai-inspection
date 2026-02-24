@@ -58,6 +58,73 @@ This report assesses whether the building meets the minimum requirements for saf
     variables: ['Company Name', 'Address'],
   },
 
+  // ── CCC Gap Analysis Section Templates (#221) ──────────────────────────
+  {
+    name: 'Executive Summary - CCC Gap Analysis',
+    type: 'SECTION',
+    reportType: 'CCC_GAP',
+    content: `This CCC Gap Analysis report has been prepared for [Client Name] in respect of the building at [Address].
+
+The inspection identified the following key findings:
+
+**Defects Identified:**
+[Defect List]
+
+**Breached Building Code Clauses:**
+[Breached Clauses]
+
+**Remediation Summary:**
+[Remediation Summary]
+
+**Estimated Remediation Cost (excl. GST):**
+[Cost Estimate]`,
+    variables: ['Client Name', 'Address', 'Defect List', 'Breached Clauses', 'Remediation Summary', 'Cost Estimate'],
+  },
+  {
+    name: 'Defect Schedule - CCC Gap Analysis',
+    type: 'SECTION',
+    reportType: 'CCC_GAP',
+    content: `The following defect schedule details all items identified during the inspection that require remediation prior to achieving a Code Compliance Certificate.
+
+| # | Location | Element | Description | Clause | Priority | Remedial Action |
+|---|----------|---------|-------------|--------|----------|-----------------|
+[Defect List]
+
+Total defects identified: [Defect Count]`,
+    variables: ['Defect List', 'Defect Count'],
+  },
+  {
+    name: 'Moisture Reading Summary - CCC Gap Analysis',
+    type: 'SECTION',
+    reportType: 'CCC_GAP',
+    content: `Non-invasive moisture testing was carried out at locations identified as high-risk for moisture ingress. The following table summarises the readings obtained.
+
+[Moisture Summary]
+
+**Interpretation:**
+- Acceptable: < 18% — within normal range
+- Marginal: 18–25% — monitoring recommended
+- Unacceptable: > 25% — further investigation required
+
+Any unacceptable readings have been cross-referenced to the Defect Schedule above.`,
+    variables: ['Moisture Summary'],
+  },
+  {
+    name: 'Cost Estimate Summary - CCC Gap Analysis',
+    type: 'SECTION',
+    reportType: 'CCC_GAP',
+    content: `The following cost estimate provides an indicative budget for the remediation works identified in this report. Costs are estimates only and should be confirmed by obtaining competitive quotations from suitably qualified contractors.
+
+[Cost Estimate]
+
+**Notes:**
+- All costs are exclusive of GST
+- A contingency allowance has been included
+- Actual costs may vary depending on site conditions and contractor availability
+- Costs do not include professional fees, consenting fees, or council charges`,
+    variables: ['Cost Estimate'],
+  },
+
   // ── Methodology Templates ─────────────────────────────────────────────
   {
     name: 'Methodology - Standard',
