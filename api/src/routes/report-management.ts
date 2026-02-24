@@ -11,6 +11,7 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaReportManagementRepository } from '../repositories/prisma/report.js';
 import { ReportManagementService, ReportNotFoundError, InvalidStatusTransitionError } from '../services/report-management.js';
 import { ReportValidationService, ReportNotFoundError as ValidationReportNotFoundError } from '../services/report-validation.js';
+import { generateSignatureBlock } from '../services/signature-block.js';
 
 const prisma = new PrismaClient();
 const repository = new PrismaReportManagementRepository(prisma);
@@ -184,6 +185,69 @@ reportManagementRouter.post('/:id/approve', async (req: Request, res: Response, 
       res.status(400).json({ error: error.message });
       return;
     }
+    next(error);
+  }
+});
+
+// GET /api/reports/:id/signature-block - Generate signature block (#203)
+reportManagementRouter.get('/:id/signature-block', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const id = req.params.id as string;
+
+    const report = await prisma.report.findUnique({
+      where: { id },
+    });
+    if (!report) {
+      res.status(404).json({ error: `Report not found: ${id}` });
+      return;
+    }
+
+    // Fetch author with credentials
+    if (!report.preparedById) {
+      res.status(400).json({ error: 'Report has no author (preparedById)' });
+      return;
+    }
+
+    const author = await prisma.personnel.findUnique({
+      where: { id: report.preparedById },
+      include: { credentials: true },
+    });
+    if (!author) {
+      res.status(404).json({ error: `Author personnel not found: ${report.preparedById}` });
+      return;
+    }
+
+    // Fetch reviewer with credentials (optional)
+    let reviewer = null;
+    if (report.reviewedById) {
+      reviewer = await prisma.personnel.findUnique({
+        where: { id: report.reviewedById },
+        include: { credentials: true },
+      });
+    }
+
+    // Get company name (first company record or fallback)
+    const company = await prisma.company.findFirst();
+    const companyName = company?.name ?? '';
+
+    const signatureBlock = generateSignatureBlock({
+      author: {
+        id: author.id,
+        name: author.name,
+        credentials: author.credentials,
+      },
+      reviewer: reviewer
+        ? {
+            id: reviewer.id,
+            name: reviewer.name,
+            credentials: reviewer.credentials,
+          }
+        : null,
+      companyName,
+    });
+
+    res.json(signatureBlock);
+  } catch (error) {
     next(error);
   }
 });
