@@ -2,11 +2,14 @@
  * Report Generation Worker
  * Processes BullMQ jobs for async report generation.
  * Max concurrency: 3 concurrent generation jobs.
+ *
+ * When Redis is not configured, the worker is a no-op — the API
+ * starts normally but report generation jobs will not be processed.
  */
 
 import { Worker, type Job } from 'bullmq';
 import { PrismaClient } from '@prisma/client';
-import { getRedisConnection, pingRedis } from '../config/redis.js';
+import { getRedisConnection, isRedisConfigured } from '../config/redis.js';
 import { PrismaInspectionRepository } from '../repositories/prisma/inspection.js';
 import { ReportService } from '../services/report.js';
 import { QUEUE_NAME, MAX_CONCURRENCY, type GenerationJobData } from '../services/generation-queue.js';
@@ -75,24 +78,34 @@ async function processJob(job: Job<GenerationJobData>): Promise<void> {
   }
 }
 
-export async function startReportWorker(): Promise<Worker<GenerationJobData>> {
+export async function startReportWorker(): Promise<Worker<GenerationJobData> | null> {
   if (_worker) {
     return _worker;
   }
 
+  if (!isRedisConfigured()) {
+    console.log('[Worker] REDIS_URL not set — report generation worker disabled');
+    return null;
+  }
+
+  const connection = getRedisConnection();
+  if (!connection) {
+    console.log('[Worker] Redis connection unavailable — report generation worker disabled');
+    return null;
+  }
+
   // Verify Redis is reachable before starting the worker
   try {
-    await pingRedis();
+    await connection.ping();
     console.log('[Worker] Redis connection verified');
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error(`[Worker] ⚠️  Redis unreachable — report generation jobs will not process: ${msg}`);
-    // Return a no-op placeholder; don't crash the server
-    return null as unknown as Worker<GenerationJobData>;
+    console.error(`[Worker] ⚠️  Redis unreachable — report generation worker disabled: ${msg}`);
+    return null;
   }
 
   _worker = new Worker<GenerationJobData>(QUEUE_NAME, processJob, {
-    connection: getRedisConnection(),
+    connection,
     concurrency: MAX_CONCURRENCY,
   });
 

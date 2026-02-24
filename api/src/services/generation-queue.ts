@@ -1,11 +1,12 @@
 /**
  * Report Generation Queue Service
  * Manages BullMQ job queue for async report generation.
+ * When Redis is not configured, enqueue operations throw a clear error.
  */
 
 import { Queue } from 'bullmq';
 import type { PrismaClient } from '@prisma/client';
-import { getRedisConnection } from '../config/redis.js';
+import { getRedisConnection, isRedisConfigured } from '../config/redis.js';
 
 export const QUEUE_NAME = 'report-generation';
 export const MAX_CONCURRENCY = 3;
@@ -29,12 +30,29 @@ export class JobAlreadyActiveError extends Error {
   }
 }
 
+export class QueueUnavailableError extends Error {
+  constructor() {
+    super('Report generation queue is unavailable — REDIS_URL is not configured');
+    this.name = 'QueueUnavailableError';
+  }
+}
+
 let _queue: Queue<GenerationJobData> | null = null;
 
-export function getQueue(): Queue<GenerationJobData> {
+/**
+ * Get the BullMQ queue instance. Returns null when Redis is not configured.
+ */
+export function getQueue(): Queue<GenerationJobData> | null {
+  if (!isRedisConfigured()) {
+    return null;
+  }
+
   if (!_queue) {
+    const connection = getRedisConnection();
+    if (!connection) return null;
+
     _queue = new Queue<GenerationJobData>(QUEUE_NAME, {
-      connection: getRedisConnection(),
+      connection,
       defaultJobOptions: {
         attempts: 2,
         backoff: {
@@ -52,14 +70,20 @@ export function getQueue(): Queue<GenerationJobData> {
 export class GenerationQueueService {
   constructor(
     private prisma: PrismaClient,
-    private getJobQueue: () => Queue<GenerationJobData> = getQueue
+    private getJobQueue: () => Queue<GenerationJobData> | null = getQueue
   ) {}
 
   /**
    * Enqueue a report generation job for an inspection.
    * Rejects if there's already an active job for this inspection.
+   * Throws QueueUnavailableError if Redis is not configured.
    */
   async enqueue(inspectionId: string): Promise<{ jobId: string; status: string }> {
+    const queue = this.getJobQueue();
+    if (!queue) {
+      throw new QueueUnavailableError();
+    }
+
     // Check for active jobs
     const existing = await this.prisma.generationJob.findFirst({
       where: {
@@ -82,7 +106,6 @@ export class GenerationQueueService {
     });
 
     // Enqueue in BullMQ
-    const queue = this.getJobQueue();
     const bullJob = await queue.add(
       'generate',
       { inspectionId, dbJobId: dbJob.id },
@@ -179,9 +202,11 @@ export class GenerationQueueService {
     // Remove from BullMQ queue
     if (job.bullJobId) {
       const queue = this.getJobQueue();
-      const bullJob = await queue.getJob(job.bullJobId);
-      if (bullJob) {
-        await bullJob.remove();
+      if (queue) {
+        const bullJob = await queue.getJob(job.bullJobId);
+        if (bullJob) {
+          await bullJob.remove();
+        }
       }
     }
 

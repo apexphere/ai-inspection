@@ -1,14 +1,31 @@
 /**
  * Redis connection config for BullMQ.
+ * Redis is OPTIONAL — when REDIS_URL is not set, all exports
+ * return null / no-op so the API starts without a queue backend.
  */
 
 import { Redis } from 'ioredis';
 
 let _connection: Redis | null = null;
 
-export function getRedisConnection(): Redis {
+/**
+ * Returns true when a REDIS_URL env var is configured.
+ */
+export function isRedisConfigured(): boolean {
+  return !!process.env.REDIS_URL;
+}
+
+/**
+ * Get the shared Redis connection.
+ * Returns null when REDIS_URL is not set.
+ */
+export function getRedisConnection(): Redis | null {
+  if (!isRedisConfigured()) {
+    return null;
+  }
+
   if (!_connection) {
-    const url = process.env.REDIS_URL || 'redis://localhost:6379';
+    const url = process.env.REDIS_URL!;
     _connection = new Redis(url, {
       maxRetriesPerRequest: null, // Required by BullMQ
       enableReadyCheck: false,
@@ -34,10 +51,11 @@ export async function closeRedisConnection(): Promise<void> {
 }
 
 /**
- * Verify Redis is reachable. Throws if connection fails.
- * Call during startup to fail fast on misconfiguration.
+ * Verify Redis is reachable. Returns false when not configured.
  */
-export async function pingRedis(): Promise<void> {
+export async function pingRedis(): Promise<boolean> {
   const conn = getRedisConnection();
+  if (!conn) return false;
   await conn.ping();
+  return true;
 }

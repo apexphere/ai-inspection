@@ -12,6 +12,7 @@ import {
   GenerationQueueService,
   JobNotFoundError,
   JobAlreadyActiveError,
+  QueueUnavailableError,
 } from '../services/generation-queue.js';
 
 const prisma = new PrismaClient();
@@ -38,6 +39,10 @@ reportGenerationRouter.post(
         message: 'Report generation queued',
       });
     } catch (error) {
+      if (error instanceof QueueUnavailableError) {
+        res.status(503).json({ error: error.message });
+        return;
+      }
       if (error instanceof JobAlreadyActiveError) {
         res.status(409).json({ error: error.message });
         return;

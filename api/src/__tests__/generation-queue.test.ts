@@ -42,7 +42,7 @@ vi.mock('@prisma/client', () => ({
 
 // Import after mocks
 import { PrismaClient } from '@prisma/client';
-import { GenerationQueueService, JobNotFoundError, JobAlreadyActiveError } from '../services/generation-queue.js';
+import { GenerationQueueService, JobNotFoundError, JobAlreadyActiveError, QueueUnavailableError } from '../services/generation-queue.js';
 import type { Queue } from 'bullmq';
 import type { GenerationJobData } from '../services/generation-queue.js';
 
@@ -129,6 +129,12 @@ describe('GenerationQueueService', () => {
       mockFindFirst.mockResolvedValue(makeDbJob({ status: 'RETRYING' }));
 
       await expect(service.enqueue('insp-1')).rejects.toThrow(JobAlreadyActiveError);
+    });
+
+    it('throws QueueUnavailableError when queue is null', async () => {
+      const nullQueueService = new GenerationQueueService(prisma, () => null);
+      await expect(nullQueueService.enqueue('insp-1')).rejects.toThrow(QueueUnavailableError);
+      expect(mockCreate).not.toHaveBeenCalled();
     });
 
     it('allows enqueue when previous job is COMPLETED', async () => {
