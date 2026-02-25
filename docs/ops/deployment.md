@@ -122,7 +122,7 @@ railway variables set KEY=value
 | `R2_ACCOUNT_ID` | Pending | Cloudflare account ID | `abc123...` |
 | `R2_ACCESS_KEY_ID` | Pending | R2 API token ID | `...` |
 | `R2_SECRET_ACCESS_KEY` | Pending | R2 API token secret | `...` |
-| `R2_BUCKET_NAME` | Pending | R2 bucket name | `ai-inspection-photos` |
+| `R2_BUCKET_NAME` | Pending | R2 bucket name | `ai-inspection-test` |
 | `TEST_PASSWORD` | Test only | Seeded test user password | `test123` |
 
 ### Vercel (Web)
@@ -338,20 +338,20 @@ vercel env add NEXT_PUBLIC_API_URL
 
 1. **Create R2 Bucket**
    - Cloudflare Dashboard → R2 → Create Bucket
-   - Name: `ai-inspection-photos-test`
+   - Name: `ai-inspection-test`
    - Location: Auto (or specific region)
 
 2. **Create API Token**
    - R2 → Manage R2 API Tokens → Create
    - Permissions: Object Read & Write
-   - Specify bucket: `ai-inspection-photos-test`
+   - Specify bucket: `ai-inspection-test`
 
 3. **Set Railway Variables**
    ```bash
    railway variables set R2_ACCOUNT_ID=<account-id>
    railway variables set R2_ACCESS_KEY_ID=<token-id>
    railway variables set R2_SECRET_ACCESS_KEY=<token-secret>
-   railway variables set R2_BUCKET_NAME=ai-inspection-photos-test
+   railway variables set R2_BUCKET_NAME=ai-inspection-test
    ```
 
 4. **Configure CORS** (if needed for direct uploads)
