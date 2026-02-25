@@ -190,26 +190,56 @@ Linked photos appear in the report appendix with clause references.
 
 ## Reports
 
-### Generating a Report
+### Creating a Report
 
 1. Open the project
-2. Ensure all sections are complete
+2. Navigate to the inspection
 3. Click **Generate Report**
-4. Wait for processing (usually under a minute)
-5. Download the PDF
+4. Select the report type (COA, CCC, etc.)
+5. A **Draft** report is created
 
-### Report Contents
+### Report Status
 
-The generated PDF includes:
-- Cover page with property and client info
-- Section-by-section findings
-- Embedded photos with captions
-- Summary and recommendations
-- Inspector signature block
+Reports move through a review workflow. The current status is shown on the report:
+
+| Status | Meaning | Your Action |
+|--------|---------|-------------|
+| **Draft** | Work in progress | Edit, then submit for review |
+| **In Review** | Peer reviewer is checking | Wait for feedback |
+| **Approved** | Reviewer signed off | Finalize the report |
+| **Finalized** | Locked for submission | Download PDF/DOCX |
+| **Submitted** | Sent to council | Done |
+
+### Review Comments
+
+During review, the reviewer may leave comments:
+- Comments appear linked to specific report sections
+- Each has a priority (Low / Medium / High) and status (Open / Resolved)
+- Address open comments, then resubmit for review
+
+### Validation
+
+Before generating PDF/DOCX, click **Validate** to check:
+- All applicable clauses have observations
+- Photos have captions
+- Required documents are attached
+- An inspector is assigned
+
+Fix any issues flagged before generating.
+
+### Downloading Reports
+
+Once a report is Approved or Finalized:
+- **Download PDF** — Professional A4 document for council submission
+- **Download DOCX** — Editable Word document for final adjustments
+
+Reports generate in the background. You'll see progress, then a download link.
 
 ### Re-generating
 
-If you make edits after generating, click **Regenerate Report** to create an updated version.
+If you make edits after generating, click **Regenerate Report**. The version number increments automatically.
+
+> For full details on report types, templates, and Form 9 export, see the [Report System Guide](reports.md).
 
 ---
 
@@ -256,3 +286,4 @@ Contact your administrator for:
 
 - [Getting Started](getting-started.md) — Overall introduction
 - [Inspector Workflow](inspector-workflow.md) — WhatsApp field guide
+- [Report System](reports.md) — Report generation, workflow, export
