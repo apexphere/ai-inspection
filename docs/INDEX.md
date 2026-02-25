@@ -30,6 +30,7 @@
 | [Getting Started](user/getting-started.md) | New user introduction | ✅ Current |
 | [Inspector Workflow](user/inspector-workflow.md) | WhatsApp inspection flow | ✅ Current |
 | [Web UI Guide](user/web-ui.md) | Using the web interface | ✅ Current |
+| [Report System](user/reports.md) | Report generation, workflow, export | ✅ Current |
 | [A Day with AI Inspection](user/a-day-with-ai-inspection.md) | Demo/showcase narrative | ✅ Current |
 
 ---
