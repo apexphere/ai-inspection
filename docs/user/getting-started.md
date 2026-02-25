@@ -23,21 +23,28 @@ AI Inspection is an AI-powered assistant that helps building inspectors conduct 
 
 ## How It Works
 
+The system works in two phases:
+
 ```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   You       │     │   AI        │     │   Report    │
-│   (Phone)   │────▶│   Agent     │────▶│   (PDF)     │
-│             │     │             │     │             │
-│ WhatsApp    │     │ Guides you  │     │ Professional│
-│ Text+Photos │     │ through     │     │ inspection  │
-│             │     │ inspection  │     │ report      │
-└─────────────┘     └─────────────┘     └─────────────┘
+Phase 1: On-Site (WhatsApp)          Phase 2: Office (Web)
+┌─────────────┐   ┌─────────────┐   ┌─────────────┐   ┌─────────────┐
+│   You       │   │   AI        │   │   Review &  │   │   Final     │
+│   (Phone)   │──▶│   Agent     │──▶│   Edit      │──▶│   Report    │
+│             │   │             │   │   (Web UI)  │   │   (PDF)     │
+│ WhatsApp    │   │ Captures    │   │ Peer review │   │ Submit to   │
+│ Text+Photos │   │ findings    │   │ Templates   │   │ council     │
+└─────────────┘   └─────────────┘   └─────────────┘   └─────────────┘
 ```
 
+**Phase 1 — On-site with WhatsApp:**
 1. **Message the agent** with a property address
 2. **Walk through the property** — the agent guides you section by section
 3. **Send findings and photos** as you inspect
-4. **Say "done"** to generate your report
+
+**Phase 2 — Back at the office with the web interface:**
+4. **Review and edit** captured data on the web UI
+5. **Submit for peer review** — reviewer approves or requests changes
+6. **Generate PDF/DOCX** — professional report ready for council
 
 ---
 
@@ -156,8 +163,9 @@ You can skip sections that don't apply or go back to add findings.
 
 ## Next Steps
 
-- **[Inspector Workflow Guide](inspector-workflow.md)** — Detailed usage guide
-- **[Web UI Guide](web-ui.md)** — Using the web interface *(coming soon)*
+- **[Inspector Workflow Guide](inspector-workflow.md)** — Detailed WhatsApp usage guide
+- **[Web UI Guide](web-ui.md)** — Review and edit on the web
+- **[Report System Guide](reports.md)** — Report workflow, templates, and export
 
 ---
 
