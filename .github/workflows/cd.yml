@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - develop
+    paths-ignore:
+      - "docs/**"
+      - "*.md"
+      - "skill/**"
   workflow_dispatch:  # Allow manual triggers
 
 concurrency:
