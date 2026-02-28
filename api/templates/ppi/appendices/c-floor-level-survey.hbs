@@ -1,0 +1,55 @@
+{{!-- Appendix C: Floor Level Survey — Issue #550 --}}
+{{#if appendices.floorLevelSurvey}}
+<section class="appendix" id="appendix-c">
+  <h2>Appendix C: Floor Level Survey</h2>
+
+  <p class="appendix-intro">
+    Floor levels were measured using a laser level relative to a datum point.
+    Measurements indicate relative levels across the floor surface.
+    Variations exceeding tolerance may indicate structural movement or settlement.
+  </p>
+
+  {{#if appendices.floorLevelSurvey.datum}}
+  <div class="survey-datum">
+    <strong>Datum:</strong> {{appendices.floorLevelSurvey.datum}}
+  </div>
+  {{/if}}
+
+  {{#if appendices.floorLevelSurvey.readings}}
+  <table class="floor-level-table">
+    <thead>
+      <tr>
+        <th>Location</th>
+        <th>Reading (mm)</th>
+        <th>Variance from Datum</th>
+        <th>Result</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each appendices.floorLevelSurvey.readings}}
+      <tr class="{{#if outOfTolerance}}reading-fail{{/if}}">
+        <td>{{location}}</td>
+        <td>{{reading}}</td>
+        <td>{{variance}}</td>
+        <td>{{#if outOfTolerance}}<strong>Out of tolerance</strong>{{else}}Within tolerance{{/if}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+  {{/if}}
+
+  {{#if appendices.floorLevelSurvey.diagramBase64}}
+  <div class="floor-diagram">
+    <h3>Floor Plan with Measurements</h3>
+    <img src="data:image/jpeg;base64,{{{appendices.floorLevelSurvey.diagramBase64}}}" alt="Floor level survey diagram" />
+  </div>
+  {{/if}}
+
+  {{#if appendices.floorLevelSurvey.summary}}
+  <div class="survey-summary">
+    <h3>Summary</h3>
+    <p>{{appendices.floorLevelSurvey.summary}}</p>
+  </div>
+  {{/if}}
+</section>
+{{/if}}

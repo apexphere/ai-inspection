@@ -1,0 +1,40 @@
+{{!-- Appendix B: Infrared Thermal Imaging — Issue #550 --}}
+{{#if appendices.thermalImages}}
+<section class="appendix" id="appendix-b">
+  <h2>Appendix B: Infrared Thermal Imaging</h2>
+
+  <p class="appendix-intro">
+    Infrared thermal imaging was used to identify potential moisture ingress,
+    insulation deficiencies, and thermal anomalies not visible to the naked eye.
+    Temperature readings are indicative only and should be interpreted in context
+    with ambient conditions at the time of inspection.
+  </p>
+
+  <div class="thermal-grid">
+    {{#each appendices.thermalImages}}
+    <figure class="thermal-item">
+      <div class="thermal-images">
+        {{#if base64}}
+        <img src="data:image/jpeg;base64,{{{base64}}}" alt="Thermal: {{caption}}" class="thermal-image" />
+        {{/if}}
+        {{#if visualBase64}}
+        <img src="data:image/jpeg;base64,{{{visualBase64}}}" alt="Visual: {{caption}}" class="visual-reference" />
+        {{/if}}
+      </div>
+      <figcaption>
+        <strong>Thermal Image {{inc @index}}</strong>: {{caption}}
+        {{#if location}}<span class="thermal-location">({{location}})</span>{{/if}}
+        {{#if minTemp}}
+        <div class="temp-readings">
+          <span class="temp-min">Min: {{minTemp}}°C</span>
+          <span class="temp-max">Max: {{maxTemp}}°C</span>
+          {{#if deltaTemp}}<span class="temp-delta">ΔT: {{deltaTemp}}°C</span>{{/if}}
+        </div>
+        {{/if}}
+        {{#if observation}}<p class="thermal-observation">{{observation}}</p>{{/if}}
+      </figcaption>
+    </figure>
+    {{/each}}
+  </div>
+</section>
+{{/if}}
