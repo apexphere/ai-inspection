@@ -43,10 +43,10 @@ This report identifies outstanding items and inspections required to achieve a C
     name: 'Introduction - PPI',
     type: 'SECTION',
     reportType: 'PPI',
-    content: `[Company Name] have been engaged to carry out a Pre-Purchase Inspection of the property at [Address].
+    content: `[Company Name] have been engaged to carry out a pre-purchase inspection at [Property Address]. The purpose of this inspection is to independently inspect and report on the condition of the building works and findings of defects during inspection against relevant clauses of the New Zealand Standard NZS 4306:2005 — Residential Property Inspection.
 
-This report provides an independent assessment of the building condition at the time of inspection, intended to inform the prospective purchaser of any significant defects or maintenance issues.`,
-    variables: ['Company Name', 'Address'],
+This report is intended to inform the prospective purchaser of any significant defects or maintenance issues identified at the time of inspection.`,
+    variables: ['Company Name', 'Property Address'],
   },
   {
     name: 'Introduction - Safe & Sanitary',
@@ -167,6 +167,24 @@ The inspection was limited to a visual assessment of readily accessible areas. C
 
 This report does not constitute a guarantee or warranty regarding the condition of the building.`,
     variables: ['Client Name', 'Company Name'],
+  },
+  {
+    name: 'Limitations - PPI',
+    type: 'BOILERPLATE',
+    reportType: 'PPI',
+    content: `This report has been prepared for [Client Name] by [Company Name] and is based on a visual inspection of the property at [Property Address] carried out in accordance with the New Zealand Standard 4306:2005.
+
+The inspection is limited to those areas and components of the building that are readily and safely accessible at the time of inspection. The following limitations apply:
+
+- Concealed areas (behind walls, under floors, above ceilings) are not inspected unless specifically stated
+- No invasive testing was carried out unless otherwise noted
+- Furniture, stored items, floor coverings, and personal belongings were not moved
+- The report does not cover compliance with the Building Code or council requirements
+- Electrical, plumbing, gas, and other services are assessed visually only — specialist reports should be obtained where concerns are noted
+- This report does not constitute a guarantee or warranty regarding the condition of the building
+
+[Company Name] accepts no liability for defects not reasonably discoverable by visual inspection at the time of the assessment.`,
+    variables: ['Client Name', 'Company Name', 'Property Address'],
   },
   {
     name: 'Scope of Works - COA',
