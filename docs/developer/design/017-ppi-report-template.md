@@ -1,6 +1,6 @@
 # Design: PPI Report Template
 
-**Status:** Draft
+**Status:** Approved (updated 2026-03-01 after code review)
 **Author:** Riley
 **Requirement:** #539
 **Date:** 2026-02-28
@@ -11,57 +11,89 @@ Pre-Purchase Inspection (PPI) reports follow NZS 4306:2005, not NZBC clause revi
 
 Analysis of real PPI reports (`docs/domain/report-analysis.md`) shows the Abacus/Eastern format has 11 sections + 3 appendices.
 
+## Current State
+
+**PPI already exists in the codebase:**
+- `PPI` is in the `ReportType` enum (Prisma schema)
+- `api/templates/ppi/` has 8 sections, cover, base, CSS, and photo appendix
+- Template engine is **generic** — `renderReport({reportType: 'ppi', data})` loads from `api/templates/ppi/`
+
+### Existing Template Files
+```
+api/templates/ppi/
+  base.hbs                           # ✅ exists
+  cover.hbs                          # ✅ exists
+  styles/report.css                  # ✅ exists
+  appendices/photos.hbs              # ✅ exists
+  sections/
+    01-executive-summary.hbs         # ✅ exists (report info summary)
+    02-introduction.hbs              # ✅ exists (NZS 4306:2005 reference)
+    03-site-ground.hbs               # ✅ exists
+    04-exterior.hbs                  # ✅ exists
+    05-interior.hbs                  # ✅ exists
+    06-services.hbs                  # ✅ exists
+    07-conclusions.hbs               # ✅ exists
+    08-signatures.hbs                # ✅ exists
+```
+
+### What's Missing (vs real PPI reports)
+1. **Building & Site Description** — property details, zone data, building info (bedrooms, year built, CCC status)
+2. **Inspection Methodology** — personnel credentials, approach, equipment
+3. **Limitations** — standard PPI disclaimers (asbestos, concealed elements, intermittent faults)
+4. **Appendix B — Thermal Imaging** — infrared results
+5. **Appendix C — Floor Level Survey** — laser level measurements
+
 ## Decision
 
-Add a PPI report type using the existing template engine (Handlebars + Puppeteer) with PPI-specific templates. Reuse shared infrastructure (template engine, PDF renderer, photo embedder, variable substitution) but with a new template directory and section structure.
+Add the 3 missing sections and 2 missing appendices. Renumber existing sections to accommodate.
 
 ## Architecture
 
-### Template Directory Structure
+### Template Engine Behaviour
+The engine (`api/src/services/template-engine.ts`) is generic:
+- Loads `api/templates/{reportType}/base.hbs` as main layout
+- Loads all `.hbs` files from `sections/` in **alphabetical sort order** → injected into `{{{sections}}}`
+- Loads all `.hbs` files from `appendices/` in **alphabetical sort order** → injected into `{{{appendixContent}}}`
+- Optional `document-control.hbs` at root → rendered before TOC as `{{{documentControlHtml}}}`
+- Shared partials from `api/templates/partials/` (header, footer)
+- Optional `styles/report.css` → injected as `{{{css}}}`
 
+### Files to Change
+
+**Add new section templates:**
+- `api/templates/ppi/sections/03-building-site.hbs` (new)
+- `api/templates/ppi/sections/04-methodology.hbs` (new)
+- `api/templates/ppi/sections/10-limitations.hbs` (new)
+
+**Renumber existing sections:**
+- `03-site-ground.hbs` → `05-site-ground.hbs`
+- `04-exterior.hbs` → `06-exterior.hbs`
+- `05-interior.hbs` → `07-interior.hbs`
+- `06-services.hbs` → `08-services.hbs`
+- `07-conclusions.hbs` → `09-conclusions.hbs`
+- `08-signatures.hbs` → `11-signatures.hbs`
+
+**Add appendix templates:**
+- `api/templates/ppi/appendices/b-thermal-imaging.hbs` (new)
+- `api/templates/ppi/appendices/c-floor-level-survey.hbs` (new)
+
+**Final section order:**
 ```
-api/templates/ppi/
-  base.hbs                    # Main layout
-  cover.hbs                   # Cover page
-  sections/
-    01-report-info-summary.hbs
-    02-introduction.hbs
-    03-building-site-description.hbs
-    04-inspection-methodology.hbs
-    05-summary-of-inspection.hbs
-    06-site-ground-condition.hbs
-    07-exterior.hbs
-    08-interior.hbs
-    09-service-systems.hbs
-    10-limitations.hbs
-    11-signatures.hbs
-  appendices/
-    a-photos.hbs
-    b-thermal-imaging.hbs
-    c-floor-level-survey.hbs
-  partials/
-    header.hbs
-    footer.hbs
-    section-conclusion.hbs
+sections/
+  01-executive-summary.hbs      # existing
+  02-introduction.hbs           # existing
+  03-building-site.hbs          # NEW
+  04-methodology.hbs            # NEW
+  05-site-ground.hbs            # renamed from 03
+  06-exterior.hbs               # renamed from 04
+  07-interior.hbs               # renamed from 05
+  08-services.hbs               # renamed from 06
+  09-conclusions.hbs            # renamed from 07
+  10-limitations.hbs            # NEW
+  11-signatures.hbs             # renamed from 08
 ```
-
-### Data Model Changes
-
-```prisma
-// Add PPI to existing ReportType enum
-enum ReportType {
-  COA
-  CCC
-  PPI        // NEW
-  SS         // NEW (for #540)
-}
-```
-
-No new entities required — PPI uses the existing inspection data model. The key difference is **how the data is presented**, not what data is captured.
 
 ### PPI-Specific Template Data
-
-The template context needs these PPI-specific fields:
 
 ```typescript
 interface PPITemplateData {
@@ -93,31 +125,7 @@ interface PPITemplateData {
   thermalImaging?: ThermalImage[];
   floorLevelSurvey?: FloorLevelData;
 }
-
-interface PPISection {
-  narrativeText: string;
-  conclusion: string;       // "No obvious defects" or findings
-  photoRefs: string;        // "Photograph 1~10" (range notation)
-  needsAttention: boolean;
-  needsFurtherInvestigation: boolean;
-}
 ```
-
-### Section Content Guide
-
-| Section | Content | Data Source |
-|---------|---------|-------------|
-| Report Info Summary | Project #, activity ("Pre-purchase Inspection"), address, client, TA, author, inspector, date, weather | Report + Project + Personnel |
-| Introduction | Engagement statement + purpose (NZS 4306:2005 reference) | Template boilerplate + variables |
-| Building & Site | Site info (zones from BRANZ), building info (rooms, year, CCC status) | Property + zone data (#543) |
-| Methodology | Personnel credentials, inspection approach, equipment | Personnel + template |
-| Summary | Overall condition rating + key findings | Inspector input |
-| Site & Ground | Topography, access paths, garden areas | Inspector narrative |
-| Exterior | Roof, cladding, joinery, foundation | Inspector narrative |
-| Interior | Room-by-room condition | Inspector narrative |
-| Service Systems | Power, water, gas, drainage, alarms, ventilation | Inspector narrative |
-| Limitations | Standard disclaimers | Template boilerplate |
-| Signatures | Author signature block | Personnel |
 
 ### Photo Reference Convention
 
@@ -125,36 +133,21 @@ PPI uses range notation: `[ Appendix A ] Photograph 1~10`
 
 The photo embedder needs to support this format alongside the existing comma-separated format used by COA (`Photograph 7,8,9`).
 
-### Seed Templates
-
-Seed the following PPI boilerplate templates:
-
-**Introduction:**
-> "[Company Name] have been engaged to carry out a pre-purchase inspection at [Property Address]. The purpose of this inspection is to independently inspect and report on the condition of the building works and findings of defects during inspection against relevant clauses of the New Zealand Standard 4306:2005 [Residential Property Inspection]."
-
-**Limitations:**
-> Standard PPI limitations text (longer than COA — covers asbestos, concealed elements, intermittent faults, etc.)
-
 ## Dependencies
 
 - #543 (BRANZ zone data) — needed for Building & Site Description section
-- Existing template engine, PDF renderer, variable substitution
 
-## Stories Breakdown
+## Stories
 
-_(To be created after design approval)_
-
-Estimated stories:
-1. Add PPI to ReportType enum + API support
-2. Create PPI Handlebars templates (sections 1-11)
-3. Create PPI appendix templates (photos, thermal, floor survey)
-4. Add PPI section data capture API (narrative + conclusion per section)
-5. Seed PPI boilerplate templates
-6. Add PPI to report generation service
-7. PPI photo range notation support
+| # | Story | Status |
+|---|-------|--------|
+| ~~#548~~ | ~~Add PPI to ReportType enum~~ | Closed — already exists |
+| #549 | Add missing PPI sections (building/site, methodology, limitations) | Ready |
+| #550 | Add thermal imaging + floor survey appendices | Ready |
+| #551 | Seed PPI boilerplate templates | Ready |
 
 ## Alternatives Considered
 
 **Reuse COA template with different sections** — Rejected. The structure is too different (narrative vs table). Sharing a base template would create a mess of conditionals.
 
-**Separate PPI inspection flow** — Rejected. PPI uses the same inspection data; only the report presentation differs. No need for a separate inspection model.
+**Separate PPI inspection flow** — Rejected. PPI uses the same inspection data; only the report presentation differs.
