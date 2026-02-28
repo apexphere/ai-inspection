@@ -1,0 +1,169 @@
+# Profile Page Spec — Issue #515
+# User profile management with account details and WhatsApp integration
+
+metadata:
+  issue: 515
+  route: /profile
+  auth: required
+  created: "2026-02-28"
+  author: "Sam"
+
+# =============================================================================
+# PAGE STRUCTURE
+# =============================================================================
+layout:
+  container: "max-w-2xl mx-auto"
+  sections:
+    - header
+    - alerts
+    - account-form
+    - whatsapp-section
+    - account-info
+
+# =============================================================================
+# HEADER
+# =============================================================================
+header:
+  title:
+    text: "Profile"
+    style: "text-2xl font-semibold text-gray-900"  # tokens.typography.styles.h1
+  description:
+    text: "Manage your account details and preferences"
+    style: "mt-1 text-sm text-gray-600"  # tokens.typography.styles.small
+  spacing: "mb-8"
+
+# =============================================================================
+# ALERTS
+# =============================================================================
+alerts:
+  error:
+    style: "mb-6 p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg"
+    color: tokens.colors.semantic.error
+  success:
+    style: "mb-6 p-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded-lg"
+    color: tokens.colors.semantic.success
+
+# =============================================================================
+# ACCOUNT DETAILS FORM
+# =============================================================================
+account-form:
+  container:
+    style: "bg-white shadow-sm rounded-xl p-6 mb-6"  # tokens.shadows.components.card
+  title:
+    text: "Account Details"
+    style: "text-lg font-medium text-gray-900 mb-4"  # tokens.typography.styles.h3
+
+  fields:
+    - name:
+        label: "Name"
+        type: text
+        required: false
+        placeholder: "Your name"
+        validation: "max 100 chars"
+    
+    - email:
+        label: "Email"
+        type: email
+        required: true
+        placeholder: "you@example.com"
+        validation: "valid email format"
+    
+    - company:
+        label: "Company"
+        type: text
+        required: false
+        placeholder: "Your company (optional)"
+        validation: "max 100 chars"
+
+  field-style:
+    label: "block text-sm font-medium text-gray-700 mb-2"  # tokens.typography.styles.label
+    input: "block w-full h-11 px-3 border border-gray-200 rounded-lg text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-50"
+    spacing: "space-y-4"
+
+  submit:
+    text: "Save Changes"
+    loading-text: "Saving..."
+    style: "mt-6 w-full h-11 px-4 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+    color: tokens.colors.primary.600
+
+# =============================================================================
+# WHATSAPP INTEGRATION
+# =============================================================================
+whatsapp-section:
+  container:
+    style: "bg-white shadow-sm rounded-xl p-6"
+  title:
+    text: "WhatsApp Integration"
+    style: "text-lg font-medium text-gray-900 mb-2"
+  description:
+    text: "Link your phone number to enable WhatsApp-based inspections"
+    style: "text-sm text-gray-600 mb-4"
+
+  states:
+    # State: Phone verified
+    verified:
+      indicator:
+        icon: "checkmark-circle"
+        style: "flex items-center gap-2 text-green-600"
+        text: "Connected: {phoneNumber}"
+      unlink:
+        text: "Unlink WhatsApp"
+        style: "text-sm text-red-600 hover:text-red-700 font-medium"
+
+    # State: Verification code entry
+    verification:
+      instruction: "Enter the 6-digit code sent to {phoneNumber}"
+      input:
+        type: text
+        maxLength: 6
+        style: "... text-center tracking-widest"
+        placeholder: "000000"
+      actions:
+        verify:
+          text: "Verify"
+          style: "flex-1 ... bg-blue-600"
+        cancel:
+          text: "Cancel"
+          style: "... border border-gray-200 text-gray-700"
+
+    # State: Phone number entry
+    unlinked:
+      input:
+        type: tel
+        placeholder: "+64 21 123 4567"
+      helper: "Include country code (e.g., +64 for NZ, +1 for US)"
+      submit:
+        text: "Link WhatsApp"
+        style: "w-full ... bg-green-600 hover:bg-green-700"
+        color: "#16a34a"  # green-600
+
+# =============================================================================
+# ACCOUNT INFO (FOOTER)
+# =============================================================================
+account-info:
+  style: "mt-6 text-sm text-gray-500"
+  content: "Account created: {createdAt}"
+
+# =============================================================================
+# API ENDPOINTS
+# =============================================================================
+api:
+  profile:
+    get: "GET /api/auth/profile"
+    patch: "PATCH /api/auth/profile"
+    fields: [name, email, company]
+  
+  whatsapp:
+    link: "POST /api/auth/link-whatsapp"
+    verify: "POST /api/auth/verify-whatsapp"
+    unlink: "DELETE /api/auth/unlink-whatsapp"
+    status: "GET /api/auth/whatsapp-status"
+
+# =============================================================================
+# ACCESSIBILITY
+# =============================================================================
+a11y:
+  - "All form fields have associated labels"
+  - "Error messages use role='alert'"
+  - "Focus management after form submission"
+  - "Disabled states indicated visually and via attribute"
