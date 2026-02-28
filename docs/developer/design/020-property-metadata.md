@@ -1,6 +1,6 @@
 # Design: Property Metadata — Building History & Zone Data
 
-**Status:** Draft
+**Status:** Approved
 **Author:** Riley
 **Requirement:** #542, #543
 **Date:** 2026-02-28
