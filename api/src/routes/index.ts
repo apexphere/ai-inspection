@@ -19,3 +19,4 @@ export * from './report-generation.js';
 export * from './personnel.js';
 export * from './credentials.js';
 export * from './interaction-logs.js';
+export * from './photos-public.js';

@@ -100,6 +100,31 @@ export async function getPresignedUrl(key: string): Promise<string> {
 /**
  * Delete a file from R2
  */
+/**
+ * Download a file from R2
+ */
+export async function downloadFromR2(key: string): Promise<Buffer> {
+  const client = getR2Client();
+
+  const command = new GetObjectCommand({
+    Bucket: R2_BUCKET_NAME,
+    Key: key,
+  });
+
+  const response = await client.send(command);
+  
+  if (!response.Body) {
+    throw new Error(`No body in R2 response for key: ${key}`);
+  }
+
+  // Convert stream to buffer
+  const chunks: Uint8Array[] = [];
+  for await (const chunk of response.Body as AsyncIterable<Uint8Array>) {
+    chunks.push(chunk);
+  }
+  return Buffer.concat(chunks);
+}
+
 export async function deleteFromR2(key: string): Promise<void> {
   const client = getR2Client();
 

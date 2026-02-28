@@ -1,9 +1,17 @@
+/**
+ * Photo Service
+ * Issue #524 - Updated to use R2 storage in production
+ * 
+ * Stores finding photos in Cloudflare R2 (production) or local disk (development).
+ */
+
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import * as crypto from 'node:crypto';
 import type { Photo } from '@prisma/client';
 import type { IInspectionRepository, CreatePhotoInput } from '../repositories/interfaces/inspection.js';
 import { FindingNotFoundError } from './finding.js';
+import { uploadToR2, downloadFromR2, deleteFromR2, isR2Configured } from './r2-storage.js';
 
 export { FindingNotFoundError };
 
@@ -29,9 +37,17 @@ export interface UploadPhotoInput {
 
 export class PhotoService {
   private photoDir: string;
+  private useR2: boolean;
 
   constructor(private repository: IInspectionRepository, photoDir?: string) {
     this.photoDir = photoDir || process.env.PHOTO_DIR || './uploads/photos';
+    this.useR2 = isR2Configured();
+    
+    if (this.useR2) {
+      console.log('[PhotoService] Using R2 storage');
+    } else {
+      console.log('[PhotoService] Using local storage (R2 not configured)');
+    }
   }
 
   async upload(input: UploadPhotoInput): Promise<Photo> {
@@ -57,7 +73,6 @@ export class PhotoService {
     // Validate base64
     let buffer: Buffer;
     try {
-      // Check if it's valid base64 by decoding it
       buffer = Buffer.from(base64Data, 'base64');
       if (buffer.length === 0 || !this.isValidBase64(base64Data)) {
         throw new InvalidBase64Error();
@@ -73,18 +88,27 @@ export class PhotoService {
     const ext = this.getExtensionFromMimeType(mimeType);
     const filename = `${crypto.randomUUID()}${ext}`;
 
-    // Ensure directory exists
-    await fs.mkdir(this.photoDir, { recursive: true });
+    let storagePath: string;
 
-    // Write file
-    const filePath = path.join(this.photoDir, filename);
-    await fs.writeFile(filePath, buffer);
+    if (this.useR2) {
+      // Upload to R2
+      const r2Key = `findings/${input.findingId}/${filename}`;
+      await uploadToR2(r2Key, buffer, mimeType);
+      storagePath = `r2://${r2Key}`;
+      console.log(`[PhotoService] Uploaded to R2: ${r2Key}`);
+    } else {
+      // Write to local disk (development fallback)
+      await fs.mkdir(this.photoDir, { recursive: true });
+      const filePath = path.join(this.photoDir, filename);
+      await fs.writeFile(filePath, buffer);
+      storagePath = filePath;
+    }
 
     // Create database record
     const photoInput: CreatePhotoInput = {
       findingId: input.findingId,
       filename,
-      path: filePath,
+      path: storagePath,
       mimeType,
     };
 
@@ -100,7 +124,6 @@ export class PhotoService {
   }
 
   async findByFinding(findingId: string): Promise<Photo[]> {
-    // Verify finding exists
     const finding = await this.repository.findFindingById(findingId);
     if (!finding) {
       throw new FindingNotFoundError(findingId);
@@ -108,19 +131,42 @@ export class PhotoService {
     return this.repository.findPhotosByFinding(findingId);
   }
 
+  /**
+   * Get photo file buffer (from R2 or local disk)
+   */
+  async getFileBuffer(id: string): Promise<Buffer> {
+    const photo = await this.findById(id);
+    
+    if (photo.path.startsWith('r2://')) {
+      // Download from R2
+      const r2Key = photo.path.replace('r2://', '');
+      return downloadFromR2(r2Key);
+    } else {
+      // Read from local disk
+      return fs.readFile(photo.path);
+    }
+  }
+
   async delete(id: string): Promise<void> {
-    // Get photo first to get file path
     const photo = await this.findById(id);
 
-    // Delete file from disk
-    try {
-      await fs.unlink(photo.path);
-    } catch (err) {
-      // Log but don't fail if file doesn't exist
-      console.warn(`Failed to delete photo file: ${photo.path}`, err);
+    if (photo.path.startsWith('r2://')) {
+      // Delete from R2
+      const r2Key = photo.path.replace('r2://', '');
+      try {
+        await deleteFromR2(r2Key);
+      } catch (err) {
+        console.warn(`Failed to delete from R2: ${r2Key}`, err);
+      }
+    } else {
+      // Delete from local disk
+      try {
+        await fs.unlink(photo.path);
+      } catch (err) {
+        console.warn(`Failed to delete photo file: ${photo.path}`, err);
+      }
     }
 
-    // Delete database record
     await this.repository.deletePhoto(id);
   }
 
@@ -141,12 +187,10 @@ export class PhotoService {
   }
 
   private isValidBase64(str: string): boolean {
-    // Valid base64 pattern: alphanumeric, +, /, and optional = padding
     const base64Regex = /^[A-Za-z0-9+/]*={0,2}$/;
     if (!base64Regex.test(str)) {
       return false;
     }
-    // Length should be a multiple of 4 (accounting for padding)
     if (str.length % 4 !== 0) {
       return false;
     }
