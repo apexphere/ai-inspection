@@ -7,6 +7,7 @@ import { authRouter } from './routes/auth.js';
 import { inspectionsRouter } from './routes/inspections.js';
 import { findingsRouter } from './routes/findings.js';
 import { photosRouter } from './routes/photos.js';
+import { photosPublicRouter } from './routes/photos-public.js';
 import { reportsRouter } from './routes/reports.js';
 import { reportManagementRouter } from './routes/report-management.js';
 import { navigationRouter } from './routes/navigation.js';
@@ -79,6 +80,7 @@ app.use(express.json({ limit: '10mb' })); // Increased limit for base64 photos
 app.use('/health', healthRouter);
 app.use('/api', openApiRouter);  // OpenAPI docs (no auth required)
 app.use('/api/auth', authRouter);
+app.use('/api/photos', photosPublicRouter);  // Public photo serving (no auth) - #524
 
 // Service routes (JWT or API key auth)
 app.use('/api/inspectors', serviceAuthMiddleware, inspectorsRouter);
