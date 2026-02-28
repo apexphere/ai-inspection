@@ -14,36 +14,15 @@ npm run build
 
 ### 2. Install the Skill
 
-Copy the `skill/` directory to your OpenClaw skills folder:
+Symlink the skill to Kai's workspace:
 
 ```bash
-cp -r skill ~/.openclaw/skills/building-inspection
+ln -sf $(pwd)/agents/kai/workspace ~/.openclaw/agents/kai/workspace/skills/building-inspection
 ```
 
-Or symlink for development:
+The skill includes `mcp.json` (in `skill/`) — OpenClaw auto-loads MCP server config from there.
 
-```bash
-ln -s $(pwd)/skill ~/.openclaw/skills/building-inspection
-```
-
-### 3. Configure OpenClaw
-
-Add to your OpenClaw config (`~/.openclaw/config.yaml`):
-
-```yaml
-skills:
-  - building-inspection
-
-mcpServers:
-  ai-inspection:
-    command: node
-    args:
-      - /path/to/ai-inspection/server/dist/index.js
-    env:
-      DATA_DIR: /path/to/ai-inspection/data
-```
-
-### 4. Test
+### 3. Test
 
 Start a conversation:
 
@@ -52,12 +31,14 @@ You: I'm at 123 Test Street for an inspection
 Agent: Starting inspection at 123 Test Street...
 ```
 
-## Usage
+## Files
 
-See [SKILL.md](SKILL.md) for the full workflow and commands.
+- **SKILL.md:** `agents/kai/workspace/SKILL.md` — Kai's behavior instructions
+- **mcp.json:** `skill/mcp.json` — MCP server configuration
+- **Server:** `server/` — MCP server implementation
 
 ## Data Storage
 
-- **Database:** `data/inspections.db` (SQLite)
-- **Photos:** `data/photos/{inspection_id}/`
-- **Reports:** `data/reports/{inspection_id}.pdf`
+- **Database:** Prisma/PostgreSQL
+- **Photos:** Cloudflare R2
+- **Reports:** Generated PDFs stored in R2

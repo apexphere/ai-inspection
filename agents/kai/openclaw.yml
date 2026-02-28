@@ -1,4 +1,4 @@
-# OpenClaw configuration for Building Inspection Agent
+# OpenClaw configuration for Kai - Building Inspection Agent
 # Local development config - copy to ~/.openclaw/openclaw.yml
 #
 # Required environment variables:
@@ -11,7 +11,7 @@
 
 # Agent definition
 agents:
-  inspector:
+  kai:
     enabled: true
     model: claude-sonnet-4
     workspace: ./workspace
@@ -43,7 +43,7 @@ mcp:
   servers:
     inspection:
       command: ["node", "dist/index.js"]
-      cwd: "../server"  # Relative to agents/inspector/
+      cwd: "../server"  # Relative to agents/kai/
       env:
         API_URL: "${API_URL}"
         API_KEY: "${API_KEY}"
