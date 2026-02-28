@@ -1,0 +1,41 @@
+<section class="report-section" id="section-7">
+  <h2>7. Conclusions and Recommendations</h2>
+
+  {{#if conclusions}}
+  <h3>Overall Assessment</h3>
+  <p class="conclusion-{{lowercase conclusions.rating}}">
+    <strong>{{conclusions.rating}}</strong>
+  </p>
+  <p>{{conclusions.summary}}</p>
+
+  {{#if conclusions.immediateAttention}}
+  <h3>Items Requiring Immediate Attention</h3>
+  <ul class="attention-list priority-high">
+    {{#each conclusions.immediateAttention}}
+    <li>{{this}}</li>
+    {{/each}}
+  </ul>
+  {{/if}}
+
+  {{#if conclusions.maintenance}}
+  <h3>Maintenance Items</h3>
+  <ul class="maintenance-list">
+    {{#each conclusions.maintenance}}
+    <li>{{this}}</li>
+    {{/each}}
+  </ul>
+  {{/if}}
+
+  {{#if conclusions.furtherInvestigation}}
+  <h3>Recommended Further Investigation</h3>
+  <ul class="investigation-list">
+    {{#each conclusions.furtherInvestigation}}
+    <li>{{this}}</li>
+    {{/each}}
+  </ul>
+  {{/if}}
+
+  {{else}}
+  <p>No conclusions recorded.</p>
+  {{/if}}
+</section>

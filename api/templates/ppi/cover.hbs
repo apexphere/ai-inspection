@@ -1,0 +1,47 @@
+{{!-- PPI Cover Page Template --}}
+<div class="cover-page">
+  <div class="cover-content">
+    <div class="cover-header">
+      {{#if company.logoPath}}
+        <img src="{{company.logoPath}}" alt="{{company.name}}" class="cover-logo" />
+      {{else}}
+        <div class="cover-logo-placeholder">{{project.company}}</div>
+      {{/if}}
+    </div>
+
+    <div class="cover-title">
+      <h1>Pre-Purchase Inspection Report</h1>
+      <p class="cover-standard">NZS 4306:2005</p>
+    </div>
+
+    <div class="cover-details">
+      <div class="cover-address">{{project.address}}</div>
+      <div class="cover-client">
+        <span class="label">Client:</span> {{project.client}}
+      </div>
+      <div class="cover-job-number">
+        <span class="label">Job Number:</span> {{project.jobNumber}}
+      </div>
+      <div class="cover-date">
+        <span class="label">Date:</span> {{formatDate generatedAt}}
+      </div>
+    </div>
+
+    <div class="cover-footer">
+      <div class="cover-prepared-by">
+        <span class="label">Prepared by:</span> {{personnel.author.name}}
+        {{#if personnel.author.credentials}}
+          <span class="credentials">({{personnel.author.credentials}})</span>
+        {{/if}}
+      </div>
+      {{#if personnel.reviewer}}
+        <div class="cover-reviewed-by">
+          <span class="label">Reviewed by:</span> {{personnel.reviewer.name}}
+          {{#if personnel.reviewer.credentials}}
+            <span class="credentials">({{personnel.reviewer.credentials}})</span>
+          {{/if}}
+        </div>
+      {{/if}}
+    </div>
+  </div>
+</div>

@@ -4,7 +4,7 @@
  * Tests for the Handlebars template engine service.
  */
 
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import {
   renderReport,
   renderSection,
@@ -240,6 +240,196 @@ describe('Template Engine', () => {
       const html = await renderSection('coa', '05-clause-review.hbs', data);
       // B2 has no photo refs — should show dash
       expect(html).toContain('—');
+    });
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// PPI Test data
+// ──────────────────────────────────────────────────────────────────────────────
+
+function makePPIReportData() {
+  return {
+    generatedAt: new Date('2026-02-20T10:00:00Z'),
+    project: {
+      jobNumber: 'PPI-2026-001',
+      address: '45 Example Road, Auckland',
+      client: 'Home Buyer Ltd',
+      company: 'Apex Inspection Services',
+    },
+    personnel: {
+      author: {
+        name: 'John Smith',
+        credentials: 'BSCE, LBP #12345',
+      },
+      inspectors: [{ name: 'John Smith', role: 'Lead Inspector' }],
+    },
+    inspection: {
+      date: '2026-02-18T00:00:00Z',
+      weather: 'Overcast, 18°C',
+    },
+    property: {
+      type: 'Standalone dwelling',
+      yearBuilt: '1985',
+      bedrooms: '3',
+      bathrooms: '2',
+      garaging: 'Single garage',
+      cccStatus: 'Issued',
+    },
+    methodology: {
+      areasNotAccessed: 'Sub-floor space (access hatch blocked)',
+      documentsReviewed: ['LIM report', 'Title documents'],
+    },
+    findings: {
+      summary: 'Property is in fair condition with some maintenance required.',
+    },
+    siteGround: {
+      items: [
+        { name: 'Topography', condition: 'Good', observations: 'Level site', photoRefs: [] },
+        { name: 'Retaining walls', condition: 'Fair', observations: 'Minor cracking noted', photoRefs: ['1'], issue: true },
+      ],
+    },
+    exterior: {
+      items: [
+        { name: 'Roof', condition: 'Good', observations: 'Concrete tiles in good condition', photoRefs: ['2'] },
+        { name: 'Cladding', condition: 'Fair', observations: 'Weatherboard, some paint peeling', photoRefs: ['3'], issue: true },
+      ],
+    },
+    interior: {
+      living: {
+        items: [
+          { name: 'Walls', condition: 'Good', observations: 'No defects noted', photoRefs: [] },
+        ],
+      },
+      bathrooms: {
+        items: [
+          { name: 'Shower', condition: 'Fair', observations: 'Grout needs resealing', photoRefs: ['4'], issue: true },
+        ],
+        moistureReadings: [
+          { location: 'Bathroom 1 - shower wall', reading: '12', result: 'Acceptable' },
+          { location: 'Bathroom 2 - floor', reading: '22', result: 'Marginal' },
+        ],
+      },
+    },
+    services: {
+      items: [
+        { name: 'Switchboard', condition: 'Good', observations: 'Modern RCD protection fitted', photoRefs: [] },
+        { name: 'Hot water', condition: 'Good', observations: 'Electric cylinder, 10 years old', photoRefs: [] },
+      ],
+    },
+    conclusions: {
+      rating: 'Fair',
+      summary: 'The property is generally in fair condition for its age. Some maintenance and minor repairs are recommended.',
+      immediateAttention: ['Reseal shower grout in bathroom 1'],
+      maintenance: ['Repaint weatherboard cladding', 'Monitor retaining wall cracks'],
+      furtherInvestigation: ['Structural engineer assessment of retaining wall if cracks worsen'],
+    },
+    appendices: {
+      photos: [
+        { number: 1, caption: 'Retaining wall crack', location: 'Side boundary', base64: 'dGVzdA==' },
+        { number: 2, caption: 'Roof condition', location: 'Front elevation', base64: 'dGVzdA==' },
+        { number: 3, caption: 'Paint peeling', location: 'West wall', base64: 'dGVzdA==' },
+        { number: 4, caption: 'Shower grout', location: 'Bathroom 1', base64: 'dGVzdA==' },
+      ],
+    },
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// PPI Tests
+// ──────────────────────────────────────────────────────────────────────────────
+
+describe('PPI Templates', () => {
+  describe('listTemplates', () => {
+    it('lists PPI section and appendix templates', async () => {
+      const result = await listTemplates('ppi');
+
+      expect(result.sections).toContain('01-executive-summary.hbs');
+      expect(result.sections).toContain('05-interior.hbs');
+      expect(result.sections).toContain('08-signatures.hbs');
+      expect(result.sections).toHaveLength(8);
+
+      expect(result.appendices).toContain('photos.hbs');
+      expect(result.appendices).toHaveLength(1);
+    });
+  });
+
+  describe('renderSection', () => {
+    it('renders PPI executive summary with property details', async () => {
+      const data = makePPIReportData();
+      const html = await renderSection('ppi', '01-executive-summary.hbs', data);
+
+      expect(html).toContain('Executive Summary');
+      expect(html).toContain('PPI-2026-001');
+      expect(html).toContain('45 Example Road, Auckland');
+      expect(html).toContain('Standalone dwelling');
+      expect(html).toContain('1985');
+    });
+
+    it('renders PPI interior with moisture readings', async () => {
+      const data = makePPIReportData();
+      const html = await renderSection('ppi', '05-interior.hbs', data);
+
+      expect(html).toContain('Interior of Building');
+      expect(html).toContain('Bathrooms');
+      expect(html).toContain('Moisture Readings');
+      expect(html).toContain('Bathroom 1 - shower wall');
+      expect(html).toContain('Acceptable');
+      expect(html).toContain('Marginal');
+    });
+
+    it('renders PPI conclusions with recommendations', async () => {
+      const data = makePPIReportData();
+      const html = await renderSection('ppi', '07-conclusions.hbs', data);
+
+      expect(html).toContain('Conclusions and Recommendations');
+      expect(html).toContain('Fair');
+      expect(html).toContain('Reseal shower grout');
+      expect(html).toContain('Repaint weatherboard');
+      expect(html).toContain('Structural engineer');
+    });
+  });
+
+  describe('renderReport', () => {
+    it('renders full PPI report with all sections', async () => {
+      const data = makePPIReportData();
+      const html = await renderReport({ reportType: 'ppi', data });
+
+      // Base layout
+      expect(html).toContain('<!DOCTYPE html>');
+      expect(html).toContain('Pre-Purchase Inspection Report');
+
+      // Header
+      expect(html).toContain('PPI-2026-001');
+
+      // CSS included
+      expect(html).toContain('@page');
+      expect(html).toContain('font-family');
+
+      // All 8 sections present
+      expect(html).toContain('id="section-1"');
+      expect(html).toContain('id="section-2"');
+      expect(html).toContain('id="section-3"');
+      expect(html).toContain('id="section-4"');
+      expect(html).toContain('id="section-5"');
+      expect(html).toContain('id="section-6"');
+      expect(html).toContain('id="section-7"');
+      expect(html).toContain('id="section-8"');
+
+      // Appendix present
+      expect(html).toContain('id="appendix-a"');
+
+      // Footer
+      expect(html).toContain('CONFIDENTIAL');
+    });
+
+    it('includes photo data in appendix', async () => {
+      const data = makePPIReportData();
+      const html = await renderReport({ reportType: 'ppi', data });
+
+      expect(html).toContain('Photograph 1');
+      expect(html).toContain('Retaining wall crack');
+      expect(html).toContain('data:image/jpeg;base64,dGVzdA==');
     });
   });
 });

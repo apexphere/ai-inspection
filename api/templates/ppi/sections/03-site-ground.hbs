@@ -1,0 +1,34 @@
+<section class="report-section" id="section-3">
+  <h2>3. Site and Ground Condition</h2>
+
+  {{#if siteGround}}
+  <table class="inspection-table">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Condition</th>
+        <th>Observations</th>
+        <th>Photos</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each siteGround.items}}
+      <tr class="{{#if issue}}has-issue{{/if}}">
+        <td>{{name}}</td>
+        <td class="condition-{{lowercase condition}}">{{condition}}</td>
+        <td>{{observations}}</td>
+        <td>{{photoRef photoRefs}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+  {{#if siteGround.notes}}
+  <h3>Additional Notes</h3>
+  <p>{{siteGround.notes}}</p>
+  {{/if}}
+
+  {{else}}
+  <p>No site and ground observations recorded.</p>
+  {{/if}}
+</section>

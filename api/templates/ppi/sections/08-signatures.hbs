@@ -1,0 +1,34 @@
+<section class="report-section signatures" id="section-8">
+  <h2>8. Declaration</h2>
+
+  <div class="declaration">
+    <p>
+      I hereby declare that this inspection was carried out in accordance with 
+      NZS 4306:2005 — Residential Property Inspection. This report represents 
+      the condition of the property at the time of inspection and is based on 
+      visual examination of accessible areas only.
+    </p>
+    <p>
+      This report is prepared for the exclusive use of the client named herein 
+      and may not be relied upon by any other party without written consent.
+    </p>
+  </div>
+
+  <div class="signature-blocks">
+    <div class="signature-block">
+      <div class="signature-line"></div>
+      <p class="sig-name">{{personnel.author.name}}</p>
+      <p class="sig-credentials">{{personnel.author.credentials}}</p>
+      <p class="sig-date">Date: {{formatDate generatedAt}}</p>
+    </div>
+
+    {{#if personnel.reviewer}}
+    <div class="signature-block">
+      <div class="signature-line"></div>
+      <p class="sig-name">{{personnel.reviewer.name}}</p>
+      <p class="sig-credentials">{{personnel.reviewer.credentials}}</p>
+      <p class="sig-date">Date: {{formatDate generatedAt}}</p>
+    </div>
+    {{/if}}
+  </div>
+</section>
