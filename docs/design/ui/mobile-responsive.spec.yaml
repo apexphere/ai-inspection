@@ -108,3 +108,23 @@ implementation:
     - "web/app/layout.tsx"             # Check container
     - "web/app/inspections/page.tsx"   # Check list layout
     - "web/app/projects/page.tsx"      # Check list layout
+
+# =============================================================================
+# DESKTOP IMPROVEMENTS (added)
+# =============================================================================
+desktop:
+  issue: "Tables/content too narrow, not using screen width"
+  
+  solution:
+    layout: "Remove max-w-7xl from main, let pages control width"
+    list-pages:
+      inspections: "full-width table with side padding"
+      projects: "full-width table with side padding"
+    form-pages:
+      profile: "keep max-w-2xl for readability"
+      inspection-detail: "use available width"
+  
+  implementation:
+    - "layout.tsx: remove max-w-7xl, use w-full with padding"
+    - "list pages: tables expand to available width"
+    - "form pages: maintain readable max-width"
