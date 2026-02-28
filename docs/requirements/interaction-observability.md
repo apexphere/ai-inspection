@@ -68,13 +68,41 @@ With this data, we can ask:
 | Where does AI get confused? | Find sessions with corrections/retries |
 | What inputs cause problems? | Pattern analysis on failed interpretations |
 
-## Open Questions
+## Decisions
 
-1. **Storage** — Where to store this? Same DB as inspections? Separate observability store?
-2. **Retention** — How long to keep? All sessions forever? Or rolling window?
-3. **Access** — Who can review sessions? Just devs? Or inspectors reviewing their own?
-4. **Privacy** — Any PII concerns with storing full conversations?
-5. **Tooling** — Build custom viewer? Use existing tool (Langfuse, etc.)?
+| Question | Decision | Rationale |
+|----------|----------|-----------|
+| **Storage** | Same DB, separate schema | No new infrastructure, keeps it simple |
+| **Retention** | Keep forever unless manually cleared | Storage is cheap, data is valuable |
+| **Access** | Devs only | Block inspectors from seeing these logs |
+| **Privacy** | No concerns for now | Revisit if needed |
+| **Tooling** | Simple DB table for MVP | Quickest to start; migrate to Langfuse later if needed |
+
+## MVP Implementation
+
+**Approach:** Add `interaction_logs` table to existing database.
+
+```sql
+CREATE TABLE interaction_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id TEXT NOT NULL,           -- inspection session
+  timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  event_type TEXT NOT NULL,           -- 'user_input' | 'ai_interpretation' | 'tool_call' | 'tool_result' | 'ai_response'
+  content JSONB NOT NULL,             -- flexible payload
+  metadata JSONB                      -- extra context (user_id, channel, etc.)
+);
+
+CREATE INDEX idx_interaction_logs_session ON interaction_logs(session_id);
+CREATE INDEX idx_interaction_logs_timestamp ON interaction_logs(timestamp);
+```
+
+**Viewer:** Build later. For MVP, query directly with SQL or simple admin endpoint.
+
+**Future:** If we outgrow this, migrate to Langfuse (self-hosted or cloud). Langfuse offers:
+- Full UI for trace visualization
+- Session replay
+- Evaluations and scoring
+- Self-hosted in 5 minutes via Docker Compose
 
 ## Out of Scope (for now)
 
@@ -82,6 +110,7 @@ With this data, we can ask:
 - Performance metrics
 - Usage analytics
 - A/B testing
+- Custom viewer UI (query with SQL for MVP)
 
 ## Success Criteria
 
