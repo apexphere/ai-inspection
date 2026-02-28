@@ -47,9 +47,12 @@ export function AppHeader(): React.ReactElement | null {
           </div>
           {isAuthenticated && (
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">
+              <Link
+                href="/profile"
+                className="text-sm text-gray-600 hover:text-gray-900"
+              >
                 {session?.user?.email}
-              </span>
+              </Link>
               <button
                 onClick={handleLogout}
                 className="text-sm font-medium text-gray-600 hover:text-gray-900"

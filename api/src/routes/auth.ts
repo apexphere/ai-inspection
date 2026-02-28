@@ -679,3 +679,131 @@ function setTokenCookie(res: Response, token: string): void {
 
   res.cookie('token', token, cookieOptions);
 }
+
+// ============================================
+// Profile Management — Issue #515
+// ============================================
+
+const UpdateProfileSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(100, 'Name too long').optional(),
+  email: z.string().email('Invalid email format').optional(),
+  company: z.string().max(100, 'Company name too long').optional().nullable(),
+});
+
+/**
+ * GET /api/auth/profile
+ * Get current user profile
+ */
+authRouter.get('/profile', async (req: Request, res: Response) => {
+  try {
+    const token = req.cookies?.token || req.headers.authorization?.replace('Bearer ', '');
+    
+    if (!token) {
+      res.status(401).json({ error: 'Not authenticated' });
+      return;
+    }
+
+    let userId: string;
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as { sub: string };
+      userId = decoded.sub;
+    } catch {
+      res.status(401).json({ error: 'Invalid token' });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        company: true,
+        phoneNumber: true,
+        phoneVerified: true,
+        createdAt: true,
+      },
+    });
+
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    res.json({ user });
+  } catch (err) {
+    console.error('Get profile error:', err);
+    res.status(500).json({ error: 'Failed to get profile' });
+  }
+});
+
+/**
+ * PATCH /api/auth/profile
+ * Update current user profile
+ */
+authRouter.patch('/profile', async (req: Request, res: Response) => {
+  try {
+    const token = req.cookies?.token || req.headers.authorization?.replace('Bearer ', '');
+    
+    if (!token) {
+      res.status(401).json({ error: 'Not authenticated' });
+      return;
+    }
+
+    let userId: string;
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as { sub: string };
+      userId = decoded.sub;
+    } catch {
+      res.status(401).json({ error: 'Invalid token' });
+      return;
+    }
+
+    const parsed = UpdateProfileSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({
+        error: 'Validation failed',
+        details: parsed.error.flatten().fieldErrors,
+      });
+      return;
+    }
+
+    const { name, email, company } = parsed.data;
+
+    // Check if email is being changed and if it's already taken
+    if (email) {
+      const existingUser = await prisma.user.findUnique({
+        where: { email: email.toLowerCase() },
+      });
+
+      if (existingUser && existingUser.id !== userId) {
+        res.status(409).json({ error: 'Email already in use' });
+        return;
+      }
+    }
+
+    const updateData: { name?: string; email?: string; company?: string | null } = {};
+    if (name !== undefined) updateData.name = name;
+    if (email !== undefined) updateData.email = email.toLowerCase();
+    if (company !== undefined) updateData.company = company;
+
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: updateData,
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        company: true,
+        phoneNumber: true,
+        phoneVerified: true,
+        createdAt: true,
+      },
+    });
+
+    res.json({ user });
+  } catch (err) {
+    console.error('Update profile error:', err);
+    res.status(500).json({ error: 'Failed to update profile' });
+  }
+});
