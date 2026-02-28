@@ -36,6 +36,7 @@ photosPublicRouter.get('/:id', async (req: Request, res: Response, next: NextFun
 
     // Set cache headers (photos are immutable)
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
     res.setHeader('Content-Type', photo.mimeType);
     res.setHeader('Content-Disposition', `inline; filename="${photo.filename}"`);
     
