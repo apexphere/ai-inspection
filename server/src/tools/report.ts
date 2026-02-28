@@ -7,6 +7,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { inspectionApi, navigationApi, reportsApi, findingsApi } from "../api/client.js";
+import { logToolCall, logToolResult } from "../services/interaction-logger.js";
 
 // ============================================================================
 // Tool Registration

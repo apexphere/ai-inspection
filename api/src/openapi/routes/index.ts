@@ -43,3 +43,4 @@ import './report-generation.js';
 import './report-templates.js';
 import './review-comments.js';
 import './defects.js';
+import './interaction-logs.js';

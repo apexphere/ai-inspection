@@ -36,6 +36,7 @@ import { reviewCommentsRouter } from './routes/review-comments.js';
 import { generatedReportsRouter } from './routes/generated-reports.js';
 import { personnelRouter } from './routes/personnel.js';
 import { credentialsRouter } from './routes/credentials.js';
+import { interactionLogsRouter } from './routes/interaction-logs.js';
 import { openApiRouter } from './openapi/index.js';
 import { authMiddleware, serviceAuthMiddleware } from './middleware/auth.js';
 import { getAllowedOrigins } from './config/domain.js';
@@ -113,6 +114,7 @@ app.use('/api', authMiddleware, reportTemplatesRouter);
 app.use('/api', authMiddleware, reviewCommentsRouter);
 app.use('/api/reports', authMiddleware, generatedReportsRouter);
 app.use('/api', authMiddleware, credentialsRouter);
+app.use('/api/interaction-logs', serviceAuthMiddleware, interactionLogsRouter);
 
 // Error handling with detailed logging
 app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {

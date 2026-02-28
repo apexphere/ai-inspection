@@ -16,6 +16,7 @@ import {
   buildingCodeApi,
 } from "../api/client.js";
 import { checklistService } from "../services/checklist.js";
+import { logToolCall, logToolResult } from "../services/interaction-logger.js";
 
 // ============================================================================
 // Tool Registration

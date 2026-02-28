@@ -511,3 +511,44 @@ export const reportsApi = {
   getLatest: (inspectionId: string) =>
     request<Report>('GET', `/api/inspections/${inspectionId}/report`),
 };
+
+// ============================================================================
+// Interaction Logs API — Issue #512
+// ============================================================================
+
+export type InteractionEventType = 
+  | 'USER_INPUT'
+  | 'AI_INTERPRETATION'
+  | 'TOOL_CALL'
+  | 'TOOL_RESULT'
+  | 'AI_RESPONSE';
+
+export interface CreateInteractionLogInput {
+  sessionId: string;
+  eventType: InteractionEventType;
+  content: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
+}
+
+export interface InteractionLog {
+  id: string;
+  sessionId: string;
+  timestamp: string;
+  eventType: InteractionEventType;
+  content: Record<string, unknown>;
+  metadata: Record<string, unknown> | null;
+}
+
+export const interactionLogsApi = {
+  create: (input: CreateInteractionLogInput) =>
+    request<InteractionLog>('POST', '/api/interaction-logs', input),
+  
+  createBatch: (logs: CreateInteractionLogInput[]) =>
+    request<{ created: number }>('POST', '/api/interaction-logs/batch', { logs }),
+  
+  getSessionTimeline: (sessionId: string) =>
+    request<{ sessionId: string; logs: InteractionLog[]; count: number }>(
+      'GET', 
+      `/api/interaction-logs/sessions/${sessionId}`
+    ),
+};
