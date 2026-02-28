@@ -1,0 +1,65 @@
+{{!-- Building & Site Description — Issue #549 --}}
+<section class="report-section" id="section-3">
+  <h2>3. Building and Site Description</h2>
+
+  <table class="summary-table">
+    {{#if property.type}}
+    <tr><th>Property Type</th><td>{{property.type}}</td></tr>
+    {{/if}}
+    {{#if property.yearBuilt}}
+    <tr><th>Year Built</th><td>{{property.yearBuilt}}</td></tr>
+    {{/if}}
+    {{#if property.bedrooms}}
+    <tr><th>Bedrooms</th><td>{{property.bedrooms}}</td></tr>
+    {{/if}}
+    {{#if property.bathrooms}}
+    <tr><th>Bathrooms</th><td>{{property.bathrooms}}</td></tr>
+    {{/if}}
+    {{#if property.garaging}}
+    <tr><th>Garaging</th><td>{{property.garaging}}</td></tr>
+    {{/if}}
+    {{#if property.cccStatus}}
+    <tr><th>CCC Status</th><td>{{property.cccStatus}}</td></tr>
+    {{/if}}
+  </table>
+
+  {{#if property.zones}}
+  <h3>Zone Data</h3>
+  <table class="summary-table">
+    {{#if property.zones.wind}}
+    <tr><th>Wind Zone</th><td>{{property.zones.wind}}</td></tr>
+    {{/if}}
+    {{#if property.zones.earthquake}}
+    <tr><th>Earthquake Zone</th><td>{{property.zones.earthquake}}</td></tr>
+    {{/if}}
+    {{#if property.zones.exposure}}
+    <tr><th>Exposure Zone</th><td>{{property.zones.exposure}}</td></tr>
+    {{/if}}
+    {{#if property.zones.corrosion}}
+    <tr><th>Corrosion Zone</th><td>{{property.zones.corrosion}}</td></tr>
+    {{/if}}
+  </table>
+  {{/if}}
+
+  {{#if property.buildingHistory}}
+  <h3>Building History</h3>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Reference</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each property.buildingHistory}}
+      <tr>
+        <td>{{type}}</td>
+        <td>{{reference}}</td>
+        <td>{{formatDate date}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+  {{/if}}
+</section>

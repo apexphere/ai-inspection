@@ -1,0 +1,29 @@
+{{!-- Limitations — Issue #549 --}}
+<section class="report-section" id="section-10">
+  <h2>10. Limitations</h2>
+
+  <p>This report is subject to the following limitations:</p>
+
+  <ol class="limitations-list">
+    <li>This inspection is a <strong>visual, non-invasive assessment</strong> only. No destructive or invasive testing was undertaken.</li>
+    <li>The inspection does not include testing for the presence of <strong>asbestos, lead-based paint, methamphetamine contamination,</strong> or other hazardous materials.</li>
+    <li>Concealed elements such as framing, insulation, waterproofing membranes, and services within walls, floors, and ceilings were not inspected and no warranty is given regarding their condition.</li>
+    <li>The inspection does not cover <strong>intermittent or concealed faults</strong> in plumbing, drainage, electrical, or mechanical systems.</li>
+    <li>Areas that were inaccessible, locked, obstructed by furniture or stored items, or unsafe to access were not inspected.</li>
+    <li>This report does not constitute a <strong>compliance assessment</strong> against the New Zealand Building Code or any other regulatory standard.</li>
+    <li>Moisture readings are indicative only and do not confirm the presence or absence of moisture damage. Further invasive investigation may be required.</li>
+    <li>This report is prepared for the exclusive use of the named client and should not be relied upon by third parties without written consent.</li>
+  </ol>
+
+  {{#if methodology.areasNotAccessed}}
+  <h3>Specific Limitations — Areas Not Accessed</h3>
+  <p>{{methodology.areasNotAccessed}}</p>
+  {{/if}}
+
+  {{#if limitations.additional}}
+  <h3>Additional Limitations</h3>
+  {{#each limitations.additional}}
+  <p>{{this}}</p>
+  {{/each}}
+  {{/if}}
+</section>

@@ -1,0 +1,61 @@
+{{!-- Inspection Methodology — Issue #549 --}}
+<section class="report-section" id="section-4">
+  <h2>4. Inspection Methodology</h2>
+
+  {{#if methodology.description}}
+  <h3>Approach</h3>
+  <p>{{methodology.description}}</p>
+  {{else}}
+  <h3>Approach</h3>
+  <p>A visual, non-invasive inspection was carried out in accordance with NZS 4306:2005.</p>
+  {{/if}}
+
+  {{#if personnel.inspectors}}
+  <h3>Inspection Personnel</h3>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Role</th>
+        {{#if personnel.inspectors.[0].credentials}}
+        <th>Credentials</th>
+        {{/if}}
+      </tr>
+    </thead>
+    <tbody>
+      {{#each personnel.inspectors}}
+      <tr>
+        <td>{{name}}</td>
+        <td>{{role}}</td>
+        {{#if credentials}}
+        <td>{{credentials}}</td>
+        {{/if}}
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+  {{/if}}
+
+  {{#if methodology.equipment}}
+  <h3>Equipment Used</h3>
+  <ul>
+    {{#each methodology.equipment}}
+    <li>{{this}}</li>
+    {{/each}}
+  </ul>
+  {{/if}}
+
+  {{#if methodology.areasNotAccessed}}
+  <h3>Areas Not Accessed</h3>
+  <p>{{methodology.areasNotAccessed}}</p>
+  {{/if}}
+
+  {{#if methodology.documentsReviewed}}
+  <h3>Documents Reviewed</h3>
+  <ul>
+    {{#each methodology.documentsReviewed}}
+    <li>{{this}}</li>
+    {{/each}}
+  </ul>
+  {{/if}}
+</section>

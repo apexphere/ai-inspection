@@ -275,8 +275,18 @@ function makePPIReportData() {
       bathrooms: '2',
       garaging: 'Single garage',
       cccStatus: 'Issued',
+      zones: {
+        wind: 'Medium',
+        earthquake: 'Zone 1',
+        exposure: 'Sheltered',
+      },
+      buildingHistory: [
+        { type: 'Building Consent', reference: 'BC/2020/1234', date: '2020-03-15' },
+      ],
     },
     methodology: {
+      description: 'Visual non-invasive inspection per NZS 4306:2005',
+      equipment: ['Moisture meter', 'Thermal camera'],
       areasNotAccessed: 'Sub-floor space (access hatch blocked)',
       documentsReviewed: ['LIM report', 'Title documents'],
     },
@@ -345,9 +355,9 @@ describe('PPI Templates', () => {
       const result = await listTemplates('ppi');
 
       expect(result.sections).toContain('01-executive-summary.hbs');
-      expect(result.sections).toContain('05-interior.hbs');
-      expect(result.sections).toContain('08-signatures.hbs');
-      expect(result.sections).toHaveLength(8);
+      expect(result.sections).toContain('07-interior.hbs');
+      expect(result.sections).toContain('11-signatures.hbs');
+      expect(result.sections).toHaveLength(11);
 
       expect(result.appendices).toContain('photos.hbs');
       expect(result.appendices).toHaveLength(1);
@@ -368,7 +378,7 @@ describe('PPI Templates', () => {
 
     it('renders PPI interior with moisture readings', async () => {
       const data = makePPIReportData();
-      const html = await renderSection('ppi', '05-interior.hbs', data);
+      const html = await renderSection('ppi', '07-interior.hbs', data);
 
       expect(html).toContain('Interior of Building');
       expect(html).toContain('Bathrooms');
@@ -380,13 +390,48 @@ describe('PPI Templates', () => {
 
     it('renders PPI conclusions with recommendations', async () => {
       const data = makePPIReportData();
-      const html = await renderSection('ppi', '07-conclusions.hbs', data);
+      const html = await renderSection('ppi', '09-conclusions.hbs', data);
 
       expect(html).toContain('Conclusions and Recommendations');
       expect(html).toContain('Fair');
       expect(html).toContain('Reseal shower grout');
       expect(html).toContain('Repaint weatherboard');
       expect(html).toContain('Structural engineer');
+    });
+
+    it('renders PPI building & site description with zones', async () => {
+      const data = makePPIReportData();
+      const html = await renderSection('ppi', '03-building-site.hbs', data);
+
+      expect(html).toContain('Building and Site Description');
+      expect(html).toContain('Standalone dwelling');
+      expect(html).toContain('1985');
+      expect(html).toContain('Wind Zone');
+      expect(html).toContain('Medium');
+      expect(html).toContain('BC/2020/1234');
+    });
+
+    it('renders PPI methodology with equipment', async () => {
+      const data = makePPIReportData();
+      const html = await renderSection('ppi', '04-methodology.hbs', data);
+
+      expect(html).toContain('Inspection Methodology');
+      expect(html).toContain('Visual non-invasive');
+      expect(html).toContain('Moisture meter');
+      expect(html).toContain('Thermal camera');
+      expect(html).toContain('Sub-floor space');
+      expect(html).toContain('LIM report');
+    });
+
+    it('renders PPI limitations with disclaimers', async () => {
+      const data = makePPIReportData();
+      const html = await renderSection('ppi', '10-limitations.hbs', data);
+
+      expect(html).toContain('Limitations');
+      expect(html).toContain('visual, non-invasive');
+      expect(html).toContain('asbestos');
+      expect(html).toContain('Concealed elements');
+      expect(html).toContain('Sub-floor space');
     });
   });
 
@@ -406,7 +451,7 @@ describe('PPI Templates', () => {
       expect(html).toContain('@page');
       expect(html).toContain('font-family');
 
-      // All 8 sections present
+      // All 11 sections present
       expect(html).toContain('id="section-1"');
       expect(html).toContain('id="section-2"');
       expect(html).toContain('id="section-3"');
@@ -415,6 +460,9 @@ describe('PPI Templates', () => {
       expect(html).toContain('id="section-6"');
       expect(html).toContain('id="section-7"');
       expect(html).toContain('id="section-8"');
+      expect(html).toContain('id="section-9"');
+      expect(html).toContain('id="section-10"');
+      expect(html).toContain('id="section-11"');
 
       // Appendix present
       expect(html).toContain('id="appendix-a"');
