@@ -82,6 +82,7 @@ app.use('/api/auth', authRouter);
 
 // Service routes (JWT or API key auth)
 app.use('/api/inspectors', serviceAuthMiddleware, inspectorsRouter);
+app.use('/api/interaction-logs', serviceAuthMiddleware, interactionLogsRouter);
 
 // Protected routes (auth required)
 app.use('/api/inspections', authMiddleware, inspectionsRouter);
@@ -114,7 +115,6 @@ app.use('/api', authMiddleware, reportTemplatesRouter);
 app.use('/api', authMiddleware, reviewCommentsRouter);
 app.use('/api/reports', authMiddleware, generatedReportsRouter);
 app.use('/api', authMiddleware, credentialsRouter);
-app.use('/api/interaction-logs', serviceAuthMiddleware, interactionLogsRouter);
 
 // Error handling with detailed logging
 app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
