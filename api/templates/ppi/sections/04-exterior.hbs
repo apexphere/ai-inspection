@@ -1,0 +1,34 @@
+<section class="report-section" id="section-4">
+  <h2>4. Exterior of Building</h2>
+
+  {{#if exterior}}
+  <table class="inspection-table">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Condition</th>
+        <th>Observations</th>
+        <th>Photos</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each exterior.items}}
+      <tr class="{{#if issue}}has-issue{{/if}}">
+        <td>{{name}}</td>
+        <td class="condition-{{lowercase condition}}">{{condition}}</td>
+        <td>{{observations}}</td>
+        <td>{{photoRef photoRefs}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+  {{#if exterior.notes}}
+  <h3>Additional Notes</h3>
+  <p>{{exterior.notes}}</p>
+  {{/if}}
+
+  {{else}}
+  <p>No exterior observations recorded.</p>
+  {{/if}}
+</section>

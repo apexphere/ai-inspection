@@ -1,0 +1,46 @@
+<section class="report-section" id="section-2">
+  <h2>2. Introduction</h2>
+
+  <h3>Purpose</h3>
+  <p>
+    This Pre-Purchase Inspection Report has been prepared in accordance with 
+    <strong>NZS 4306:2005 — Residential Property Inspection</strong>. The purpose 
+    of this inspection is to provide the client with an independent assessment of 
+    the property's condition at the time of inspection.
+  </p>
+
+  <h3>Scope of Inspection</h3>
+  <p>
+    This is a visual inspection of accessible areas only. The inspection covers:
+  </p>
+  <ul>
+    <li>Site and ground conditions</li>
+    <li>Exterior of the building (roof, cladding, joinery, foundation)</li>
+    <li>Interior of the building (all accessible rooms and spaces)</li>
+    <li>Service systems (electrical, plumbing, drainage, ventilation)</li>
+  </ul>
+
+  <h3>Limitations</h3>
+  <p>This inspection does not include:</p>
+  <ul>
+    <li>Invasive or destructive testing</li>
+    <li>Areas concealed by furniture, floor coverings, or stored items</li>
+    <li>Areas that are locked, sealed, or otherwise inaccessible</li>
+    <li>Specialist assessments (structural engineering, geotechnical, asbestos, etc.)</li>
+    <li>Compliance verification with building consents or code</li>
+  </ul>
+
+  {{#if methodology.areasNotAccessed}}
+  <h3>Areas Not Accessed</h3>
+  <p>{{methodology.areasNotAccessed}}</p>
+  {{/if}}
+
+  {{#if methodology.documentsReviewed}}
+  <h3>Documents Reviewed</h3>
+  <ul>
+    {{#each methodology.documentsReviewed}}
+    <li>{{this}}</li>
+    {{/each}}
+  </ul>
+  {{/if}}
+</section>
