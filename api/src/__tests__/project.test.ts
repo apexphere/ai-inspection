@@ -52,6 +52,13 @@ const mockProperty: Property = {
   yearBuilt: 2000,
   siteData: null,
   construction: null,
+  climateZone: null,
+  earthquakeZone: null,
+  exposureZone: null,
+  leeZone: null,
+  rainfallRange: null,
+  windRegion: null,
+  windZone: null,
   createdAt: new Date(),
   updatedAt: new Date(),
 };
@@ -372,5 +379,103 @@ describe('ClientService', () => {
         service.update('non-existent', { phone: '09 987 6543' })
       ).rejects.toThrow(ClientNotFoundError);
     });
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// BRANZ Zone Data Tests — Issue #543
+// ──────────────────────────────────────────────────────────────────────────────
+
+describe('Property BRANZ Zone Fields — #543', () => {
+  let repository: IPropertyRepository;
+  let service: PropertyService;
+
+  beforeEach(() => {
+    repository = createMockPropertyRepository();
+    service = new PropertyService(repository);
+  });
+
+  const mockPropertyWithZones = {
+    id: 'prop-1',
+    streetAddress: '123 Test St',
+    suburb: 'Ponsonby',
+    city: 'Auckland',
+    postcode: '1011',
+    lotDp: 'Lot 1 DP 12345',
+    councilPropertyId: null,
+    territorialAuthority: 'AKL' as const,
+    bcNumber: null,
+    yearBuilt: 2005,
+    siteData: null,
+    construction: null,
+    climateZone: '1',
+    earthquakeZone: 'Zone 1',
+    exposureZone: 'Zone B',
+    leeZone: 'No',
+    rainfallRange: '80-90',
+    windRegion: 'A',
+    windZone: 'Medium',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+
+  it('should create property with BRANZ zone data', async () => {
+    vi.mocked(repository.create).mockResolvedValue(mockPropertyWithZones as never);
+
+    const result = await service.create({
+      streetAddress: '123 Test St',
+      territorialAuthority: 'AKL',
+      climateZone: '1',
+      earthquakeZone: 'Zone 1',
+      exposureZone: 'Zone B',
+      leeZone: 'No',
+      rainfallRange: '80-90',
+      windRegion: 'A',
+      windZone: 'Medium',
+    });
+
+    expect(result.climateZone).toBe('1');
+    expect(result.earthquakeZone).toBe('Zone 1');
+    expect(result.windZone).toBe('Medium');
+    expect(repository.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        climateZone: '1',
+        earthquakeZone: 'Zone 1',
+        windZone: 'Medium',
+      }),
+    );
+  });
+
+  it('should update property BRANZ zone data', async () => {
+    vi.mocked(repository.findById).mockResolvedValue(mockPropertyWithZones as never);
+    vi.mocked(repository.update).mockResolvedValue({
+      ...mockPropertyWithZones,
+      windZone: 'High',
+    } as never);
+
+    const result = await service.update('prop-1', { windZone: 'High' });
+    expect(result.windZone).toBe('High');
+  });
+
+  it('should accept property without BRANZ fields', async () => {
+    const noZones = {
+      ...mockPropertyWithZones,
+      climateZone: null,
+      earthquakeZone: null,
+      exposureZone: null,
+      leeZone: null,
+      rainfallRange: null,
+      windRegion: null,
+      windZone: null,
+    };
+    vi.mocked(repository.create).mockResolvedValue(noZones as never);
+
+    const result = await service.create({
+      streetAddress: '456 Other St',
+      territorialAuthority: 'WCC',
+    });
+
+    expect(result.climateZone).toBeNull();
+    expect(result.windZone).toBeNull();
   });
 });

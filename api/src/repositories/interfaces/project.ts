@@ -39,6 +39,14 @@ export interface CreatePropertyInput {
   yearBuilt?: number;
   siteData?: Prisma.InputJsonValue;
   construction?: Prisma.InputJsonValue;
+  // BRANZ Zone Data — Issue #543
+  climateZone?: string;
+  earthquakeZone?: string;
+  exposureZone?: string;
+  leeZone?: string;
+  rainfallRange?: string;
+  windRegion?: string;
+  windZone?: string;
 }
 
 export interface UpdatePropertyInput {
@@ -53,6 +61,14 @@ export interface UpdatePropertyInput {
   yearBuilt?: number;
   siteData?: Prisma.InputJsonValue;
   construction?: Prisma.InputJsonValue;
+  // BRANZ Zone Data — Issue #543
+  climateZone?: string;
+  earthquakeZone?: string;
+  exposureZone?: string;
+  leeZone?: string;
+  rainfallRange?: string;
+  windRegion?: string;
+  windZone?: string;
 }
 
 export interface PropertySearchParams {

@@ -348,6 +348,15 @@ model Property {
   yearBuilt            Int?
   siteData             Json?
   construction         Json?
+  
+  // BRANZ Zone Data — Issue #543
+  climateZone          String?
+  earthquakeZone       String?
+  exposureZone         String?
+  leeZone              String?
+  rainfallRange        String?
+  windRegion           String?
+  windZone             String?
   createdAt            DateTime             @default(now())
   updatedAt            DateTime             @updatedAt
   
