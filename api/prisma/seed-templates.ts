@@ -52,10 +52,45 @@ This report is intended to inform the prospective purchaser of any significant d
     name: 'Introduction - Safe & Sanitary',
     type: 'SECTION',
     reportType: 'SAFE_SANITARY',
-    content: `[Company Name] have been engaged to carry out a Safe and Sanitary assessment of the building at [Address].
+    content: `[Company Name] have been engaged to carry out an independent assessment of the building works carried out before 1 July 1992 at [Property Address] to verify on reasonable grounds that the building work is safe and sanitary for its intended purpose.
 
-This report assesses whether the building meets the minimum requirements for safe and sanitary conditions under Section 112 of the Building Act 2004.`,
-    variables: ['Company Name', 'Address'],
+This assessment is carried out in accordance with Section 112 of the Building Act 2004 and references the requirements of the Building Act 1991 s.64 for buildings constructed prior to the current Building Code.`,
+    variables: ['Company Name', 'Property Address'],
+  },
+  {
+    name: 'Summary (Pass) - Safe & Sanitary',
+    type: 'SECTION',
+    reportType: 'SAFE_SANITARY',
+    content: `Following review of site works and comparing with compliance requirement, it is concluded that the building of [Property Address] is in Safe and Sanitary condition.
+
+No significant safety or sanitary deficiencies were identified during this assessment. The building is considered to meet the minimum requirements of the Building Act 1991 s.64 for its intended purpose.`,
+    variables: ['Property Address'],
+  },
+  {
+    name: 'Summary (Fail) - Safe & Sanitary',
+    type: 'SECTION',
+    reportType: 'SAFE_SANITARY',
+    content: `Following review of site works and comparing with compliance requirement, the building at [Property Address] does not currently meet Safe and Sanitary requirements.
+
+The following remedial works are required to achieve Safe and Sanitary status:
+
+[Remedial Works Summary]
+
+These works must be completed and signed off before the building can be considered safe and sanitary for its intended purpose.`,
+    variables: ['Property Address', 'Remedial Works Summary'],
+  },
+  {
+    name: 'Limitations - Safe & Sanitary',
+    type: 'BOILERPLATE',
+    reportType: 'SAFE_SANITARY',
+    content: `This report has been prepared for the client by [Company Name] under a specific scope and Terms of Engagement. The report is based on our observations from a visual survey of the building visible at the time of inspection.
+
+The conclusions and recommendations are in general terms only and are intended to provide a guide to achieving a Safe and Sanitary determination.
+
+All recommendations within the scope of works identified in this report must be completed strictly in accordance with the New Zealand Building Code and manufacturer's technical instructions and must be signed off by [Company Name] on completion of the works.
+
+Subject to the above, [Company Name] believes that on reasonable grounds the works will comply with the relevant provisions of the New Zealand Building Code.`,
+    variables: ['Company Name'],
   },
 
   // ── CCC Gap Analysis Section Templates (#221) ──────────────────────────

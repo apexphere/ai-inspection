@@ -40,6 +40,51 @@ This report identifies outstanding items and inspections required to achieve a C
 This report is intended to inform the prospective purchaser of any significant defects or maintenance issues identified at the time of inspection.`,
     variables: ['Company Name', 'Property Address'],
   },
+  // ── SS Section Templates (#554) ───────────────────────────────────────
+  {
+    name: 'Introduction - Safe & Sanitary',
+    type: 'SECTION' as const,
+    reportType: 'SAFE_SANITARY' as const,
+    content: `[Company Name] have been engaged to carry out an independent assessment of the building works carried out before 1 July 1992 at [Property Address] to verify on reasonable grounds that the building work is safe and sanitary for its intended purpose.
+
+This assessment is carried out in accordance with Section 112 of the Building Act 2004 and references the requirements of the Building Act 1991 s.64 for buildings constructed prior to the current Building Code.`,
+    variables: ['Company Name', 'Property Address'],
+  },
+  {
+    name: 'Summary (Pass) - Safe & Sanitary',
+    type: 'SECTION' as const,
+    reportType: 'SAFE_SANITARY' as const,
+    content: `Following review of site works and comparing with compliance requirement, it is concluded that the building of [Property Address] is in Safe and Sanitary condition.
+
+No significant safety or sanitary deficiencies were identified during this assessment. The building is considered to meet the minimum requirements of the Building Act 1991 s.64 for its intended purpose.`,
+    variables: ['Property Address'],
+  },
+  {
+    name: 'Summary (Fail) - Safe & Sanitary',
+    type: 'SECTION' as const,
+    reportType: 'SAFE_SANITARY' as const,
+    content: `Following review of site works and comparing with compliance requirement, the building at [Property Address] does not currently meet Safe and Sanitary requirements.
+
+The following remedial works are required to achieve Safe and Sanitary status:
+
+[Remedial Works Summary]
+
+These works must be completed and signed off before the building can be considered safe and sanitary for its intended purpose.`,
+    variables: ['Property Address', 'Remedial Works Summary'],
+  },
+  {
+    name: 'Limitations - Safe & Sanitary',
+    type: 'BOILERPLATE' as const,
+    reportType: 'SAFE_SANITARY' as const,
+    content: `This report has been prepared for the client by [Company Name] under a specific scope and Terms of Engagement. The report is based on our observations from a visual survey of the building visible at the time of inspection.
+
+The conclusions and recommendations are in general terms only and are intended to provide a guide to achieving a Safe and Sanitary determination.
+
+All recommendations within the scope of works identified in this report must be completed strictly in accordance with the New Zealand Building Code and manufacturer's technical instructions and must be signed off by [Company Name] on completion of the works.
+
+Subject to the above, [Company Name] believes that on reasonable grounds the works will comply with the relevant provisions of the New Zealand Building Code.`,
+    variables: ['Company Name'],
+  },
   // CCC Gap Analysis templates (#221)
   {
     name: 'Executive Summary - CCC Gap Analysis',
@@ -211,6 +256,7 @@ describe('Default Report Templates (seed data)', () => {
     expect(introTypes).toContain('COA');
     expect(introTypes).toContain('CCC_GAP');
     expect(introTypes).toContain('PPI');
+    expect(introTypes).toContain('SAFE_SANITARY');
   });
 
   it('has at least one methodology template', () => {
@@ -299,5 +345,64 @@ describe('PPI Boilerplate Templates (#551)', () => {
       const extracted = [...found].sort();
       expect(extracted).toEqual(declared);
     }
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// SS Boilerplate Tests — Issue #554
+// ──────────────────────────────────────────────────────────────────────────────
+
+describe('SS Boilerplate Templates (#554)', () => {
+  const ssTemplates = DEFAULT_TEMPLATES.filter(
+    (t) => t.reportType === 'SAFE_SANITARY',
+  );
+
+  it('has SS Introduction template', () => {
+    const intro = ssTemplates.find((t) => t.name === 'Introduction - Safe & Sanitary');
+    expect(intro).toBeDefined();
+    expect(intro!.type).toBe('SECTION');
+  });
+
+  it('SS Introduction references pre-1992 work and Building Act 1991', () => {
+    const intro = ssTemplates.find((t) => t.name === 'Introduction - Safe & Sanitary');
+    expect(intro!.content).toContain('before 1 July 1992');
+    expect(intro!.content).toContain('Building Act 1991');
+    expect(intro!.content).toContain('safe and sanitary');
+  });
+
+  it('has Summary (Pass) template concluding Safe and Sanitary condition', () => {
+    const summary = ssTemplates.find((t) => t.name === 'Summary (Pass) - Safe & Sanitary');
+    expect(summary).toBeDefined();
+    expect(summary!.content).toContain('Safe and Sanitary condition');
+  });
+
+  it('has Summary (Fail) template referencing remedial works', () => {
+    const summary = ssTemplates.find((t) => t.name === 'Summary (Fail) - Safe & Sanitary');
+    expect(summary).toBeDefined();
+    expect(summary!.content).toContain('remedial works');
+    expect(summary!.content).toContain('does not currently meet');
+  });
+
+  it('has Limitations template matching COA limitations structure', () => {
+    const lim = ssTemplates.find((t) => t.name === 'Limitations - Safe & Sanitary');
+    expect(lim).toBeDefined();
+    expect(lim!.type).toBe('BOILERPLATE');
+    expect(lim!.content).toContain('New Zealand Building Code');
+    expect(lim!.content).toContain('visual survey');
+  });
+
+  it('SS template variables are correctly extracted from content', () => {
+    for (const t of ssTemplates) {
+      const found = extractVariables(t.content);
+      const declared = [...t.variables].sort();
+      const extracted = [...found].sort();
+      expect(extracted).toEqual(declared);
+    }
+  });
+
+  it('SS Introduction uses [Property Address] variable', () => {
+    const intro = ssTemplates.find((t) => t.name === 'Introduction - Safe & Sanitary');
+    expect(intro!.content).toContain('[Property Address]');
+    expect(intro!.variables).toContain('Property Address');
   });
 });
