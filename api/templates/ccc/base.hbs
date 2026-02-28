@@ -8,6 +8,10 @@
 <body>
   {{> header}}
 
+  {{#if documentControlHtml}}
+  {{{documentControlHtml}}}
+  {{/if}}
+
   {{#if tableOfContents}}
   <nav class="table-of-contents">
     <h2>Table of Contents</h2>

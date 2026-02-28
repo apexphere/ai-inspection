@@ -148,6 +148,18 @@ export async function renderReport(
   // Load base template
   const baseTemplate = await compileTemplate(`${reportType}/base.hbs`);
 
+
+  // Load optional document control template (rendered before TOC)
+  let documentControlHtml = '';
+  try {
+    const docControlTemplate = await compileTemplate(
+      `${reportType}/document-control.hbs`,
+    );
+    documentControlHtml = docControlTemplate(data);
+  } catch {
+    // No document control template — fine
+  }
+
   // Load section templates
   const sectionsDir = path.join(TEMPLATES_DIR, reportType, 'sections');
   const sectionFiles = await fs.readdir(sectionsDir);
@@ -191,6 +203,7 @@ export async function renderReport(
   // Render base with sections injected
   return baseTemplate({
     ...data,
+    documentControlHtml,
     sections: sectionHtmls.join('\n'),
     appendixContent: appendixHtmls.join('\n'),
     css,
