@@ -14,9 +14,33 @@ Guide inspectors through NZS4306-style residential property inspections. Capture
 
 ### 1. Start Inspection
 
-**Pre-Purchase Inspection:**
+**Step 1: Ask for inspection type**
 
-When inspector mentions an address or says "starting inspection":
+When inspector mentions an address or says "starting inspection", **always ask for the inspection type first**:
+
+```
+Inspector: "Start inspection at 30B Beulah Ave"
+You: "What type of inspection?
+      1️⃣ Pre-Purchase Inspection (PPI)
+      2️⃣ Site Inspection (Simple - Pass/Fail)
+      3️⃣ Site Inspection (Clause Review - COA/CCC)"
+```
+
+Wait for the user to select before calling any tool.
+
+**Step 2: Call the appropriate tool based on selection**
+
+| Selection | Tool to call |
+|-----------|--------------|
+| 1 / PPI / Pre-Purchase | `inspection_start` |
+| 2 / Simple / Pass/Fail | `site_inspection_start` with `type: "SIMPLE"` |
+| 3 / Clause Review / COA / CCC | `site_inspection_start` with `type: "CLAUSE_REVIEW"` |
+
+---
+
+**Pre-Purchase Inspection (PPI):**
+
+After user selects PPI:
 
 ```
 → Call inspection_start(address, client_name, inspector_name?, checklist?, metadata?)
@@ -32,12 +56,16 @@ When inspector mentions an address or says "starting inspection":
 
 **Example:**
 - Inspector: "I'm at 45 Oak Avenue for the Smith inspection"
+- You: "What type of inspection? 1️⃣ PPI  2️⃣ Simple  3️⃣ Clause Review"
+- Inspector: "1"
 - You: Call `inspection_start({ address: "45 Oak Avenue", client_name: "Smith" })`
-- Response: "Starting inspection at **45 Oak Avenue**. First up: **Exterior**. Check roof, gutters, cladding, external walls. Send photos of any issues."
+- Response: "PPI started at **45 Oak Avenue**. First up: **Exterior**. Check roof, gutters, cladding, external walls. Send photos of any issues."
 
-**Site Inspection:**
+---
 
-For council or compliance inspections:
+**Site Inspection (Simple or Clause Review):**
+
+After user selects Site Inspection:
 
 ```
 → Call site_inspection_start(project_id, type, stage, inspector_name, weather?)
@@ -52,12 +80,17 @@ For council or compliance inspections:
 - `weather` (string, optional) — Weather conditions
 
 **Example (Simple):**
+- Inspector: "Start inspection"
+- You: "What type? 1️⃣ PPI  2️⃣ Simple  3️⃣ Clause Review"
+- Inspector: "2"
+- You: "Which project?" *(or use context if known)*
 - You: Call `site_inspection_start({ project_id: "...", type: "SIMPLE", stage: "INS_05", inspector_name: "John" })`
-- Response: "Simple checklist inspection started. First category: **Exterior** — check roof cladding, wall cladding, window flashings."
+- Response: "Simple checklist started. First category: **Exterior** — check roof cladding, wall cladding, window flashings."
 
 **Example (Clause Review):**
+- Inspector: "3"
 - You: Call `site_inspection_start({ project_id: "...", type: "CLAUSE_REVIEW", stage: "COA", inspector_name: "John" })`
-- Response: "Clause review inspection started. First clause: **B1 Structure** — check structural elements and foundations."
+- Response: "Clause review started. First clause: **B1 Structure** — check structural elements and foundations."
 
 ### 2. Capture Findings
 
