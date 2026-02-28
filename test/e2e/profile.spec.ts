@@ -16,6 +16,7 @@ test.describe('Profile Page', () => {
     await expect(page.locator('#email')).toBeVisible();
     await expect(page.locator('#name')).toBeVisible();
     await expect(page.locator('#company')).toBeVisible();
+    await expect(page.locator('#phone')).toBeVisible();
   });
 
   test('should load and display user profile data', async ({ authenticatedPage: page }) => {
@@ -33,10 +34,19 @@ test.describe('Profile Page', () => {
     await expect(page.getByText('Profile updated successfully')).toBeVisible();
   });
 
-  test('should show WhatsApp integration section', async ({ authenticatedPage: page }) => {
+  test('should show phone field with verify button', async ({ authenticatedPage: page }) => {
     await page.goto('/profile');
-    await expect(page.getByRole('heading', { name: 'WhatsApp Integration' })).toBeVisible();
+    await expect(page.locator('#phone')).toBeVisible();
     await expect(page.getByPlaceholder('+64 21 123 4567')).toBeVisible();
+    // Verify button should exist (may be disabled if phone not saved)
+    await expect(page.getByRole('button', { name: /Verify/ })).toBeVisible();
+  });
+
+  test('should save phone number without verification', async ({ authenticatedPage: page }) => {
+    await page.goto('/profile');
+    await page.locator('#phone').fill('+64211234567');
+    await page.getByRole('button', { name: 'Save Changes' }).click();
+    await expect(page.getByText('Profile updated successfully')).toBeVisible();
   });
 
   test('should require auth — redirect to login if not authenticated', async ({ page }) => {
