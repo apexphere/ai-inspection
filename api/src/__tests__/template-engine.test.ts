@@ -359,8 +359,8 @@ describe('PPI Templates', () => {
       expect(result.sections).toContain('11-signatures.hbs');
       expect(result.sections).toHaveLength(11);
 
-      expect(result.appendices).toContain('photos.hbs');
-      expect(result.appendices).toHaveLength(1);
+      expect(result.appendices).toContain('a-photos.hbs');
+      expect(result.appendices).toHaveLength(3);
     });
   });
 
@@ -695,5 +695,137 @@ describe('CCC Executive Summary Template — #547', () => {
 
     // COA has its own executive summary but not the CCC-specific one
     expect(html).not.toContain('Breached Building Code Clauses');
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// PPI Appendix Tests — Issue #550
+// ──────────────────────────────────────────────────────────────────────────────
+
+function makePPIDataWithAppendices() {
+  const base = makePPIReportData();
+  return {
+    ...base,
+    appendices: {
+      ...base.appendices,
+      thermalImages: [
+        {
+          base64: 'dGVzdA==',
+          visualBase64: 'dGVzdA==',
+          caption: 'Bathroom wall junction',
+          location: 'Bathroom 1',
+          minTemp: 14.2,
+          maxTemp: 22.8,
+          deltaTemp: 8.6,
+          observation: 'Temperature differential suggests possible moisture ingress',
+        },
+        {
+          base64: 'dGVzdA==',
+          caption: 'Window head flashing',
+          location: 'Bedroom 2',
+          minTemp: 16.0,
+          maxTemp: 21.5,
+        },
+      ],
+      floorLevelSurvey: {
+        datum: 'Front door threshold',
+        readings: [
+          { location: 'Lounge centre', reading: '0', variance: '0', outOfTolerance: false },
+          { location: 'Kitchen', reading: '-3', variance: '-3mm', outOfTolerance: false },
+          { location: 'Bedroom 1', reading: '-12', variance: '-12mm', outOfTolerance: true },
+          { location: 'Bathroom', reading: '-5', variance: '-5mm', outOfTolerance: false },
+        ],
+        summary: 'Bedroom 1 shows 12mm settlement relative to datum. Recommend monitoring.',
+      },
+    },
+  };
+}
+
+describe('PPI Appendix Templates — #550', () => {
+  describe('Thermal Imaging (Appendix B)', () => {
+    it('renders thermal images when data is present', async () => {
+      const data = makePPIDataWithAppendices();
+      const html = await renderReport({ reportType: 'ppi', data });
+
+      expect(html).toContain('Appendix B: Infrared Thermal Imaging');
+      expect(html).toContain('Bathroom wall junction');
+      expect(html).toContain('Window head flashing');
+    });
+
+    it('includes temperature readings', async () => {
+      const data = makePPIDataWithAppendices();
+      const html = await renderReport({ reportType: 'ppi', data });
+
+      expect(html).toContain('14.2°C');
+      expect(html).toContain('22.8°C');
+      expect(html).toContain('8.6°C');
+    });
+
+    it('includes observation text', async () => {
+      const data = makePPIDataWithAppendices();
+      const html = await renderReport({ reportType: 'ppi', data });
+
+      expect(html).toContain('moisture ingress');
+    });
+
+    it('omits Appendix B when no thermal data', async () => {
+      const data = makePPIReportData();
+      const html = await renderReport({ reportType: 'ppi', data });
+
+      expect(html).not.toContain('Appendix B');
+      expect(html).not.toContain('Infrared Thermal Imaging');
+    });
+  });
+
+  describe('Floor Level Survey (Appendix C)', () => {
+    it('renders floor survey when data is present', async () => {
+      const data = makePPIDataWithAppendices();
+      const html = await renderReport({ reportType: 'ppi', data });
+
+      expect(html).toContain('Appendix C: Floor Level Survey');
+      expect(html).toContain('Front door threshold');
+    });
+
+    it('renders readings table', async () => {
+      const data = makePPIDataWithAppendices();
+      const html = await renderReport({ reportType: 'ppi', data });
+
+      expect(html).toContain('Lounge centre');
+      expect(html).toContain('Kitchen');
+      expect(html).toContain('Bedroom 1');
+      expect(html).toContain('Out of tolerance');
+      expect(html).toContain('Within tolerance');
+    });
+
+    it('includes survey summary', async () => {
+      const data = makePPIDataWithAppendices();
+      const html = await renderReport({ reportType: 'ppi', data });
+
+      expect(html).toContain('12mm settlement');
+      expect(html).toContain('Recommend monitoring');
+    });
+
+    it('omits Appendix C when no floor survey data', async () => {
+      const data = makePPIReportData();
+      const html = await renderReport({ reportType: 'ppi', data });
+
+      expect(html).not.toContain('Appendix C');
+      expect(html).not.toContain('Floor Level Survey');
+    });
+  });
+
+  it('appendices sort correctly: A (photos) → B (thermal) → C (floor)', async () => {
+    const data = makePPIDataWithAppendices();
+    const html = await renderReport({ reportType: 'ppi', data });
+
+    const posA = html.indexOf('id="appendix-a"');
+    const posB = html.indexOf('id="appendix-b"');
+    const posC = html.indexOf('id="appendix-c"');
+
+    expect(posA).toBeGreaterThan(-1);
+    expect(posB).toBeGreaterThan(-1);
+    expect(posC).toBeGreaterThan(-1);
+    expect(posA).toBeLessThan(posB);
+    expect(posB).toBeLessThan(posC);
   });
 });
