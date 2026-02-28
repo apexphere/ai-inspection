@@ -1,0 +1,92 @@
+# Profile Phone Field Update — Issue #517
+# Allow saving phone without verification, separate verify action
+
+metadata:
+  issue: 517
+  parent: 515
+  route: /profile
+  created: "2026-02-28"
+  author: "Sam"
+
+# =============================================================================
+# CHANGE SUMMARY
+# =============================================================================
+summary: |
+  Modify profile page to:
+  1. Move phone number into the main account form (saveable without verification)
+  2. Add inline "Verify" button beside phone field
+  3. Show verification status indicator
+
+# =============================================================================
+# PHONE FIELD (IN ACCOUNT FORM)
+# =============================================================================
+phone-field:
+  layout: "flex gap-2 items-start"
+  
+  input:
+    container: "flex-1"
+    label: "Phone Number"
+    type: tel
+    placeholder: "+64 21 123 4567"
+    helper: "Include country code. Optional — enables WhatsApp inspections when verified."
+    style: "block w-full h-11 px-3 border border-gray-200 rounded-lg ..."
+  
+  verify-button:
+    container: "flex-shrink-0 pt-7"  # Align with input (below label)
+    states:
+      unverified:
+        text: "Verify"
+        style: "h-11 px-4 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 ..."
+        disabled: "when phone is empty or changed from saved value"
+      
+      pending:
+        text: "Verifying..."
+        style: "h-11 px-4 bg-gray-100 text-gray-500 ..."
+        disabled: true
+      
+      verified:
+        text: "Verified"
+        style: "h-11 px-4 bg-green-50 text-green-700 text-sm font-medium rounded-lg border border-green-200 cursor-default"
+        icon: "checkmark"
+
+# =============================================================================
+# VERIFICATION FLOW (INLINE)
+# =============================================================================
+verification-flow:
+  trigger: "Click Verify button"
+  display: "Inline expansion below phone field"
+  
+  container: "mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200"
+  instruction: "Enter the 6-digit code sent to your WhatsApp"
+    
+  code-input:
+    type: text
+    maxLength: 6
+    style: "w-32 h-11 px-3 text-center tracking-widest ..."
+    placeholder: "000000"
+  
+  actions:
+    confirm: "Confirm"
+    cancel: "Cancel"
+    resend: "Resend code"
+
+# =============================================================================
+# API CHANGES
+# =============================================================================
+api:
+  profile-patch:
+    endpoint: "PATCH /api/auth/profile"
+    change: "Add phoneNumber to updateable fields (saves without verification)"
+    fields: [name, email, company, phoneNumber]
+    note: "Changing phone number clears phoneVerified flag"
+  
+  existing-reuse:
+    - "POST /api/auth/link-whatsapp → sends verification code"
+    - "POST /api/auth/verify-whatsapp → verifies code, sets phoneVerified=true"
+
+# =============================================================================
+# REMOVE FROM CURRENT UI
+# =============================================================================
+remove:
+  - "Separate WhatsApp Integration section"
+  - "Unlink WhatsApp button"

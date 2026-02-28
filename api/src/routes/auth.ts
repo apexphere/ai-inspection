@@ -685,6 +685,7 @@ function setTokenCookie(res: Response, token: string): void {
 // ============================================
 
 const UpdateProfileSchema = z.object({
+  phoneNumber: z.string().regex(/^\+?[1-9]\d{9,14}$/, "Invalid phone number format").optional().nullable(),
   name: z.string().min(1, 'Name is required').max(100, 'Name too long').optional(),
   email: z.string().email('Invalid email format').optional(),
   company: z.string().max(100, 'Company name too long').optional().nullable(),
@@ -768,7 +769,13 @@ authRouter.patch('/profile', async (req: Request, res: Response) => {
       return;
     }
 
-    const { name, email, company } = parsed.data;
+    const { name, email, company, phoneNumber } = parsed.data;
+
+    // Get current user to check for changes
+    const currentUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { phoneNumber: true },
+    });
 
     // Check if email is being changed and if it's already taken
     if (email) {
@@ -782,10 +789,35 @@ authRouter.patch('/profile', async (req: Request, res: Response) => {
       }
     }
 
-    const updateData: { name?: string; email?: string; company?: string | null } = {};
+    // Check if phone number is being changed and if it's already taken
+    if (phoneNumber) {
+      const existingUser = await prisma.user.findUnique({
+        where: { phoneNumber },
+      });
+
+      if (existingUser && existingUser.id !== userId) {
+        res.status(409).json({ error: 'Phone number already in use' });
+        return;
+      }
+    }
+
+    const updateData: { 
+      name?: string; 
+      email?: string; 
+      company?: string | null;
+      phoneNumber?: string | null;
+      phoneVerified?: boolean;
+    } = {};
     if (name !== undefined) updateData.name = name;
     if (email !== undefined) updateData.email = email.toLowerCase();
     if (company !== undefined) updateData.company = company;
+    if (phoneNumber !== undefined) {
+      updateData.phoneNumber = phoneNumber;
+      // Clear verification if phone number changed
+      if (phoneNumber !== currentUser?.phoneNumber) {
+        updateData.phoneVerified = false;
+      }
+    }
 
     const user = await prisma.user.update({
       where: { id: userId },
