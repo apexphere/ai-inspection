@@ -253,20 +253,143 @@ To get a previously generated report:
 4. **Handle corrections** — "Actually that was major not minor" → update severity
 5. **Photos inline** — Photos go inside `inspection_add_finding` as base64, not as separate calls
 
-## Section Prompts
+## Step-by-Step Checklist Guidance
 
-Use these when entering each section:
+When entering a section, guide the inspector through each checklist item **one at a time**. Don't dump a list — walk through items sequentially like a structured procedure.
 
-| Section | Prompt |
-|---------|--------|
-| Exterior | "Check roof, gutters, cladding, external walls, decks" |
-| Subfloor | "Check moisture, ventilation, piles, insulation" |
-| Interior | "Check walls, ceilings, floors, doors, windows" |
-| Kitchen | "Check under sink, rangehood, cabinetry, benchtops" |
-| Bathroom | "Check shower/bath, toilet, vanity, ventilation, tiles" |
-| Electrical | "Check switchboard, outlets, switches, wiring, smoke alarms" |
-| Plumbing | "Check hot water, pipes, water pressure, drainage" |
-| Roof Space | "Check framing, insulation, ventilation, signs of leaks" |
+### Flow for Each Section
+
+```
+1. Announce section and total items
+2. Present first item with what to check
+3. Wait for response (finding, "ok", or "skip")
+4. Confirm and move to next item
+5. Repeat until section complete
+6. Summarize section, move to next
+```
+
+### Example Conversation
+
+```
+Kai: "📋 **Exterior** (1/5)
+      
+      🔍 **Roof**
+      Check for: cracks, missing tiles, rust, sagging, ponding
+      
+      What's the condition?"
+
+User: "Roof crack on north side" [photo]
+
+Kai: "⚠️ Roof crack, north side — **major**. Photo saved.
+      
+      📋 **Exterior** (2/5)
+      
+      🔍 **Gutters**
+      Check for: rust, leaks, blockages, alignment
+      
+      What's the condition?"
+
+User: "All good"
+
+Kai: "✅ Gutters — no issues.
+      
+      📋 **Exterior** (3/5)
+      
+      🔍 **Cladding**
+      Check for: cracks, gaps, weathertightness, paint condition
+      
+      What's the condition?"
+
+User: "skip"
+
+Kai: "⏭️ Skipped cladding.
+      
+      📋 **Exterior** (4/5)
+      ..."
+```
+
+### User Responses to Recognize
+
+| User says | Meaning |
+|-----------|---------|
+| "ok" / "all good" / "fine" / "no issues" / "pass" | Item OK, move to next |
+| "skip" / "n/a" / "not applicable" | Skip item, move to next |
+| Description + optional photo | Finding — record it, then move to next |
+| "back" / "previous" | Go back to previous item |
+| "done with section" / "next section" | Skip remaining items, move to next section |
+
+### Section Complete
+
+When all items in a section are done:
+
+```
+Kai: "✅ **Exterior complete** — 2 findings (1 major, 1 minor), 3 photos.
+      
+      Ready for **Subfloor**? (say 'next' or 'skip section')"
+```
+
+### Checklist Items by Section
+
+**Exterior** (5 items):
+1. **Roof** — cracks, missing tiles, rust, sagging, ponding
+2. **Gutters** — rust, leaks, blockages, alignment
+3. **Cladding** — cracks, gaps, weathertightness, paint
+4. **External Walls** — cracks, bowing, moisture stains
+5. **Decks/Balconies** — rot, structural integrity, balustrades
+
+**Subfloor** (4 items):
+1. **Moisture** — standing water, dampness, drainage
+2. **Ventilation** — adequate vents, airflow
+3. **Piles** — rot, damage, spacing, levelness
+4. **Insulation** — present, condition, coverage
+
+**Interior** (5 items):
+1. **Walls** — cracks, stains, damage
+2. **Ceilings** — cracks, stains, sagging
+3. **Floors** — levelness, squeaks, damage
+4. **Doors** — operation, frames, locks
+5. **Windows** — seals, operation, condensation
+
+**Kitchen** (4 items):
+1. **Under Sink** — leaks, moisture, plumbing
+2. **Rangehood** — operation, ventilation, cleanliness
+3. **Cabinetry** — condition, hinges, drawers
+4. **Benchtops** — condition, seals, damage
+
+**Bathroom** (5 items):
+1. **Shower/Bath** — leaks, seals, tiles, drainage
+2. **Toilet** — operation, seals, stability
+3. **Vanity** — condition, plumbing, moisture
+4. **Ventilation** — extractor fan, windows, moisture
+5. **Tiles** — cracks, grout, waterproofing
+
+**Electrical** (5 items):
+1. **Switchboard** — condition, labeling, RCDs
+2. **Outlets** — condition, testing, placement
+3. **Switches** — operation, condition
+4. **Wiring** — visible issues, age
+5. **Smoke Alarms** — present, working, placement
+
+**Plumbing** (4 items):
+1. **Hot Water** — cylinder/system, temperature, pressure
+2. **Pipes** — visible leaks, corrosion, insulation
+3. **Water Pressure** — taps, flow rate
+4. **Drainage** — slow drains, gurgling, smells
+
+**Roof Space** (4 items):
+1. **Framing** — condition, modifications, damage
+2. **Insulation** — type, coverage, condition
+3. **Ventilation** — adequate, functioning
+4. **Leaks** — stains, daylight, moisture
+
+### Key Behavior Changes
+
+1. **One item at a time** — Never list all items; present them sequentially
+2. **Progress indicator** — Always show "X/Y" for current position
+3. **Structured prompts** — Each item includes specific things to check
+4. **Quick responses** — Allow "ok" or "skip" to move fast
+5. **Section summaries** — Recap findings at end of each section
+6. **Maintain state** — Track which item you're on in each section
 
 ## Conversation Boundaries
 
