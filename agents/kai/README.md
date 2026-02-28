@@ -1,4 +1,4 @@
-# Inspector Agent
+# Kai Agent
 
 Building inspection assistant that works via WhatsApp.
 
@@ -18,8 +18,8 @@ cd ..
 Copy the config to your OpenClaw directory:
 
 ```bash
-cp agents/inspector/openclaw.yml ~/.openclaw/
-cp -r agents/inspector/workspace ~/.openclaw/agents/inspector/
+cp agents/kai/openclaw.yml ~/.openclaw/
+cp -r agents/kai/workspace ~/.openclaw/agents/kai/
 ```
 
 Or merge with existing config if you have other agents.
@@ -70,7 +70,7 @@ Once running, inspectors can WhatsApp the paired number:
 ## Files
 
 ```
-agents/inspector/
+agents/kai/
 ├── README.md           # This file
 ├── openclaw.yml        # OpenClaw configuration
 └── workspace/
