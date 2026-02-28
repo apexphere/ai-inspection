@@ -29,12 +29,12 @@ export class JobAlreadyActiveError extends Error {
   }
 }
 
-let _queue: Queue<GenerationJobData> | null = null;
+let _queue: Queue | null = null;
 
-export function getQueue(): Queue<GenerationJobData> {
+export function getQueue(): Queue {
   if (!_queue) {
     _queue = new Queue<GenerationJobData>(QUEUE_NAME, {
-      connection: getRedisConnection(),
+      connection: getRedisConnection() as never,
       defaultJobOptions: {
         attempts: 2,
         backoff: {

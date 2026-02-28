@@ -4,6 +4,7 @@ import { registerInspectionTools } from "./inspection.js";
 import { registerFindingTools } from "./finding.js";
 import { registerReportTools } from "./report.js";
 import { navigationApi } from "../api/client.js";
+import { logToolCall, logToolResult } from "../services/interaction-logger.js";
 
 /**
  * Register all MCP tools with the server.
@@ -29,46 +30,55 @@ export function registerTools(server: McpServer): void {
       section: z.string().describe("Section ID to navigate to"),
     },
     async ({ inspection_id, section }) => {
+      // Log tool call
+      logToolCall(inspection_id, "inspection_navigate", { inspection_id, section });
+      
       try {
         const result = await navigationApi.navigate(inspection_id, { section });
 
         if (!result.ok || !result.data) {
+          const errorResult = {
+            error: result.error?.error || "Failed to navigate",
+            inspection_id,
+          };
+          logToolResult(inspection_id, "inspection_navigate", errorResult, true);
           return {
             content: [{
               type: "text" as const,
-              text: JSON.stringify({
-                error: result.error?.error || "Failed to navigate",
-                inspection_id,
-              }, null, 2),
+              text: JSON.stringify(errorResult, null, 2),
             }],
             isError: true,
           };
         }
 
         const nav = result.data;
-
+        const successResult = {
+          inspection_id: nav.inspectionId,
+          previous_section: nav.previousSection,
+          current_section: nav.currentSection,
+          section_name: nav.sectionName,
+          prompt: nav.prompt,
+          items: nav.items,
+          message: `Navigated to ${nav.sectionName}.`,
+        };
+        
+        logToolResult(inspection_id, "inspection_navigate", successResult, false);
         return {
           content: [{
             type: "text" as const,
-            text: JSON.stringify({
-              inspection_id: nav.inspectionId,
-              previous_section: nav.previousSection,
-              current_section: nav.currentSection,
-              section_name: nav.sectionName,
-              prompt: nav.prompt,
-              items: nav.items,
-              message: `Navigated to ${nav.sectionName}.`,
-            }, null, 2),
+            text: JSON.stringify(successResult, null, 2),
           }],
         };
       } catch (error) {
+        const errorResult = {
+          error: "Failed to navigate",
+          details: error instanceof Error ? error.message : String(error),
+        };
+        logToolResult(inspection_id, "inspection_navigate", errorResult, true);
         return {
           content: [{
             type: "text" as const,
-            text: JSON.stringify({
-              error: "Failed to navigate",
-              details: error instanceof Error ? error.message : String(error),
-            }, null, 2),
+            text: JSON.stringify(errorResult, null, 2),
           }],
           isError: true,
         };
@@ -86,24 +96,28 @@ export function registerTools(server: McpServer): void {
       inspection_id: z.string().uuid().describe("ID of the active inspection"),
     },
     async ({ inspection_id }) => {
+      // Log tool call
+      logToolCall(inspection_id, "inspection_suggest_next", { inspection_id });
+      
       try {
         const result = await navigationApi.suggest(inspection_id);
 
         if (!result.ok || !result.data) {
+          const errorResult = {
+            error: result.error?.error || "Failed to get suggestions",
+            inspection_id,
+          };
+          logToolResult(inspection_id, "inspection_suggest_next", errorResult, true);
           return {
             content: [{
               type: "text" as const,
-              text: JSON.stringify({
-                error: result.error?.error || "Failed to get suggestions",
-                inspection_id,
-              }, null, 2),
+              text: JSON.stringify(errorResult, null, 2),
             }],
             isError: true,
           };
         }
 
         const suggest = result.data;
-
         const response: Record<string, unknown> = {
           inspection_id: suggest.inspectionId,
           current_section: suggest.currentSection,
@@ -120,6 +134,7 @@ export function registerTools(server: McpServer): void {
           };
         }
 
+        logToolResult(inspection_id, "inspection_suggest_next", response, false);
         return {
           content: [{
             type: "text" as const,
@@ -127,13 +142,15 @@ export function registerTools(server: McpServer): void {
           }],
         };
       } catch (error) {
+        const errorResult = {
+          error: "Failed to get suggestions",
+          details: error instanceof Error ? error.message : String(error),
+        };
+        logToolResult(inspection_id, "inspection_suggest_next", errorResult, true);
         return {
           content: [{
             type: "text" as const,
-            text: JSON.stringify({
-              error: "Failed to get suggestions",
-              details: error instanceof Error ? error.message : String(error),
-            }, null, 2),
+            text: JSON.stringify(errorResult, null, 2),
           }],
           isError: true,
         };

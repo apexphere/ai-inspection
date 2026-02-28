@@ -92,7 +92,7 @@ export async function startReportWorker(): Promise<Worker<GenerationJobData>> {
   }
 
   _worker = new Worker<GenerationJobData>(QUEUE_NAME, processJob, {
-    connection: getRedisConnection(),
+    connection: getRedisConnection() as never,
     concurrency: MAX_CONCURRENCY,
   });
 

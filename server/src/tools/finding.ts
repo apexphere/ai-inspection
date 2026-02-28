@@ -16,6 +16,7 @@ import {
   projectPhotosApi,
 } from "../api/client.js";
 import { commentLibrary } from "../services/comments.js";
+import { logToolCall, logToolResult } from "../services/interaction-logger.js";
 
 // ============================================================================
 // Tool Registration

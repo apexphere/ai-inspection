@@ -1034,3 +1034,28 @@ model CostLineItem {
   @@index([costEstimateId])
   @@index([category])
 }
+
+// ============================================
+// Interaction Observability — Issue #512
+// ============================================
+
+model InteractionLog {
+  id        String              @id @default(uuid())
+  sessionId String              // Inspection session ID
+  timestamp DateTime            @default(now())
+  eventType InteractionEventType
+  content   Json                // Flexible payload (user input, tool params, response, etc.)
+  metadata  Json?               // Extra context (user_id, channel, etc.)
+
+  @@index([sessionId])
+  @@index([timestamp])
+  @@index([sessionId, timestamp])
+}
+
+enum InteractionEventType {
+  USER_INPUT
+  AI_INTERPRETATION
+  TOOL_CALL
+  TOOL_RESULT
+  AI_RESPONSE
+}
