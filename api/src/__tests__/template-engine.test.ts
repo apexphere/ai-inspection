@@ -433,3 +433,140 @@ describe('PPI Templates', () => {
     });
   });
 });
+
+// ──────────────────────────────────────────────────────────────────────────────
+// CCC Document Control Tests — Issue #546
+// ──────────────────────────────────────────────────────────────────────────────
+
+function makeCCCReportData(withDocControl = true) {
+  const base = {
+    generatedAt: new Date('2026-02-20T10:00:00Z'),
+    project: {
+      jobNumber: 'CCC-2026-001',
+      activity: 'Bathroom renovation',
+      address: '123 Test Street, Auckland',
+      client: 'Test Client Ltd',
+      council: 'Auckland Council',
+      company: 'Apex Inspection Services',
+    },
+    personnel: {
+      author: {
+        name: 'Jake Li',
+        credentials: 'BSCE, LBP #12345',
+        phone: '021 123 4567',
+        email: 'jake@eastern.co.nz',
+      },
+      reviewer: {
+        name: 'John Smith',
+        credentials: 'MSCE, LBP #67890',
+      },
+      inspectors: [
+        { name: 'Jake Li', role: 'Lead Inspector' },
+      ],
+    },
+    inspection: {
+      date: '2026-02-15T00:00:00Z',
+      weather: 'Fine, 22°C',
+    },
+    defects: [
+      { description: 'Flashing issue at window', severity: 'major' },
+    ],
+  };
+
+  if (withDocControl) {
+    return {
+      ...base,
+      documentControl: {
+        revisions: [
+          { revNo: 1, preparedBy: 'J. Li', description: 'Initial Issue', date: '2026-02-15' },
+          { revNo: 2, preparedBy: 'J. Li', description: 'Updated findings', date: '2026-02-18' },
+        ],
+        acceptance: [
+          { action: 'Prepared', name: 'Jake Li', signed: true, date: '2026-02-18' },
+          { action: 'Reviewed', name: 'John Smith', signed: false },
+          { action: 'Approved', name: '', signed: false },
+        ],
+      },
+    };
+  }
+
+  return base;
+}
+
+describe('CCC Document Control — #546', () => {
+  describe('renderReport', () => {
+    it('renders Document Control page when documentControl data is provided', async () => {
+      const data = makeCCCReportData(true);
+      const html = await renderReport({ reportType: 'ccc', data });
+
+      // Document Control content appears
+      expect(html).toContain('Document Control Records');
+      expect(html).toContain('Revision History');
+      expect(html).toContain('Initial Issue');
+      expect(html).toContain('Updated findings');
+      expect(html).toContain('J. Li');
+
+      // Document Acceptance
+      expect(html).toContain('Document Acceptance');
+      expect(html).toContain('Prepared');
+      expect(html).toContain('Reviewed');
+      expect(html).toContain('Approved');
+      expect(html).toContain('Jake Li');
+      expect(html).toContain('John Smith');
+    });
+
+    it('omits Document Control page when no documentControl data', async () => {
+      const data = makeCCCReportData(false);
+      const html = await renderReport({ reportType: 'ccc', data });
+
+      expect(html).not.toContain('Document Control Records');
+      expect(html).not.toContain('Revision History');
+    });
+
+    it('Document Control appears before Table of Contents in HTML', async () => {
+      const data = makeCCCReportData(true);
+      (data as Record<string, unknown>).tableOfContents = '<ul><li>Section 1</li></ul>';
+      const html = await renderReport({ reportType: 'ccc', data });
+
+      const docControlPos = html.indexOf('Document Control Records');
+      const tocPos = html.indexOf('<nav class="table-of-contents"');
+
+      // If TOC exists, Document Control must come first
+      if (tocPos !== -1) {
+        expect(docControlPos).toBeLessThan(tocPos);
+      }
+      // Document Control must exist regardless
+      expect(docControlPos).toBeGreaterThan(-1);
+    });
+
+    it('includes preparer contact details', async () => {
+      const data = makeCCCReportData(true);
+      const html = await renderReport({ reportType: 'ccc', data });
+
+      expect(html).toContain('021 123 4567');
+      expect(html).toContain('jake@eastern.co.nz');
+    });
+  });
+
+  it('COA report does NOT include Document Control', async () => {
+    const data = makeReportData();
+    (data as Record<string, unknown>).documentControl = {
+      revisions: [{ revNo: 1, preparedBy: 'Test', description: 'Test', date: '2026-01-01' }],
+      acceptance: [],
+    };
+    const html = await renderReport({ reportType: 'coa', data });
+
+    expect(html).not.toContain('Document Control Records');
+  });
+
+  it('PPI report does NOT include Document Control', async () => {
+    const data = makePPIReportData();
+    (data as Record<string, unknown>).documentControl = {
+      revisions: [{ revNo: 1, preparedBy: 'Test', description: 'Test', date: '2026-01-01' }],
+      acceptance: [],
+    };
+    const html = await renderReport({ reportType: 'ppi', data });
+
+    expect(html).not.toContain('Document Control Records');
+  });
+});

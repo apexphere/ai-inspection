@@ -1,0 +1,91 @@
+{{!-- Document Control Page — Issue #546 --}}
+{{#if documentControl}}
+<div class="document-control-page page-break-before">
+  <h2>Document Control Records</h2>
+
+  <div class="prepared-by-info">
+    <h3>Prepared by</h3>
+    <table class="info-table">
+      <tr><th>Name</th><td>{{personnel.author.name}}</td></tr>
+      {{#if personnel.author.phone}}
+      <tr><th>Phone</th><td>{{personnel.author.phone}}</td></tr>
+      {{/if}}
+      {{#if personnel.author.email}}
+      <tr><th>Email</th><td>{{personnel.author.email}}</td></tr>
+      {{/if}}
+    </table>
+  </div>
+
+  {{#if documentControl.revisions}}
+  <div class="revision-history">
+    <h3>Revision History</h3>
+    <table class="revision-table">
+      <thead>
+        <tr>
+          <th>Rev No</th>
+          <th>Prepared By</th>
+          <th>Description</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each documentControl.revisions}}
+        <tr>
+          <td>{{revNo}}</td>
+          <td>{{preparedBy}}</td>
+          <td>{{description}}</td>
+          <td>{{formatDate date}}</td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+  {{/if}}
+
+  <div class="document-acceptance">
+    <h3>Document Acceptance</h3>
+    <table class="acceptance-table">
+      <thead>
+        <tr>
+          <th>Action</th>
+          <th>Name</th>
+          <th>Signed</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each documentControl.acceptance}}
+        <tr>
+          <td>{{action}}</td>
+          <td>{{name}}</td>
+          <td>{{#if signed}}✓{{/if}}</td>
+          <td>{{#if date}}{{formatDate date}}{{/if}}</td>
+        </tr>
+        {{/each}}
+        {{#unless documentControl.acceptance}}
+        <tr>
+          <td>Prepared</td>
+          <td>{{personnel.author.name}}</td>
+          <td></td>
+          <td></td>
+        </tr>
+        {{#if personnel.reviewer}}
+        <tr>
+          <td>Reviewed</td>
+          <td>{{personnel.reviewer.name}}</td>
+          <td></td>
+          <td></td>
+        </tr>
+        {{/if}}
+        <tr>
+          <td>Approved</td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+        {{/unless}}
+      </tbody>
+    </table>
+  </div>
+</div>
+{{/if}}
