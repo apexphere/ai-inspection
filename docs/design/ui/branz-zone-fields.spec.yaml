@@ -1,0 +1,51 @@
+name: branz-zone-fields
+issue: 556
+description: BRANZ zone data fields on property page
+
+section:
+  title: "Site Data (BRANZ Maps)"
+  placement: after Property section, as a new CollapsibleSection
+  pattern: inline-editable fields with auto-save
+
+fields:
+  - name: climateZone
+    label: Climate Zone
+    type: select
+    options: ["1", "2", "3"]
+  - name: earthquakeZone
+    label: Earthquake Zone
+    type: select
+    options: ["Zone 1", "Zone 2"]
+  - name: exposureZone
+    label: Exposure Zone
+    type: select
+    options: ["Zone A", "Zone B", "Zone C", "Zone D"]
+  - name: leeZone
+    label: Lee Zone
+    type: select
+    options: ["Yes", "No"]
+  - name: rainfallRange
+    label: Rainfall Range
+    type: text
+    placeholder: "e.g. 90-100"
+  - name: windRegion
+    label: Wind Region
+    type: select
+    options: ["A", "W"]
+  - name: windZone
+    label: Wind Zone
+    type: select
+    options: ["Low", "Medium", "High", "Very High", "Extra High"]
+
+layout:
+  type: two-column-grid
+  responsive: single-column on mobile
+
+api:
+  endpoint: "PUT /api/properties/:id"
+  payload: individual field values
+
+tokens:
+  spacing: space-y-4 for form, gap-4 for grid
+  labels: text-sm font-medium text-gray-700
+  inputs: standard form controls matching existing UI

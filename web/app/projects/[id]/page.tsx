@@ -28,6 +28,13 @@ interface Project {
     yearBuilt: number | null;
     siteData: Record<string, unknown> | null;
     construction: Record<string, unknown> | null;
+    climateZone: string | null;
+    earthquakeZone: string | null;
+    exposureZone: string | null;
+    leeZone: string | null;
+    rainfallRange: string | null;
+    windRegion: string | null;
+    windZone: string | null;
   };
   client: {
     id: string;
