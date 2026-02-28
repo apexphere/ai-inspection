@@ -1,0 +1,54 @@
+{{!-- Enhanced Executive Summary — Issue #547 --}}
+{{#if executiveSummary}}
+<section class="executive-summary" id="executive-summary">
+  <h2>Executive Summary</h2>
+
+  {{#if executiveSummary.keyFindings}}
+  <div class="key-findings">
+    <h3>Key Findings</h3>
+    <ul>
+      {{#each executiveSummary.keyFindings}}
+      <li>{{this}}</li>
+      {{/each}}
+    </ul>
+  </div>
+  {{/if}}
+
+  {{#if executiveSummary.breachedClauses}}
+  <div class="breached-clauses">
+    <h3>Breached Building Code Clauses</h3>
+    <table class="clause-table">
+      <thead>
+        <tr>
+          <th>Clause</th>
+          <th>Title</th>
+          <th>Items</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each executiveSummary.breachedClauses}}
+        <tr>
+          <td>{{code}}</td>
+          <td>{{title}}</td>
+          <td>{{count}}</td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+  {{/if}}
+
+  {{#if executiveSummary.recommendation}}
+  <div class="recommendation">
+    <h3>Recommendation</h3>
+    <p>{{executiveSummary.recommendation}}</p>
+  </div>
+  {{/if}}
+
+  {{#if executiveSummary.estimatedCost}}
+  <div class="estimated-cost">
+    <p><strong>Estimated remedial cost:</strong> ${{executiveSummary.estimatedCost}}</p>
+  </div>
+  {{/if}}
+</section>
+{{/if}}

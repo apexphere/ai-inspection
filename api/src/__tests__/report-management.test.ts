@@ -25,6 +25,7 @@ function createMockReport(overrides: Partial<Report> = {}): Report {
     reviewedById: null,
     reviewedAt: null,
     form9Data: null,
+    executiveSummary: null,
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,
