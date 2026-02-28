@@ -1,0 +1,31 @@
+<section class="report-section" id="section-3">
+  <h2>3. Building &amp; Site Description</h2>
+
+  <table class="building-info-table">
+    {{#if buildingInfo.buildingType}}
+    <tr><th>Building Type</th><td>{{buildingInfo.buildingType}}</td></tr>
+    {{/if}}
+    {{#if buildingInfo.buildingYear}}
+    <tr><th>Year Built</th><td>{{buildingInfo.buildingYear}}</td></tr>
+    {{/if}}
+    {{#if buildingInfo.climateZone}}
+    <tr><th>Climate Zone</th><td>{{buildingInfo.climateZone}}</td></tr>
+    {{/if}}
+    {{#if buildingInfo.earthquakeZone}}
+    <tr><th>Earthquake Zone</th><td>{{buildingInfo.earthquakeZone}}</td></tr>
+    {{/if}}
+    {{#if buildingInfo.exposureZone}}
+    <tr><th>Exposure Zone</th><td>{{buildingInfo.exposureZone}}</td></tr>
+    {{/if}}
+    {{#if buildingInfo.windZone}}
+    <tr><th>Wind Zone</th><td>{{buildingInfo.windZone}}</td></tr>
+    {{/if}}
+    {{#if buildingInfo.rainfallRange}}
+    <tr><th>Rainfall Range</th><td>{{buildingInfo.rainfallRange}}</td></tr>
+    {{/if}}
+  </table>
+
+  {{#if buildingDescription}}
+  <p>{{buildingDescription}}</p>
+  {{/if}}
+</section>

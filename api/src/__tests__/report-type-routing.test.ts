@@ -50,11 +50,6 @@ describe('Report Type Routing — #548', () => {
       expect(dir).toBe('ppi');
     });
 
-    it('throws TemplateNotAvailableError for SAFE_SANITARY (no templates yet)', async () => {
-      await expect(validateTemplatesExist('SAFE_SANITARY')).rejects.toThrow(
-        TemplateNotAvailableError,
-      );
-    });
 
     it('throws TemplateNotAvailableError for TFA (no templates yet)', async () => {
       await expect(validateTemplatesExist('TFA')).rejects.toThrow(
@@ -74,17 +69,17 @@ describe('Report Type Routing — #548', () => {
   });
 
   describe('listAvailableReportTypes', () => {
-    it('includes COA, CCC_GAP, and PPI', async () => {
+    it('includes COA, CCC_GAP, PPI, and SAFE_SANITARY', async () => {
       const available = await listAvailableReportTypes();
       expect(available).toContain('COA');
       expect(available).toContain('CCC_GAP');
       expect(available).toContain('PPI');
+      expect(available).toContain('SAFE_SANITARY');
     });
 
     it('does not include types without templates', async () => {
       const available = await listAvailableReportTypes();
       // SS and TFA templates don't exist yet
-      expect(available).not.toContain('SAFE_SANITARY');
       expect(available).not.toContain('TFA');
     });
   });

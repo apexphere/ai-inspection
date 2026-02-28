@@ -1,0 +1,35 @@
+<section class="report-section signatures-section" id="section-9">
+  <h2>9. Declaration &amp; Signatures</h2>
+
+  <p>
+    I/We declare that the information contained in this report is true and correct
+    to the best of my/our knowledge and belief, based on the inspection carried out
+    on {{formatDate inspection.date}}.
+  </p>
+
+  <div class="signature-block">
+    <div class="signature-row">
+      <div class="signature-field">
+        <div class="signature-line"></div>
+        <p class="signature-name">{{personnel.author.name}}</p>
+        {{#if personnel.author.credentials}}
+        <p class="signature-credentials">{{personnel.author.credentials}}</p>
+        {{/if}}
+        <p class="signature-role">Prepared By</p>
+        <p class="signature-date">Date: {{formatDate generatedAt}}</p>
+      </div>
+
+      {{#if personnel.reviewer}}
+      <div class="signature-field">
+        <div class="signature-line"></div>
+        <p class="signature-name">{{personnel.reviewer.name}}</p>
+        {{#if personnel.reviewer.credentials}}
+        <p class="signature-credentials">{{personnel.reviewer.credentials}}</p>
+        {{/if}}
+        <p class="signature-role">Reviewed By</p>
+        <p class="signature-date">Date: {{formatDate generatedAt}}</p>
+      </div>
+      {{/if}}
+    </div>
+  </div>
+</section>
