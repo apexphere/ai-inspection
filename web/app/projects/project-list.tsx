@@ -190,75 +190,111 @@ export function ProjectList(): React.ReactElement {
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-sm font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
-              onClick={() => handleSort('jobNumber')}
-            >
-              Job # <SortIcon column="jobNumber" />
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-sm font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
-              onClick={() => handleSort('address')}
-            >
-              Address <SortIcon column="address" />
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-sm font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
-              onClick={() => handleSort('client')}
-            >
-              Client <SortIcon column="client" />
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-sm font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
-              onClick={() => handleSort('status')}
-            >
-              Status <SortIcon column="status" />
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-sm font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
-              onClick={() => handleSort('updatedAt')}
-            >
-              Last Updated <SortIcon column="updatedAt" />
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {projects.map((project) => (
-            <tr
-              key={project.id}
-              className="hover:bg-gray-50 cursor-pointer"
-              onClick={() => router.push(`/projects/${project.id}`)}
-            >
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                {project.jobNumber || '—'}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                {project.property?.address || '—'}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                {project.client?.name || '—'}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${STATUS_COLORS[project.status] || 'bg-gray-100 text-gray-700'}`}>
-                  {STATUS_LABELS[project.status] || project.status}
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {new Date(project.updatedAt).toLocaleDateString()}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <>
+      {/* Mobile: Card Layout */}
+      <div className="sm:hidden space-y-4">
+        {projects.map((project) => (
+          <div
+            key={project.id}
+            className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => router.push(`/projects/${project.id}`)}
+          >
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <div>
+                {project.jobNumber && (
+                  <div className="text-xs font-medium text-gray-500 mb-1">
+                    #{project.jobNumber}
+                  </div>
+                )}
+                <div className="text-sm font-medium text-gray-900 line-clamp-2">
+                  {project.property?.address || '—'}
+                </div>
+              </div>
+              <span className={`flex-shrink-0 inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${STATUS_COLORS[project.status] || 'bg-gray-100 text-gray-700'}`}>
+                {STATUS_LABELS[project.status] || project.status}
+              </span>
+            </div>
+            <div className="text-sm text-gray-500">{project.client?.name || '—'}</div>
+            <div className="text-xs text-gray-400 mt-2">
+              Updated {new Date(project.updatedAt).toLocaleDateString()}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop: Table Layout */}
+      <div className="hidden sm:block bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-sm font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSort('jobNumber')}
+                >
+                  Job # <SortIcon column="jobNumber" />
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-sm font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSort('address')}
+                >
+                  Address <SortIcon column="address" />
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-sm font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSort('client')}
+                >
+                  Client <SortIcon column="client" />
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-sm font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSort('status')}
+                >
+                  Status <SortIcon column="status" />
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-sm font-medium text-gray-500 cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSort('updatedAt')}
+                >
+                  Last Updated <SortIcon column="updatedAt" />
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {projects.map((project) => (
+                <tr
+                  key={project.id}
+                  className="hover:bg-gray-50 cursor-pointer"
+                  onClick={() => router.push(`/projects/${project.id}`)}
+                >
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {project.jobNumber || '—'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                    {project.property?.address || '—'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                    {project.client?.name || '—'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${STATUS_COLORS[project.status] || 'bg-gray-100 text-gray-700'}`}>
+                      {STATUS_LABELS[project.status] || project.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {new Date(project.updatedAt).toLocaleDateString()}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </>
   );
 }
