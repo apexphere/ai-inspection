@@ -1,0 +1,110 @@
+# Mobile Responsive Design — Issue #529
+# Make web app work well on mobile devices
+
+metadata:
+  issue: 529
+  created: "2026-02-28"
+  author: "Sam"
+
+# =============================================================================
+# BREAKPOINTS (from tokens.yaml)
+# =============================================================================
+breakpoints:
+  mobile: "< 640px"   # Default/base styles
+  sm: "640px"         # Small tablets
+  md: "768px"         # Tablets
+  lg: "1024px"        # Laptops
+
+# =============================================================================
+# HEADER / NAVIGATION
+# =============================================================================
+header:
+  current-issue: "Nav links hidden on mobile, no way to navigate"
+  
+  mobile-design:
+    layout: "Logo left, hamburger button right"
+    hamburger:
+      icon: "3 horizontal lines"
+      position: "right side of header"
+      visible: "md:hidden (below 768px)"
+    
+    menu:
+      type: "slide-down panel or drawer"
+      content:
+        - "Inspections link"
+        - "Profile link (user email)"
+        - "Sign Out button"
+      style: "full-width, stacked vertically"
+  
+  desktop-design:
+    hamburger: "hidden (md:hidden)"
+    nav: "visible inline (hidden md:flex)"
+
+# =============================================================================
+# PAGES
+# =============================================================================
+pages:
+  login-register:
+    status: "Already mobile-friendly (centered card, full-width inputs)"
+    changes: "None needed"
+  
+  profile:
+    status: "max-w-2xl works on mobile"
+    changes: "None needed"
+  
+  inspections-list:
+    current: "May have table or card layout"
+    mobile:
+      - "Cards stack vertically"
+      - "Full-width on mobile"
+      - "Adequate touch targets (min 44px)"
+  
+  inspection-detail:
+    current: "Multiple sections with forms"
+    mobile:
+      - "Sections stack vertically"
+      - "Forms use full width"
+      - "Photo grids adapt (2 cols on mobile vs 3-4 on desktop)"
+  
+  projects:
+    current: "List/table view"
+    mobile:
+      - "Cards or stacked rows"
+      - "Horizontal scroll for tables if needed"
+
+# =============================================================================
+# COMPONENT PATTERNS
+# =============================================================================
+patterns:
+  container:
+    desktop: "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+    mobile: "px-4 (16px padding)"
+  
+  forms:
+    inputs: "w-full (already full-width)"
+    buttons: "w-full on mobile, auto on desktop"
+    spacing: "space-y-4"
+  
+  cards:
+    mobile: "full-width, stack vertically"
+    desktop: "grid layout"
+  
+  tables:
+    approach: "horizontal scroll wrapper"
+    wrapper: "overflow-x-auto"
+    min-width: "min-w-[600px] on table"
+
+# =============================================================================
+# IMPLEMENTATION
+# =============================================================================
+implementation:
+  priority:
+    1: "Header with mobile menu"
+    2: "Check all pages render without horizontal scroll"
+    3: "Fix any overflow issues"
+  
+  files:
+    - "web/components/app-header.tsx"  # Add mobile menu
+    - "web/app/layout.tsx"             # Check container
+    - "web/app/inspections/page.tsx"   # Check list layout
+    - "web/app/projects/page.tsx"      # Check list layout
