@@ -28,6 +28,14 @@ const CreatePropertySchema = z.object({
   yearBuilt: z.number().int().min(1800).max(2100).optional(),
   siteData: z.any().optional(),
   construction: z.any().optional(),
+  // BRANZ Zone Data — Issue #543
+  climateZone: z.string().optional(),
+  earthquakeZone: z.string().optional(),
+  exposureZone: z.string().optional(),
+  leeZone: z.string().optional(),
+  rainfallRange: z.string().optional(),
+  windRegion: z.string().optional(),
+  windZone: z.string().optional(),
 });
 
 const UpdatePropertySchema = z.object({
@@ -42,6 +50,14 @@ const UpdatePropertySchema = z.object({
   yearBuilt: z.number().int().min(1800).max(2100).optional(),
   siteData: z.any().optional(),
   construction: z.any().optional(),
+  // BRANZ Zone Data — Issue #543
+  climateZone: z.string().optional(),
+  earthquakeZone: z.string().optional(),
+  exposureZone: z.string().optional(),
+  leeZone: z.string().optional(),
+  rainfallRange: z.string().optional(),
+  windRegion: z.string().optional(),
+  windZone: z.string().optional(),
 });
 
 // POST /api/properties - Create property
