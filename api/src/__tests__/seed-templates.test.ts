@@ -31,6 +31,15 @@ The works subject to this Certificate of Acceptance application are described in
 This report identifies outstanding items and inspections required to achieve a Code Compliance Certificate from [Territorial Authority].`,
     variables: ['Company Name', 'Address', 'Territorial Authority'],
   },
+  {
+    name: 'Introduction - PPI',
+    type: 'SECTION' as const,
+    reportType: 'PPI' as const,
+    content: `[Company Name] have been engaged to carry out a pre-purchase inspection at [Property Address]. The purpose of this inspection is to independently inspect and report on the condition of the building works and findings of defects during inspection against relevant clauses of the New Zealand Standard NZS 4306:2005 — Residential Property Inspection.
+
+This report is intended to inform the prospective purchaser of any significant defects or maintenance issues identified at the time of inspection.`,
+    variables: ['Company Name', 'Property Address'],
+  },
   // CCC Gap Analysis templates (#221)
   {
     name: 'Executive Summary - CCC Gap Analysis',
@@ -130,6 +139,24 @@ This report does not constitute a guarantee or warranty regarding the condition 
     variables: ['Client Name', 'Company Name'],
   },
   {
+    name: 'Limitations - PPI',
+    type: 'BOILERPLATE' as const,
+    reportType: 'PPI' as const,
+    content: `This report has been prepared for [Client Name] by [Company Name] and is based on a visual inspection of the property at [Property Address] carried out in accordance with the New Zealand Standard 4306:2005.
+
+The inspection is limited to those areas and components of the building that are readily and safely accessible at the time of inspection. The following limitations apply:
+
+- Concealed areas (behind walls, under floors, above ceilings) are not inspected unless specifically stated
+- No invasive testing was carried out unless otherwise noted
+- Furniture, stored items, floor coverings, and personal belongings were not moved
+- The report does not cover compliance with the Building Code or council requirements
+- Electrical, plumbing, gas, and other services are assessed visually only — specialist reports should be obtained where concerns are noted
+- This report does not constitute a guarantee or warranty regarding the condition of the building
+
+[Company Name] accepts no liability for defects not reasonably discoverable by visual inspection at the time of the assessment.`,
+    variables: ['Client Name', 'Company Name', 'Property Address'],
+  },
+  {
     name: 'Document Control',
     type: 'BOILERPLATE' as const,
     content: `Report prepared by: [Author Name], [Author Credentials]
@@ -183,6 +210,7 @@ describe('Default Report Templates (seed data)', () => {
 
     expect(introTypes).toContain('COA');
     expect(introTypes).toContain('CCC_GAP');
+    expect(introTypes).toContain('PPI');
   });
 
   it('has at least one methodology template', () => {
@@ -206,5 +234,70 @@ describe('Default Report Templates (seed data)', () => {
     expect(names).toContain('Defect Schedule - CCC Gap Analysis');
     expect(names).toContain('Moisture Reading Summary - CCC Gap Analysis');
     expect(names).toContain('Cost Estimate Summary - CCC Gap Analysis');
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// PPI Boilerplate Tests — Issue #551
+// ──────────────────────────────────────────────────────────────────────────────
+
+describe('PPI Boilerplate Templates (#551)', () => {
+  const ppiTemplates = DEFAULT_TEMPLATES.filter(
+    (t) => t.reportType === 'PPI',
+  );
+
+  it('has PPI Introduction template', () => {
+    const intro = ppiTemplates.find((t) => t.name === 'Introduction - PPI');
+    expect(intro).toBeDefined();
+    expect(intro!.type).toBe('SECTION');
+  });
+
+  it('PPI Introduction references NZS 4306:2005', () => {
+    const intro = ppiTemplates.find((t) => t.name === 'Introduction - PPI');
+    expect(intro!.content).toContain('NZS 4306:2005');
+    expect(intro!.content).toContain('Residential Property Inspection');
+  });
+
+  it('PPI Introduction uses [Property Address] variable', () => {
+    const intro = ppiTemplates.find((t) => t.name === 'Introduction - PPI');
+    expect(intro!.content).toContain('[Property Address]');
+    expect(intro!.variables).toContain('Property Address');
+  });
+
+  it('PPI Introduction uses [Company Name] variable', () => {
+    const intro = ppiTemplates.find((t) => t.name === 'Introduction - PPI');
+    expect(intro!.content).toContain('[Company Name]');
+    expect(intro!.variables).toContain('Company Name');
+  });
+
+  it('has PPI Limitations template', () => {
+    const lim = ppiTemplates.find((t) => t.name === 'Limitations - PPI');
+    expect(lim).toBeDefined();
+    expect(lim!.type).toBe('BOILERPLATE');
+  });
+
+  it('PPI Limitations includes PPI-specific disclaimers', () => {
+    const lim = ppiTemplates.find((t) => t.name === 'Limitations - PPI');
+    expect(lim!.content).toContain('New Zealand');
+    expect(lim!.content).toContain('4306:2005');
+    expect(lim!.content).toContain('visual inspection');
+    expect(lim!.content).toContain('Concealed areas');
+    expect(lim!.content).toContain('no liability');
+  });
+
+  it('PPI Limitations variables include Client Name and Property Address', () => {
+    const lim = ppiTemplates.find((t) => t.name === 'Limitations - PPI');
+    expect(lim!.variables).toContain('Client Name');
+    expect(lim!.variables).toContain('Company Name');
+    expect(lim!.variables).toContain('Property Address');
+  });
+
+  it('PPI template variables are correctly extracted from content', () => {
+    for (const t of ppiTemplates) {
+      const found = extractVariables(t.content);
+      const declared = [...t.variables].sort();
+      const extracted = [...found].sort();
+      expect(extracted).toEqual(declared);
+    }
   });
 });
