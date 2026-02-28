@@ -68,32 +68,17 @@ Adopt **Grafana Loki** for log aggregation with **pino** for structured JSON log
                                           └──────────────┘
 ```
 
-### Option A: Railway-hosted Loki (Recommended)
-
-Deploy Loki + Grafana as additional Railway services alongside the API.
-
-| Service | Railway Setup | Resource |
-|---------|--------------|----------|
-| API | Existing | Logs via Alloy sidecar or Railway log drain |
-| Loki | New service (Docker) | 256MB RAM, 1GB disk |
-| Grafana | New service (Docker) | 256MB RAM |
-| Alloy | Sidecar on API service | Minimal |
-
-**Cost:** ~$5-10/month on Railway (Starter plan).
-
-### Option B: Grafana Cloud Free Tier
-
-Grafana Cloud offers a free tier: 50GB logs/month, 14-day retention.
+### Hosting: Grafana Cloud Free Tier (Confirmed)
 
 | Component | Where |
 |-----------|-------|
 | Loki | Grafana Cloud (managed) |
 | Grafana | Grafana Cloud (managed) |
-| Alloy | Railway sidecar (ships logs to cloud) |
+| Log shipping | Railway log drain → Loki HTTP push endpoint |
 
-**Cost:** Free for our volume. No infra to manage.
+**Cost:** Free (50GB logs/month, 14-day retention). Sufficient for our scale.
 
-**Recommendation:** Start with **Option B** (Grafana Cloud free tier). Zero infra management, sufficient for our scale. Move to self-hosted (Option A) if we outgrow the free tier or need longer retention.
+Self-hosted option available later if we outgrow free tier.
 
 ### Application Changes
 
