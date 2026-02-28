@@ -266,6 +266,10 @@ breakpoints:
 
   # Layout constraints
   layout:
+    # Page types determine their own max-width
+    # List pages (tables): full width, no max-w
+    # Form/content pages: max-w-2xl to max-w-4xl for readability
+    # Layout provides padding only, not width constraints
     max-width: "1280px"  # max-w-7xl
     content-max: "768px" # max-w-3xl (prose content)
 
@@ -327,7 +331,13 @@ guidelines:
     - "Card title: text-lg font-medium"
 
   layout:
-    - "Page max-width: max-w-7xl mx-auto"
+    # Page types determine their own max-width
+    # List pages (tables): full width, no max-w
+    # Form/content pages: max-w-2xl to max-w-4xl for readability
+    # Layout provides padding only, not width constraints
+    - "List pages (tables): full width, use available space"
+    - "Form/content pages: max-w-2xl to max-w-4xl mx-auto"
+    - "Layout provides padding (px-4 sm:px-6 lg:px-8), pages control width"
     - "Page padding: px-6 py-8"
     - "Mobile-first responsive design"
 
