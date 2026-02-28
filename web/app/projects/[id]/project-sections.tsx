@@ -6,6 +6,7 @@ import { PhotoGrid, Photo } from '@/components/photo-grid';
 import { ClauseReviewSection } from './clause-review-section';
 import { DocumentUpload } from '@/components/document-upload';
 import { DocumentList, Document } from '@/components/document-list';
+import { BranzZoneSection } from './branz-zone-section';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -29,6 +30,13 @@ interface Project {
     yearBuilt: number | null;
     siteData: Record<string, unknown> | null;
     construction: Record<string, unknown> | null;
+    climateZone: string | null;
+    earthquakeZone: string | null;
+    exposureZone: string | null;
+    leeZone: string | null;
+    rainfallRange: string | null;
+    windRegion: string | null;
+    windZone: string | null;
   };
   client: {
     id: string;
@@ -184,6 +192,20 @@ export function ProjectSections({ project }: ProjectSectionsProps): React.ReactE
           />
         </dl>
       </CollapsibleSection>
+
+      {/* BRANZ Zone Data Section — Issue #556 */}
+      <BranzZoneSection
+        propertyId={project.property.id}
+        initialData={{
+          climateZone: project.property.climateZone || '',
+          earthquakeZone: project.property.earthquakeZone || '',
+          exposureZone: project.property.exposureZone || '',
+          leeZone: project.property.leeZone || '',
+          rainfallRange: project.property.rainfallRange || '',
+          windRegion: project.property.windRegion || '',
+          windZone: project.property.windZone || '',
+        }}
+      />
 
       {/* Inspections Section */}
       <CollapsibleSection
