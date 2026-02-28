@@ -1,0 +1,25 @@
+<section class="report-section" id="section-2">
+  <h2>2. Introduction</h2>
+
+  <p>
+    {{#if introduction.text}}
+      {{introduction.text}}
+    {{else}}
+      {{project.company}} have been engaged to carry out an independent assessment
+      of the building works carried out before 1 July 1992 at
+      <strong>{{project.address}}</strong> to verify on reasonable grounds that the
+      building work is safe and sanitary for its intended purpose.
+    {{/if}}
+  </p>
+
+  <p>
+    This report assesses the building against the requirements of the
+    Building Act 1991, Section 64, which defines an <em>unsafe building</em>
+    (s.64(1)) and an <em>insanitary building</em> (s.64(4)).
+  </p>
+
+  {{#if introduction.scope}}
+  <h3>Scope</h3>
+  <p>{{introduction.scope}}</p>
+  {{/if}}
+</section>

@@ -1,0 +1,26 @@
+<section class="report-section" id="section-6">
+  <h2>6. Remedial Works</h2>
+
+  {{#if remedialItems}}
+  <table class="remedial-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Item</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each remedialItems}}
+      <tr>
+        <td>{{inc @index}}</td>
+        <td>{{item}}</td>
+        <td>{{description}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+  {{else}}
+  <p>No remedial works are required. The building is in safe and sanitary condition.</p>
+  {{/if}}
+</section>

@@ -1,0 +1,77 @@
+/* Safe & Sanitary Report Styles — Issue #553 */
+
+@page {
+  size: A4;
+  margin: 20mm 15mm 25mm 15mm;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 11pt;
+  line-height: 1.5;
+  color: #333;
+}
+
+/* ─── Cover Page ─── */
+.cover-page { page-break-after: always; text-align: center; padding-top: 60mm; }
+.cover-title h1 { font-size: 24pt; margin: 20mm 0 5mm; }
+.cover-subtitle { font-size: 14pt; color: #666; margin-bottom: 20mm; }
+.cover-details { margin: 10mm auto; text-align: left; max-width: 300px; }
+.cover-details .label { font-weight: bold; }
+.cover-logo { max-height: 40mm; }
+
+/* ─── Table of Contents ─── */
+.table-of-contents { page-break-after: always; }
+.table-of-contents h2 { border-bottom: 2px solid #333; padding-bottom: 3mm; }
+
+/* ─── Sections ─── */
+.report-section { margin-bottom: 10mm; }
+.report-section h2 { color: #1a365d; border-bottom: 1px solid #ccc; padding-bottom: 2mm; margin-top: 8mm; }
+.report-section h3 { color: #2d4a7a; margin-top: 5mm; }
+
+/* ─── Tables ─── */
+table { width: 100%; border-collapse: collapse; margin: 5mm 0; }
+th, td { border: 1px solid #ccc; padding: 3mm 4mm; text-align: left; vertical-align: top; }
+th { background-color: #f0f4f8; font-weight: bold; color: #1a365d; }
+
+.summary-table th { width: 30%; }
+.personnel-table th { width: 30%; }
+.building-info-table th { width: 30%; }
+
+/* ─── Assessment Framework Table ─── */
+.assessment-table th { font-size: 10pt; }
+.assessment-table .item-name { width: 15%; font-weight: bold; }
+.assessment-table .item-details { font-weight: normal; font-size: 10pt; color: #555; }
+.assessment-table .photo-refs { width: 12%; font-size: 10pt; }
+.assessment-table .observations { width: 30%; }
+.assessment-table .compliance { width: 20%; font-size: 10pt; }
+.assessment-table .remedial { width: 15%; }
+
+/* ─── Remedial Table ─── */
+.remedial-table th:first-child { width: 8%; }
+.remedial-table th:nth-child(2) { width: 25%; }
+
+/* ─── Signatures ─── */
+.signatures-section { page-break-before: always; }
+.signature-block { margin-top: 10mm; }
+.signature-row { display: flex; gap: 20mm; }
+.signature-field { flex: 1; }
+.signature-line { border-bottom: 1px solid #333; height: 15mm; margin-bottom: 3mm; }
+.signature-name { font-weight: bold; margin: 0; }
+.signature-credentials { font-size: 10pt; color: #555; margin: 1mm 0; }
+.signature-role { font-size: 10pt; margin: 1mm 0; }
+.signature-date { font-size: 10pt; color: #555; margin: 1mm 0; }
+
+/* ─── Photos ─── */
+.photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; }
+.photo-item { break-inside: avoid; margin-bottom: 5mm; }
+.photo-item img { max-width: 100%; border: 1px solid #ddd; }
+.photo-item figcaption { font-size: 10pt; margin-top: 2mm; }
+.photo-location { color: #666; }
+
+/* ─── Document Control ─── */
+.document-control-page { page-break-after: always; }
+
+/* ─── Utilities ─── */
+.page-break-before { page-break-before: always; }
+.no-data { font-style: italic; color: #666; }

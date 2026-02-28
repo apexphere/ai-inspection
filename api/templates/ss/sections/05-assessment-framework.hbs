@@ -1,0 +1,77 @@
+<section class="report-section" id="section-5">
+  <h2>5. Assessment Framework</h2>
+
+  {{#if assessmentItems}}
+  <h3>5.1 Safety Assessment — Building Act 1991 s.64(1)</h3>
+  <p>
+    An unsafe building is one that, in the ordinary course of events, is likely
+    to cause injury or death to persons in or around the building.
+  </p>
+
+  <table class="assessment-table">
+    <thead>
+      <tr>
+        <th>Items</th>
+        <th>Photographic Reference</th>
+        <th>Observations</th>
+        <th>Compliance Requirement (s.64)</th>
+        <th>Remedial Works</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each assessmentItems}}
+      {{#if (eq assessmentType "safety")}}
+      <tr>
+        <td class="item-name">
+          <strong>{{items}}</strong>
+          {{#if details}}<br><span class="item-details">{{details}}</span>{{/if}}
+        </td>
+        <td class="photo-refs">{{photoRefs}}</td>
+        <td class="observations">{{observations}}</td>
+        <td class="compliance">{{complianceRequirement}}</td>
+        <td class="remedial">{{remedialWorks}}</td>
+      </tr>
+      {{/if}}
+      {{/each}}
+    </tbody>
+  </table>
+
+  <h3>5.2 Sanitary Assessment — Building Act 1991 s.64(4)</h3>
+  <p>
+    An insanitary building is one that is offensive or likely to be injurious
+    to health because of how it is situated, constructed, or is in a state of
+    disrepair; or lacks adequate supply of potable water, sanitary facilities,
+    or stormwater/sewage drainage.
+  </p>
+
+  <table class="assessment-table">
+    <thead>
+      <tr>
+        <th>Items</th>
+        <th>Photographic Reference</th>
+        <th>Observations</th>
+        <th>Compliance Requirement (s.64)</th>
+        <th>Remedial Works</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each assessmentItems}}
+      {{#if (eq assessmentType "sanitary")}}
+      <tr>
+        <td class="item-name">
+          <strong>{{items}}</strong>
+          {{#if details}}<br><span class="item-details">{{details}}</span>{{/if}}
+        </td>
+        <td class="photo-refs">{{photoRefs}}</td>
+        <td class="observations">{{observations}}</td>
+        <td class="compliance">{{complianceRequirement}}</td>
+        <td class="remedial">{{remedialWorks}}</td>
+      </tr>
+      {{/if}}
+      {{/each}}
+    </tbody>
+  </table>
+  {{else}}
+  <p class="no-data">No assessment items have been recorded.</p>
+  {{/if}}
+</section>

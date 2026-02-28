@@ -1,0 +1,23 @@
+<section class="appendix" id="appendix-a">
+  <h2>Appendix A — Photographs</h2>
+
+  {{#if appendices.photos}}
+  <div class="photo-grid">
+    {{#each appendices.photos}}
+    <figure class="photo-item">
+      {{#if base64}}
+      <img src="data:image/jpeg;base64,{{{base64}}}" alt="{{caption}}" />
+      {{/if}}
+      <figcaption>
+        <strong>Photograph {{number}}</strong>: {{caption}}
+        {{#if location}}
+        <span class="photo-location">({{location}})</span>
+        {{/if}}
+      </figcaption>
+    </figure>
+    {{/each}}
+  </div>
+  {{else}}
+  <p>No photographs were taken during this assessment.</p>
+  {{/if}}
+</section>

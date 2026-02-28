@@ -1,0 +1,35 @@
+<section class="report-section" id="section-4">
+  <h2>4. Assessment Methodology</h2>
+
+  <p>
+    {{#if methodology.description}}
+      {{methodology.description}}
+    {{else}}
+      The assessment was conducted by way of a visual, non-invasive inspection
+      of the building and site. No destructive testing was undertaken.
+    {{/if}}
+  </p>
+
+  {{#if methodology.equipment}}
+  <h3>Equipment Used</h3>
+  <ul>
+    {{#each methodology.equipment}}
+    <li>{{this}}</li>
+    {{/each}}
+  </ul>
+  {{/if}}
+
+  {{#if methodology.areasNotAccessed}}
+  <h3>Areas Not Accessed</h3>
+  <p>{{methodology.areasNotAccessed}}</p>
+  {{/if}}
+
+  {{#if methodology.documentsReviewed}}
+  <h3>Documents Reviewed</h3>
+  <ul>
+    {{#each methodology.documentsReviewed}}
+    <li>{{this}}</li>
+    {{/each}}
+  </ul>
+  {{/if}}
+</section>

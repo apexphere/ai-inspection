@@ -1,0 +1,36 @@
+<section class="report-section" id="section-7">
+  <h2>7. Summary</h2>
+
+  {{#if summaryText}}
+  <p>{{summaryText}}</p>
+  {{else}}
+    {{#if isSafe}}
+      {{#if isSanitary}}
+      <p>
+        Following review of site works and comparing with compliance requirement,
+        it is concluded that the building of <strong>{{project.address}}</strong>
+        is in <strong>Safe and Sanitary condition</strong>.
+      </p>
+      {{else}}
+      <p>
+        Following review of site works, it is concluded that the building of
+        <strong>{{project.address}}</strong> is in <strong>safe condition</strong>
+        but remedial works are required to bring the building into sanitary condition
+        as outlined in Section 6.
+      </p>
+      {{/if}}
+    {{else}}
+      <p>
+        Following review of site works, remedial works are required to bring the
+        building of <strong>{{project.address}}</strong> into safe and sanitary
+        condition as outlined in Section 6.
+      </p>
+    {{/if}}
+  {{/if}}
+
+  {{#if remedialWorksNeeded}}
+  <p>
+    <strong>Remedial works summary:</strong> {{remedialWorksSummary}}
+  </p>
+  {{/if}}
+</section>
