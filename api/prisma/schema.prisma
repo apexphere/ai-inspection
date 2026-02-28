@@ -132,6 +132,9 @@ model Report {
   
   // Form 9 data (structured JSON for council submission)
   form9Data       Json?
+
+  // Executive summary (auto-generated or manually edited)
+  executiveSummary Json?
   
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt

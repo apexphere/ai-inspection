@@ -95,6 +95,7 @@ const mockReport: Report = {
   reviewedById: null,
   reviewedAt: null,
   form9Data: null,
+  executiveSummary: null,
   createdAt: new Date(),
   updatedAt: new Date(),
 };

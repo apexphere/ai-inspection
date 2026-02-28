@@ -273,3 +273,89 @@ reportManagementRouter.get('/:id/form9', async (req: Request, res: Response, nex
     next(error);
   }
 });
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Executive Summary — Issue #547
+// ──────────────────────────────────────────────────────────────────────────────
+
+import {
+  ExecutiveSummaryService,
+  ReportNotFoundError as ExecSummaryReportNotFoundError,
+  InvalidReportTypeError,
+} from '../services/executive-summary.js';
+
+const execSummaryService = new ExecutiveSummaryService(prisma);
+
+// GET /api/reports/:id/executive-summary
+reportManagementRouter.get('/:id/executive-summary', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const summary = await execSummaryService.get(req.params.id as string);
+    if (!summary) {
+      res.status(404).json({ error: 'No executive summary found for this report' });
+      return;
+    }
+    res.json(summary);
+  } catch (error) {
+    if (error instanceof ExecSummaryReportNotFoundError) {
+      res.status(404).json({ error: error.message });
+      return;
+    }
+    next(error);
+  }
+});
+
+// POST /api/reports/:id/executive-summary/generate
+reportManagementRouter.post('/:id/executive-summary/generate', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const summary = await execSummaryService.generate(req.params.id as string);
+    res.status(201).json(summary);
+  } catch (error) {
+    if (error instanceof ExecSummaryReportNotFoundError) {
+      res.status(404).json({ error: error.message });
+      return;
+    }
+    if (error instanceof InvalidReportTypeError) {
+      res.status(400).json({ error: error.message });
+      return;
+    }
+    next(error);
+  }
+});
+
+// PUT /api/reports/:id/executive-summary
+const ExecutiveSummaryUpdateSchema = z.object({
+  keyFindings: z.array(z.string()).optional(),
+  breachedClauses: z.array(z.object({
+    code: z.string(),
+    title: z.string(),
+    count: z.number(),
+  })).optional(),
+  recommendation: z.string().optional(),
+  estimatedCost: z.number().optional(),
+});
+
+reportManagementRouter.put('/:id/executive-summary', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const parsed = ExecutiveSummaryUpdateSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({
+        error: 'Validation failed',
+        details: parsed.error.flatten().fieldErrors,
+      });
+      return;
+    }
+
+    const summary = await execSummaryService.update(req.params.id as string, parsed.data);
+    res.json(summary);
+  } catch (error) {
+    if (error instanceof ExecSummaryReportNotFoundError) {
+      res.status(404).json({ error: error.message });
+      return;
+    }
+    if (error instanceof InvalidReportTypeError) {
+      res.status(400).json({ error: error.message });
+      return;
+    }
+    next(error);
+  }
+});
