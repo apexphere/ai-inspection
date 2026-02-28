@@ -13,7 +13,7 @@ test.describe('Home Page', () => {
     await page.goto('/');
 
     // Should have a link to inspections
-    const inspectionsLink = page.getByRole('link', { name: /inspections/i });
+    const inspectionsLink = page.getByRole("link", { name: "Inspections", exact: true }).first();
     await expect(inspectionsLink).toBeVisible();
 
     // Click and verify navigation (already authenticated)
