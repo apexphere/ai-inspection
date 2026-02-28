@@ -1,7 +1,7 @@
-<section class="report-section" id="section-3">
-  <h2>3. Site and Ground Condition</h2>
+<section class="report-section" id="section-6">
+  <h2>6. Exterior of Building</h2>
 
-  {{#if siteGround}}
+  {{#if exterior}}
   <table class="inspection-table">
     <thead>
       <tr>
@@ -12,7 +12,7 @@
       </tr>
     </thead>
     <tbody>
-      {{#each siteGround.items}}
+      {{#each exterior.items}}
       <tr class="{{#if issue}}has-issue{{/if}}">
         <td>{{name}}</td>
         <td class="condition-{{lowercase condition}}">{{condition}}</td>
@@ -23,12 +23,12 @@
     </tbody>
   </table>
 
-  {{#if siteGround.notes}}
+  {{#if exterior.notes}}
   <h3>Additional Notes</h3>
-  <p>{{siteGround.notes}}</p>
+  <p>{{exterior.notes}}</p>
   {{/if}}
 
   {{else}}
-  <p>No site and ground observations recorded.</p>
+  <p>No exterior observations recorded.</p>
   {{/if}}
 </section>
