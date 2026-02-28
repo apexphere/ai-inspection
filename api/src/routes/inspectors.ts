@@ -57,11 +57,11 @@ inspectorsRouter.get('/by-phone/:phone', async (req: Request, res: Response) => 
     // Normalize for lookup
     const normalizedPhone = normalizePhoneNumber(phone);
 
-    // Find user by phone number
+    // Find user by phone number (must be verified)
     const user = await prisma.user.findFirst({
       where: {
         phoneNumber: normalizedPhone,
-        // phoneVerified check removed - profile phone is sufficient (#519)
+        phoneVerified: true,
       },
       select: {
         id: true,
