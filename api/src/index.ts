@@ -1,3 +1,5 @@
+import { logger } from './lib/logger.js';
+import { pinoHttp as PinoHttp, type Options as PinoHttpOptions } from 'pino-http';
 import express, { type Application } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -38,8 +40,9 @@ import { generatedReportsRouter } from './routes/generated-reports.js';
 import { personnelRouter } from './routes/personnel.js';
 import { credentialsRouter } from './routes/credentials.js';
 import { interactionLogsRouter } from './routes/interaction-logs.js';
+import { serviceKeysAdminRouter } from './routes/admin/service-keys.js';
 import { openApiRouter } from './openapi/index.js';
-import { serviceAuthMiddleware } from './middleware/auth.js';
+import { authMiddleware, serviceAuthMiddleware, requireScope, requireAdmin } from './middleware/auth.js';
 import { getAllowedOrigins } from './config/domain.js';
 import { logStartupDiagnostics } from './config/startup.js';
 
@@ -76,64 +79,81 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json({ limit: '10mb' })); // Increased limit for base64 photos
 
+// Structured request logging — Issue #573
+app.use(PinoHttp({
+  logger,
+  autoLogging: {
+    ignore: (req) => req.url === '/health' || req.url === '/health/ready',
+  },
+  customSuccessMessage: (req, res) => `${req.method} ${req.url} ${res.statusCode}`,
+  customErrorMessage: (req, res) => `${req.method} ${req.url} ${res.statusCode}`,
+}));
+
 // Public routes (no auth required)
 app.use('/health', healthRouter);
 app.use('/api', openApiRouter);  // OpenAPI docs (no auth required)
 app.use('/api/auth', authRouter);
 app.use('/api/photos', photosPublicRouter);  // Public photo serving (no auth) - #524
 
-// Service routes (JWT or API key auth)
-app.use('/api/inspectors', serviceAuthMiddleware, inspectorsRouter);
-app.use('/api/interaction-logs', serviceAuthMiddleware, interactionLogsRouter);
+// Agent-accessible routes (JWT or scoped API key) — Issue #596
+app.use('/api/projects', serviceAuthMiddleware, requireScope('projects:read'), projectsRouter);
+app.use('/api/properties', serviceAuthMiddleware, requireScope('properties:read'), propertiesRouter);
+app.use('/api/clients', serviceAuthMiddleware, requireScope('clients:read'), clientsRouter);
+app.use('/api', serviceAuthMiddleware, requireScope('inspections:read'), siteInspectionsRouter);
+app.use('/api', serviceAuthMiddleware, requireScope('checklist:read'), checklistItemsRouter);
+app.use('/api/building-code', serviceAuthMiddleware, requireScope('building-code:read'), buildingCodeRouter);
+app.use('/api', serviceAuthMiddleware, requireScope('clause-reviews:read'), clauseReviewsRouter);
+app.use('/api', serviceAuthMiddleware, requireScope('photos:read'), projectPhotosRouter);
+app.use('/api', serviceAuthMiddleware, requireScope('photos:read'), photosRouter);
+app.use('/api/inspections', serviceAuthMiddleware, requireScope('inspections:read'), inspectionsRouter);
+app.use('/api', serviceAuthMiddleware, requireScope('inspections:read'), findingsRouter);
+app.use('/api', serviceAuthMiddleware, requireScope('inspections:read'), defectsRouter);
+app.use('/api', serviceAuthMiddleware, requireScope('inspections:read'), buildingHistoryRouter);
+app.use('/api', serviceAuthMiddleware, requireScope('inspections:read'), siteMeasurementsRouter);
+app.use('/api', serviceAuthMiddleware, requireScope('inspections:read'), moistureReadingsRouter);
+app.use('/api/inspectors', serviceAuthMiddleware, requireScope('inspections:read'), inspectorsRouter);
+app.use('/api/interaction-logs', serviceAuthMiddleware, requireScope('inspections:read'), interactionLogsRouter);
 
-// Protected routes (auth required)
-app.use('/api/inspections', serviceAuthMiddleware, inspectionsRouter);
-app.use('/api', serviceAuthMiddleware, findingsRouter);
-app.use('/api', serviceAuthMiddleware, photosRouter);
+// Protected routes — JWT only (never service-accessible) — Issue #596
+app.use('/api/personnel', authMiddleware, personnelRouter);
+app.use('/api', authMiddleware, credentialsRouter);
+app.use('/api/companies', authMiddleware, companiesRouter);
+app.use('/api/reports', authMiddleware, reportManagementRouter);
+app.use('/api/reports', authMiddleware, reportTransitionsRouter);
+app.use('/api', authMiddleware, reportAuditLogRouter);
+app.use('/api', authMiddleware, reviewCommentsRouter);
+
+// Authenticated routes — JWT or any service key (no specific scope)
 app.use('/api', serviceAuthMiddleware, reportsRouter);
-app.use('/api/reports', serviceAuthMiddleware, reportManagementRouter);
-app.use('/api/reports', serviceAuthMiddleware, reportTransitionsRouter);
 app.use('/api', serviceAuthMiddleware, navigationRouter);
-app.use('/api/projects', serviceAuthMiddleware, projectsRouter);
-app.use('/api/properties', serviceAuthMiddleware, propertiesRouter);
-app.use('/api/clients', serviceAuthMiddleware, clientsRouter);
-app.use('/api/personnel', serviceAuthMiddleware, personnelRouter);
-app.use('/api', serviceAuthMiddleware, siteInspectionsRouter);
-app.use('/api', serviceAuthMiddleware, checklistItemsRouter);
-app.use('/api/building-code', serviceAuthMiddleware, buildingCodeRouter);
-app.use('/api', serviceAuthMiddleware, clauseReviewsRouter);
 app.use('/api', serviceAuthMiddleware, documentsRouter);
 app.use('/api/na-reason-templates', serviceAuthMiddleware, naReasonTemplatesRouter);
-app.use('/api', serviceAuthMiddleware, projectPhotosRouter);
-app.use('/api', serviceAuthMiddleware, buildingHistoryRouter);
-app.use('/api', serviceAuthMiddleware, siteMeasurementsRouter);
-app.use('/api', serviceAuthMiddleware, defectsRouter);
-app.use('/api/companies', serviceAuthMiddleware, companiesRouter);
-app.use('/api', serviceAuthMiddleware, reportAuditLogRouter);
-app.use('/api', serviceAuthMiddleware, moistureReadingsRouter);
 app.use('/api', serviceAuthMiddleware, costEstimatesRouter);
 app.use('/api', serviceAuthMiddleware, reportGenerationRouter);
 app.use('/api', serviceAuthMiddleware, reportTemplatesRouter);
-app.use('/api', serviceAuthMiddleware, reviewCommentsRouter);
+
+// Admin routes — JWT + admin only
+app.use("/api/admin/service-keys", authMiddleware, requireAdmin, serviceKeysAdminRouter);
+
 app.use('/api/reports', serviceAuthMiddleware, generatedReportsRouter);
-app.use('/api', serviceAuthMiddleware, credentialsRouter);
 
 // Error handling with detailed logging
 app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  // Log with context
-  console.error('=== API Error ===');
-  console.error(`Method: ${req.method}`);
-  console.error(`Path: ${req.path}`);
-  console.error(`Error: ${err.message}`);
-  console.error(`Stack: ${err.stack}`);
-  console.error('=================');
-  
+  // Use pino-http request logger if available, fall back to shared logger
+  const log = req.log || logger;
+  log.error({
+    method: req.method,
+    path: req.path,
+    statusCode: 500,
+    err,
+  }, 'Unhandled API error');
+
   // Check for common issues and provide hints
   const message = err.message.toLowerCase();
   if (message.includes('prisma') || message.includes('database') || message.includes('connect')) {
-    console.error('💡 Hint: Check DATABASE_URL is set correctly');
+    log.error('Hint: Check DATABASE_URL is set correctly');
   }
-  
+
   res.status(500).json({ error: 'Internal server error' });
 });
 
@@ -145,12 +165,12 @@ async function start(): Promise<void> {
   await startReportWorker();
 
   const server = app.listen(PORT, () => {
-    console.log(`API server running on port ${PORT}`);
+    logger.info({ port: PORT }, 'API server running');
   });
 
   // Graceful shutdown
   const shutdown = async (signal: string): Promise<void> => {
-    console.log(`\n[Server] ${signal} received — shutting down gracefully`);
+    logger.info({ signal }, 'Shutting down gracefully');
     server.close(async () => {
       await stopReportWorker();
       process.exit(0);
@@ -162,7 +182,7 @@ async function start(): Promise<void> {
 }
 
 start().catch(err => {
-  console.error('Failed to start server:', err);
+  logger.fatal({ err }, 'Failed to start server');
   process.exit(1);
 });
 

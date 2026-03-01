@@ -1072,3 +1072,23 @@ enum InteractionEventType {
   TOOL_RESULT
   AI_RESPONSE
 }
+
+// ============================================
+// Service Key Management — Issue #594
+// ============================================
+
+model ServiceKey {
+  id          String    @id @default(uuid())
+  name        String    @unique          // e.g. "kai-agent"
+  keyHash     String    @unique          // bcrypt hash of the key
+  keyPrefix   String                     // first 8 chars for identification
+  scopes      String[]                   // e.g. ["inspections:read", "inspections:write"]
+  actor       String                     // e.g. "agent:kai"
+  active      Boolean   @default(true)
+  expiresAt   DateTime?
+  lastUsedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([keyPrefix])
+}

@@ -1,0 +1,34 @@
+name: admin-service-keys
+issue: 610
+description: Admin page to manage service API keys
+
+routes:
+  - /admin/service-keys
+
+guard: isAdmin from session — redirect to / if not admin
+
+components:
+  - web/app/admin/layout.tsx (server, admin guard)
+  - web/app/admin/service-keys/page.tsx (server, list fetch)
+  - web/app/admin/service-keys/service-keys-client.tsx (client, interactions)
+  - web/components/app-header.tsx (add Admin nav link)
+
+api:
+  list: GET /api/admin/service-keys
+  create: POST /api/admin/service-keys { name, actor, scopes }
+  deactivate: DELETE /api/admin/service-keys/:id
+  regenerate: POST /api/admin/service-keys/:id/regenerate
+
+scopes:
+  - inspections:read
+  - projects:read
+  - properties:read
+  - clients:read
+  - checklist:read
+  - clause-reviews:read
+  - building-code:read
+  - photos:read
+
+table_columns: name, actor, scopes (count+tooltip), lastUsedAt, status, actions
+actions_on_active_keys: Regenerate, Deactivate (with inline confirmation)
+key_reveal: shown once with copy-to-clipboard after create/regenerate

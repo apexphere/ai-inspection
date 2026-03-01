@@ -5,7 +5,6 @@
   "description": "AI-powered building inspection assistant",
   "workspaces": [
     "api",
-    "server",
     "shared",
     "web",
     "test"

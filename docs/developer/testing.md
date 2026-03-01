@@ -10,7 +10,7 @@
 ## Test Environment Setup
 
 - [ ] OpenClaw with ai-inspection skill installed
-- [ ] MCP server running (`node server/dist/index.js`)
+- [ ] Agent skill configured (skills/inspect)
 - [ ] WhatsApp channel configured
 - [ ] Test property address ready
 - [ ] Camera/photos available for testing

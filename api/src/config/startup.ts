@@ -1,3 +1,4 @@
+import { logger } from '../lib/logger.js';
 /**
  * Startup validation and diagnostics
  * 
@@ -72,32 +73,33 @@ export async function checkDatabase(): Promise<{ connected: boolean; error?: str
  * Log startup diagnostics
  */
 export async function logStartupDiagnostics(): Promise<void> {
-  console.log('=== API Startup Diagnostics ===');
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`Node version: ${process.version}`);
+  logger.info({
+    env: process.env.NODE_ENV || 'development',
+    nodeVersion: process.version,
+  }, 'API startup diagnostics');
   
   // Validate env vars
   const envResult = validateEnv();
   if (envResult.errors.length > 0) {
-    console.error('❌ Configuration errors:');
-    envResult.errors.forEach(e => console.error(`   - ${e}`));
+    
+    logger.error({ errors: envResult.errors }, 'Configuration errors');
   }
   if (envResult.warnings.length > 0) {
-    console.warn('⚠️  Configuration warnings:');
-    envResult.warnings.forEach(w => console.warn(`   - ${w}`));
+    
+    logger.warn({ warnings: envResult.warnings }, 'Configuration warnings');
   }
   if (envResult.valid && envResult.warnings.length === 0) {
-    console.log('✅ Configuration valid');
+    logger.info('Configuration valid');
   }
 
   // Check database
-  console.log('Checking database connection...');
+  logger.info('Checking database connection');
   const dbResult = await checkDatabase();
   if (dbResult.connected) {
-    console.log('✅ Database connected');
+    logger.info('Database connected');
   } else {
-    console.error(`❌ Database connection failed: ${dbResult.error}`);
+    logger.error({ error: dbResult.error }, 'Database connection failed');
   }
 
-  console.log('===============================');
+  
 }

@@ -1,3 +1,4 @@
+import { logger } from '../lib/logger.js';
 /**
  * Generated Report Storage & Download Routes (#226)
  *
@@ -32,7 +33,7 @@ router.get('/:id/generated', async (req, res) => {
     if (err instanceof ReportNotFoundError) {
       return res.status(404).json({ error: err.message });
     }
-    console.error('[generated-reports] list error:', err);
+    logger.error({ err }, 'Generated reports list error');
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -76,7 +77,7 @@ router.get('/:id/download/:format', async (req, res) => {
     if (err instanceof ReportNotFoundError) {
       return res.status(404).json({ error: err.message });
     }
-    console.error('[generated-reports] download error:', err);
+    logger.error({ err }, 'Generated reports download error');
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -109,7 +110,7 @@ router.get('/file/:id/download', async (req, res) => {
     if (err instanceof GeneratedReportNotFoundError) {
       return res.status(404).json({ error: err.message });
     }
-    console.error('[generated-reports] file download error:', err);
+    logger.error({ err }, 'Generated reports file download error');
     res.status(500).json({ error: 'Internal server error' });
   }
 });

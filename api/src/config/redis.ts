@@ -1,3 +1,4 @@
+import { logger } from '../lib/logger.js';
 /**
  * Redis connection config for BullMQ.
  */
@@ -15,11 +16,11 @@ export function getRedisConnection(): Redis {
     });
 
     _connection.on('error', (err: Error) => {
-      console.error('[Redis] Connection error:', err.message);
+      logger.error({ err }, 'Redis connection error');
     });
 
     _connection.on('connect', () => {
-      console.log('[Redis] Connected');
+      logger.info('Redis connected');
     });
   }
 

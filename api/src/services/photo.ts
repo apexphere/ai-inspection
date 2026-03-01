@@ -1,3 +1,4 @@
+import { logger } from '../lib/logger.js';
 /**
  * Photo Service
  * Issue #524 - Updated to use R2 storage in production
@@ -44,9 +45,9 @@ export class PhotoService {
     this.useR2 = isR2Configured();
     
     if (this.useR2) {
-      console.log('[PhotoService] Using R2 storage');
+      logger.info('Using R2 storage');
     } else {
-      console.log('[PhotoService] Using local storage (R2 not configured)');
+      logger.info('Using local storage (R2 not configured)');
     }
   }
 
@@ -95,7 +96,7 @@ export class PhotoService {
       const r2Key = `findings/${input.findingId}/${filename}`;
       await uploadToR2(r2Key, buffer, mimeType);
       storagePath = `r2://${r2Key}`;
-      console.log(`[PhotoService] Uploaded to R2: ${r2Key}`);
+      logger.info({ r2Key }, "Uploaded to R2");
     } else {
       // Write to local disk (development fallback)
       await fs.mkdir(this.photoDir, { recursive: true });
@@ -156,14 +157,14 @@ export class PhotoService {
       try {
         await deleteFromR2(r2Key);
       } catch (err) {
-        console.warn(`Failed to delete from R2: ${r2Key}`, err);
+        logger.warn({ r2Key, err }, "Failed to delete from R2");
       }
     } else {
       // Delete from local disk
       try {
         await fs.unlink(photo.path);
       } catch (err) {
-        console.warn(`Failed to delete photo file: ${photo.path}`, err);
+        logger.warn({ path: photo.path, err }, 'Failed to delete photo file');
       }
     }
 

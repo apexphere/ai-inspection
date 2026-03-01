@@ -1,3 +1,4 @@
+import { logger } from '../lib/logger.js';
 /**
  * Report Generation Worker
  * Processes BullMQ jobs for async report generation.
@@ -20,7 +21,7 @@ let _worker: Worker<GenerationJobData> | null = null;
 async function processJob(job: Job<GenerationJobData>): Promise<void> {
   const { inspectionId, dbJobId } = job.data;
 
-  console.log(`[Worker] Starting job ${dbJobId} for inspection ${inspectionId}`);
+  logger.info({ dbJobId, inspectionId }, 'Starting report generation job');
 
   // Mark as PROCESSING
   await prisma.generationJob.update({
@@ -54,10 +55,10 @@ async function processJob(job: Job<GenerationJobData>): Promise<void> {
     });
     await job.updateProgress(100);
 
-    console.log(`[Worker] Completed job ${dbJobId} for inspection ${inspectionId}`);
+    logger.info({ dbJobId, inspectionId }, 'Report generation job completed');
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    console.error(`[Worker] Job ${dbJobId} failed: ${message}`);
+    logger.error({ dbJobId, error: message }, 'Report generation job failed');
 
     // Mark status in DB: RETRYING if more attempts remain, FAILED otherwise
     const attemptsMade = job.attemptsMade ?? 0;
@@ -83,10 +84,10 @@ export async function startReportWorker(): Promise<Worker<GenerationJobData>> {
   // Verify Redis is reachable before starting the worker
   try {
     await pingRedis();
-    console.log('[Worker] Redis connection verified');
+    logger.info('Worker Redis connection verified');
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error(`[Worker] ⚠️  Redis unreachable — report generation jobs will not process: ${msg}`);
+    logger.warn({ error: msg }, 'Redis unreachable — report generation jobs will not process');
     // Return a no-op placeholder; don't crash the server
     return null as unknown as Worker<GenerationJobData>;
   }
@@ -97,18 +98,18 @@ export async function startReportWorker(): Promise<Worker<GenerationJobData>> {
   });
 
   _worker.on('completed', (job) => {
-    console.log(`[Worker] Job ${job.id} completed`);
+    logger.info({ jobId: job.id }, 'Worker job completed');
   });
 
   _worker.on('failed', (job, err) => {
-    console.error(`[Worker] Job ${job?.id} failed: ${err.message}`);
+    logger.error({ jobId: job?.id, error: err.message }, 'Worker job failed');
   });
 
   _worker.on('error', (err) => {
-    console.error('[Worker] Error:', err.message);
+    logger.error({ err }, 'Worker error');
   });
 
-  console.log(`[Worker] Started report generation worker (concurrency: ${MAX_CONCURRENCY})`);
+  logger.info({ concurrency: MAX_CONCURRENCY }, 'Report generation worker started');
   return _worker;
 }
 
@@ -116,6 +117,6 @@ export async function stopReportWorker(): Promise<void> {
   if (_worker) {
     await _worker.close();
     _worker = null;
-    console.log('[Worker] Report generation worker stopped');
+    logger.info('Report generation worker stopped');
   }
 }

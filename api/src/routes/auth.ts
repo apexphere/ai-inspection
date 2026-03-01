@@ -1,3 +1,4 @@
+import { logger } from '../lib/logger.js';
 /**
  * Auth Routes — Issue #181
  *
@@ -100,7 +101,7 @@ authRouter.post('/register', authLimiter, async (req: Request, res: Response) =>
       token,
     });
   } catch (err) {
-    console.error('Registration error:', err);
+    logger.error({ err }, 'Registration error');
     res.status(500).json({ error: 'Registration failed' });
   }
 });
@@ -152,14 +153,18 @@ authRouter.post('/login', authLimiter, async (req: Request, res: Response) => {
     // Set HttpOnly cookie
     setTokenCookie(res, token);
 
+    // Check admin status
+    const adminUserIds = (process.env.ADMIN_USER_IDS || '').split(',').filter(Boolean);
+    const isAdmin = adminUserIds.includes(user.id);
+
     // Return token in response for cross-origin clients (NextAuth)
     res.json({
       message: 'Login successful',
-      user: { id: user.id, email: user.email },
+      user: { id: user.id, email: user.email, isAdmin },
       token,
     });
   } catch (err) {
-    console.error('Login error:', err);
+    logger.error({ err }, 'Login error');
     res.status(500).json({ error: 'Authentication failed' });
   }
 });
@@ -321,12 +326,12 @@ authRouter.post('/forgot-password', authLimiter, async (req: Request, res: Respo
     // TODO: Send email with reset link containing resetToken
     // For now, log in development
     if (process.env.NODE_ENV !== 'production') {
-      console.log(`[DEV] Password reset token for ${email}: ${resetToken}`);
+      logger.debug({ email, resetToken }, "DEV: Password reset token");
     }
 
     res.json({ message: 'If the email exists, a reset link has been sent' });
   } catch (err) {
-    console.error('Forgot password error:', err);
+    logger.error({ err }, 'Forgot password error');
     res.status(500).json({ error: 'Failed to process request' });
   }
 });
@@ -391,7 +396,7 @@ authRouter.post('/reset-password', authLimiter, async (req: Request, res: Respon
 
     res.json({ message: 'Password has been reset successfully' });
   } catch (err) {
-    console.error('Reset password error:', err);
+    logger.error({ err }, 'Reset password error');
     res.status(500).json({ error: 'Failed to reset password' });
   }
 });
@@ -488,7 +493,7 @@ authRouter.post('/link-whatsapp', authLimiter, async (req: Request, res: Respons
     // TODO: Send verification code via WhatsApp
     // For now, log in development
     if (process.env.NODE_ENV !== 'production') {
-      console.log(`[DEV] WhatsApp verification code for ${phoneNumber}: ${code}`);
+      logger.debug({ phoneNumber, code }, "DEV: WhatsApp verification code");
     }
 
     res.json({ 
@@ -497,7 +502,7 @@ authRouter.post('/link-whatsapp', authLimiter, async (req: Request, res: Respons
       expiresIn: VERIFICATION_CODE_EXPIRY_MS / 1000,
     });
   } catch (err) {
-    console.error('Link WhatsApp error:', err);
+    logger.error({ err }, 'Link WhatsApp error');
     res.status(500).json({ error: 'Failed to send verification code' });
   }
 });
@@ -571,7 +576,7 @@ authRouter.post('/verify-whatsapp', authLimiter, async (req: Request, res: Respo
       phoneNumber,
     });
   } catch (err) {
-    console.error('Verify WhatsApp error:', err);
+    logger.error({ err }, 'Verify WhatsApp error');
     res.status(500).json({ error: 'Failed to verify WhatsApp number' });
   }
 });
@@ -609,7 +614,7 @@ authRouter.delete('/unlink-whatsapp', async (req: Request, res: Response) => {
 
     res.json({ message: 'WhatsApp number unlinked successfully' });
   } catch (err) {
-    console.error('Unlink WhatsApp error:', err);
+    logger.error({ err }, 'Unlink WhatsApp error');
     res.status(500).json({ error: 'Failed to unlink WhatsApp number' });
   }
 });
@@ -652,7 +657,7 @@ authRouter.get('/whatsapp-status', async (req: Request, res: Response) => {
       verified: user.phoneVerified,
     });
   } catch (err) {
-    console.error('WhatsApp status error:', err);
+    logger.error({ err }, 'WhatsApp status error');
     res.status(500).json({ error: 'Failed to get WhatsApp status' });
   }
 });
@@ -733,7 +738,7 @@ authRouter.get('/profile', async (req: Request, res: Response) => {
 
     res.json({ user });
   } catch (err) {
-    console.error('Get profile error:', err);
+    logger.error({ err }, 'Get profile error');
     res.status(500).json({ error: 'Failed to get profile' });
   }
 });
@@ -835,7 +840,7 @@ authRouter.patch('/profile', async (req: Request, res: Response) => {
 
     res.json({ user });
   } catch (err) {
-    console.error('Update profile error:', err);
+    logger.error({ err }, 'Update profile error');
     res.status(500).json({ error: 'Failed to update profile' });
   }
 });
