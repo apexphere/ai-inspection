@@ -1,99 +1,35 @@
+/**
+ * E2E Tests: Inspections → Projects navigation (#624)
+ * /inspections now redirects to /projects
+ */
 import { test, expect } from './fixtures';
 
-test.describe('Inspections List', () => {
-  test('should display inspections list page', async ({ authenticatedPage: page }) => {
-    await page.goto('/inspections');
+test.describe('Projects List', () => {
+  test('should display projects list page', async ({ authenticatedPage: page }) => {
+    await page.goto('/projects');
+    await page.waitForLoadState('networkidle');
 
-    // Should show the page title
-    await expect(page.getByRole('heading', { name: 'Inspections' })).toBeVisible();
-  });
-
-  test('should show loading state initially', async ({ authenticatedPage: page }) => {
-    await page.goto('/inspections');
-
-    // Should show loading indicator or content
+    // Should show the page heading or content
     const content = page.locator('main');
     await expect(content).toBeVisible();
   });
 
-  test('should navigate to inspection detail when clicking an inspection', async ({ authenticatedPage: page }) => {
-    await page.goto('/inspections');
-
-    // Wait for the list to load
-    await page.waitForLoadState('networkidle');
-
-    // Click on the first inspection link (exclude /inspections/new)
-    const inspectionLink = page.locator('a[href^="/inspections/"]:not([href="/inspections/new"])').first();
-
-    if (await inspectionLink.isVisible()) {
-      await inspectionLink.click();
-
-      // Should navigate to detail page
-      await expect(page).toHaveURL(/\/inspections\/.+/);
-
-      // Should show back link
-      await expect(page.getByText('← Back to Inspections')).toBeVisible();
-    }
-  });
-});
-
-test.describe('Inspection Detail', () => {
-  test('should display inspection details', async ({ authenticatedPage: page }) => {
-    // Navigate to inspections first
+  test('/inspections redirects to /projects', async ({ authenticatedPage: page }) => {
     await page.goto('/inspections');
     await page.waitForLoadState('networkidle');
 
-    // Click on the first inspection (exclude /inspections/new)
-    const inspectionLink = page.locator('a[href^="/inspections/"]:not([href="/inspections/new"])').first();
-
-    if (await inspectionLink.isVisible()) {
-      await inspectionLink.click();
-      await page.waitForLoadState('networkidle');
-
-      // Should show address as heading
-      await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-
-      // Should show status badge
-      await expect(
-        page.locator('span').filter({ hasText: /(Started|In Progress|Completed)/ }).first()
-      ).toBeVisible();
-
-      // Should show summary section
-      await expect(page.getByText('Summary')).toBeVisible();
-      await expect(page.getByText('Total Findings')).toBeVisible();
-    }
+    await expect(page).toHaveURL(/\/projects/);
   });
 
-  test('should show findings grouped by section', async ({ authenticatedPage: page }) => {
-    await page.goto('/inspections');
+  test('should navigate to project detail when clicking a project', async ({ authenticatedPage: page }) => {
+    await page.goto('/projects');
     await page.waitForLoadState('networkidle');
 
-    const inspectionLink = page.locator('a[href^="/inspections/"]:not([href="/inspections/new"])').first();
+    const projectLink = page.locator('a[href^="/projects/"]').first();
 
-    if (await inspectionLink.isVisible()) {
-      await inspectionLink.click();
-      await page.waitForLoadState('networkidle');
-
-      // Should show Findings heading
-      await expect(page.getByRole('heading', { name: 'Findings' })).toBeVisible();
-    }
-  });
-
-  test('should navigate back to list', async ({ authenticatedPage: page }) => {
-    await page.goto('/inspections');
-    await page.waitForLoadState('networkidle');
-
-    const inspectionLink = page.locator('a[href^="/inspections/"]:not([href="/inspections/new"])').first();
-
-    if (await inspectionLink.isVisible()) {
-      await inspectionLink.click();
-      await page.waitForLoadState('networkidle');
-
-      // Click back link
-      await page.getByText('← Back to Inspections').click();
-
-      // Should be back on list page
-      await expect(page).toHaveURL('/inspections');
+    if (await projectLink.isVisible()) {
+      await projectLink.click();
+      await expect(page).toHaveURL(/\/projects\/.+/);
     }
   });
 });
