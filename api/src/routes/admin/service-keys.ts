@@ -101,6 +101,33 @@ export function createServiceKeysAdminRouter(
     }
   });
 
+  // POST /api/admin/service-keys/:id/regenerate
+  router.post('/:id/regenerate', async (req: Request, res: Response) => {
+    const rawKey = generateRawKey();
+
+    try {
+      const newKey = await svc.regenerate(req.params.id as string, rawKey);
+      res.status(201).json({
+        id: newKey.id,
+        name: newKey.name,
+        actor: newKey.actor,
+        scopes: newKey.scopes,
+        keyPrefix: newKey.keyPrefix,
+        active: newKey.active,
+        expiresAt: newKey.expiresAt,
+        createdAt: newKey.createdAt,
+        key: rawKey, // returned only once
+      });
+    } catch (err) {
+      if (err instanceof ServiceKeyNotFoundError) {
+        res.status(404).json({ error: err.message });
+        return;
+      }
+      res.status(500).json({ error: 'Failed to regenerate service key' });
+    }
+  });
+
+
   return router;
 }
 

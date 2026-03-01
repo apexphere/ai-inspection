@@ -13,6 +13,7 @@ function createTestApp(serviceMock: {
   create: (input: any) => Promise<ServiceKey>;
   list: () => Promise<Omit<ServiceKey, 'keyHash'>[]>;
   deactivate: (id: string) => Promise<ServiceKey>;
+  regenerate?: (id: string, rawKey: string) => Promise<ServiceKey>;
 }) {
   const app = express();
   app.use(express.json());
@@ -156,4 +157,59 @@ describe('Service Keys Admin Routes — #597', () => {
     expect(res.status).toBe(200);
     expect(res.body.active).toBe(false);
   });
+
+  it('regenerates a service key and returns new plaintext key', async () => {
+    const newKey: ServiceKey = {
+      id: 'key-2',
+      name: 'kai',
+      keyHash: 'newhash',
+      keyPrefix: 'sk_new12',
+      scopes: ['projects:read'],
+      actor: 'agent:kai',
+      active: true,
+      expiresAt: null,
+      lastUsedAt: null,
+      createdAt: new Date('2026-03-01T01:00:00Z'),
+      updatedAt: new Date('2026-03-01T01:00:00Z'),
+    };
+
+    const serviceMock = {
+      create: vi.fn(),
+      list: vi.fn(),
+      deactivate: vi.fn(),
+      regenerate: vi.fn().mockResolvedValue(newKey),
+    };
+
+    const app = createTestApp(serviceMock);
+
+    const res = await request(app)
+      .post('/api/admin/service-keys/key-1/regenerate')
+      .set('x-user-id', adminId);
+
+    expect(res.status).toBe(201);
+    expect(res.body).toHaveProperty('key');
+    expect(res.body.key).toMatch(/^sk_/);
+    expect(res.body.name).toBe('kai');
+    expect(res.body.active).toBe(true);
+  });
+
+  it('returns 404 when regenerating inactive or missing key', async () => {
+    const { ServiceKeyNotFoundError } = await import('../services/service-key.js');
+
+    const serviceMock = {
+      create: vi.fn(),
+      list: vi.fn(),
+      deactivate: vi.fn(),
+      regenerate: vi.fn().mockRejectedValue(new ServiceKeyNotFoundError('key-99')),
+    };
+
+    const app = createTestApp(serviceMock);
+
+    const res = await request(app)
+      .post('/api/admin/service-keys/key-99/regenerate')
+      .set('x-user-id', adminId);
+
+    expect(res.status).toBe(404);
+  });
+
 });

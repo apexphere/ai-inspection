@@ -107,4 +107,44 @@ export class ServiceKeyService {
       data: { active: false },
     });
   }
+
+  /**
+   * Regenerate a service key — Issue #609
+   *
+   * Archives the old key (rename + deactivate) and creates a new one
+   * with the same name, actor, and scopes. Returns the new key record.
+   */
+  async regenerate(id: string, rawKey: string): Promise<ServiceKey> {
+    const existing = await this.prisma.serviceKey.findFirst({
+      where: { id, active: true },
+    });
+
+    if (!existing) {
+      throw new ServiceKeyNotFoundError(id);
+    }
+
+    const keyHash = await bcrypt.hash(rawKey, SALT_ROUNDS);
+    const keyPrefix = rawKey.slice(0, PREFIX_LENGTH);
+    const archivedName = `${existing.name}__rotated_${Date.now()}`;
+
+    // Rename + deactivate old key, then create new with original name
+    const [, newKey] = await this.prisma.$transaction([
+      this.prisma.serviceKey.update({
+        where: { id },
+        data: { active: false, name: archivedName },
+      }),
+      this.prisma.serviceKey.create({
+        data: {
+          name: existing.name,
+          keyHash,
+          keyPrefix,
+          scopes: existing.scopes,
+          actor: existing.actor,
+          expiresAt: existing.expiresAt,
+        },
+      }),
+    ]);
+
+    return newKey;
+  }
 }
