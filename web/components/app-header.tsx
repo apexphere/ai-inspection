@@ -42,7 +42,7 @@ export function AppHeader(): React.ReactElement | null {
           {isAuthenticated && (
             <nav className="hidden md:flex items-center gap-6">
               <Link
-                href="/inspections"
+                href="/projects"
                 className="text-sm font-medium text-gray-600 hover:text-gray-900"
               >
                 Inspections
@@ -98,7 +98,7 @@ export function AppHeader(): React.ReactElement | null {
         {isAuthenticated && mobileMenuOpen && (
           <nav className="md:hidden border-t border-gray-200 py-3 space-y-1">
             <Link
-              href="/inspections"
+              href="/projects"
               onClick={() => setMobileMenuOpen(false)}
               className="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50"
             >

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import Link from 'next/link';
 import { CollapsibleSection } from '@/components/collapsible-section';
 import { PhotoGrid, Photo } from '@/components/photo-grid';
 import { ClauseReviewSection } from './clause-review-section';
@@ -230,8 +231,20 @@ export function ProjectSections({ project }: ProjectSectionsProps): React.ReactE
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {project.siteInspections?.map((inspection) => (
-                  <tr key={inspection.id} className="text-sm">
-                    <td className="py-2 pr-4 font-medium">{inspection.stage}</td>
+                  <tr
+                    key={inspection.id}
+                    className="text-sm cursor-pointer hover:bg-gray-50 transition-colors"
+                    onClick={() => { window.location.href = `/projects/${project.id}/inspections/${inspection.id}`; }}
+                  >
+                    <td className="py-2 pr-4 font-medium">
+                      <Link
+                        href={`/projects/${project.id}/inspections/${inspection.id}`}
+                        className="hover:text-blue-600"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {inspection.stage}
+                      </Link>
+                    </td>
                     <td className="py-2 pr-4">{inspection.type}</td>
                     <td className="py-2 pr-4">{formatDate(inspection.date)}</td>
                     <td className="py-2 pr-4">{inspection.inspectorName}</td>
