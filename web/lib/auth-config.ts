@@ -14,14 +14,17 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 // Extended types for API token
 interface ExtendedUser extends User {
   apiToken?: string;
+  isAdmin?: boolean;
 }
 
 interface ExtendedJWT extends JWT {
   apiToken?: string;
+  isAdmin?: boolean;
 }
 
 interface ExtendedSession extends Session {
   apiToken?: string;
+  isAdmin?: boolean;
 }
 
 export const authConfig: NextAuthConfig = {
@@ -59,6 +62,7 @@ export const authConfig: NextAuthConfig = {
               id: data.user.id,
               email: data.user.email,
               apiToken: data.token, // Store API token for authenticated requests
+              isAdmin: data.user.isAdmin ?? false,
             };
           }
 
@@ -103,7 +107,8 @@ export const authConfig: NextAuthConfig = {
         const extUser = user as ExtendedUser;
         token.id = extUser.id;
         token.email = extUser.email;
-        token.apiToken = extUser.apiToken; // Persist API token in JWT
+token.apiToken = extUser.apiToken; // Persist API token in JWT
+        token.isAdmin = extUser.isAdmin ?? false;
       }
       return token as ExtendedJWT;
     },
@@ -119,6 +124,7 @@ export const authConfig: NextAuthConfig = {
       if (extToken.apiToken) {
         extSession.apiToken = extToken.apiToken;
       }
+      extSession.isAdmin = extToken.isAdmin ?? false;
       return extSession;
     },
   },

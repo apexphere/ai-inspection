@@ -153,10 +153,14 @@ authRouter.post('/login', authLimiter, async (req: Request, res: Response) => {
     // Set HttpOnly cookie
     setTokenCookie(res, token);
 
+    // Check admin status
+    const adminUserIds = (process.env.ADMIN_USER_IDS || '').split(',').filter(Boolean);
+    const isAdmin = adminUserIds.includes(user.id);
+
     // Return token in response for cross-origin clients (NextAuth)
     res.json({
       message: 'Login successful',
-      user: { id: user.id, email: user.email },
+      user: { id: user.id, email: user.email, isAdmin },
       token,
     });
   } catch (err) {
