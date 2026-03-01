@@ -1,3 +1,4 @@
+import { logger } from "../lib/logger.js";
 /**
  * Checklist Service - Issue #3
  * 
@@ -64,7 +65,7 @@ class ChecklistService {
     if (this.loaded) return;
 
     if (!existsSync(this.configPath)) {
-      console.warn(`Checklist config path not found: ${this.configPath}`);
+      logger.warn({ configPath: this.configPath }, "Checklist config path not found");
       return;
     }
 
@@ -92,9 +93,9 @@ class ChecklistService {
         };
 
         this.checklists.set(id, checklist);
-        console.error(`Loaded checklist: ${id} (${checklist.sections.length} sections)`);
+        logger.debug({ id, sections: checklist.sections.length }, "Loaded checklist");
       } catch (error) {
-        console.error(`Failed to load checklist ${file}:`, error);
+        logger.error({ err: error, file }, "Failed to load checklist");
       }
     }
 

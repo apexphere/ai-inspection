@@ -1,3 +1,4 @@
+import { logger } from "../lib/logger.js";
 /**
  * Comment Library Service - Issue #4
  * 
@@ -72,7 +73,7 @@ class CommentLibraryService {
         const content = readFileSync(defaultsPath, 'utf-8');
         this.library = parseYaml(content) || {};
       } catch (error) {
-        console.error('Failed to load defaults.yaml:', error);
+        logger.error({ err: error }, 'Failed to load defaults.yaml');
         this.library = {};
       }
     }
@@ -84,7 +85,7 @@ class CommentLibraryService {
         const custom = parseYaml(content) || {};
         this.library = this.deepMerge(this.library, custom);
       } catch (error) {
-        console.error('Failed to load custom.yaml:', error);
+        logger.error({ err: error }, 'Failed to load custom.yaml');
       }
     }
 
