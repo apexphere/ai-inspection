@@ -9,6 +9,7 @@ export function AppHeader(): React.ReactElement | null {
   const pathname = usePathname();
   const { data: session, status } = useSession();
   const isAuthenticated = status === 'authenticated';
+  const isAdmin = !!(session as { isAdmin?: boolean })?.isAdmin;
   const isLoading = status === 'loading';
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -46,6 +47,14 @@ export function AppHeader(): React.ReactElement | null {
               >
                 Inspections
               </Link>
+              {isAdmin && (
+                <Link
+                  href="/admin/service-keys"
+                  className="text-sm font-medium text-gray-600 hover:text-gray-900"
+                >
+                  Admin
+                </Link>
+              )}
               <Link
                 href="/profile"
                 className="text-sm text-gray-600 hover:text-gray-900"
@@ -95,6 +104,15 @@ export function AppHeader(): React.ReactElement | null {
             >
               Inspections
             </Link>
+            {isAdmin && (
+              <Link
+                href="/admin/service-keys"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+              >
+                Admin
+              </Link>
+            )}
             <Link
               href="/profile"
               onClick={() => setMobileMenuOpen(false)}
