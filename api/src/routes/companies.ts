@@ -1,3 +1,4 @@
+import { logger } from '../lib/logger.js';
 import { Router } from 'express';
 import { z } from 'zod';
 import { CompanyService } from '../services/company.js';
@@ -32,7 +33,7 @@ companiesRouter.post('/', async (req, res) => {
     const company = await companyService.create(parsed.data);
     res.status(201).json(company);
   } catch (error) {
-    console.error('Create company error:', error);
+    logger.error({ err: error }, 'Create company error');
     res.status(500).json({ error: 'Failed to create company' });
   }
 });
@@ -43,7 +44,7 @@ companiesRouter.get('/', async (_req, res) => {
     const companies = await companyService.list();
     res.json(companies);
   } catch (error) {
-    console.error('List companies error:', error);
+    logger.error({ err: error }, 'List companies error');
     res.status(500).json({ error: 'Failed to list companies' });
   }
 });
@@ -58,7 +59,7 @@ companiesRouter.get('/:id', async (req, res) => {
       res.status(404).json({ error: 'Company not found' });
       return;
     }
-    console.error('Get company error:', error);
+    logger.error({ err: error }, 'Get company error');
     res.status(500).json({ error: 'Failed to get company' });
   }
 });
@@ -78,7 +79,7 @@ companiesRouter.put('/:id', async (req, res) => {
       res.status(404).json({ error: 'Company not found' });
       return;
     }
-    console.error('Update company error:', error);
+    logger.error({ err: error }, 'Update company error');
     res.status(500).json({ error: 'Failed to update company' });
   }
 });
@@ -98,7 +99,7 @@ companiesRouter.delete('/:id', async (req, res) => {
       res.status(409).json({ error: 'Cannot delete company with linked personnel' });
       return;
     }
-    console.error('Delete company error:', error);
+    logger.error({ err: error }, 'Delete company error');
     res.status(500).json({ error: 'Failed to delete company' });
   }
 });
@@ -119,7 +120,7 @@ companiesRouter.post('/:id/logo', async (req, res) => {
       res.status(404).json({ error: 'Company not found' });
       return;
     }
-    console.error('Update logo error:', error);
+    logger.error({ err: error }, 'Update logo error');
     res.status(500).json({ error: 'Failed to update logo' });
   }
 });

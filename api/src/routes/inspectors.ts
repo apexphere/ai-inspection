@@ -1,3 +1,4 @@
+import { logger } from '../lib/logger.js';
 /**
  * Inspectors Routes — Issue #351
  *
@@ -84,7 +85,7 @@ inspectorsRouter.get('/by-phone/:phone', async (req: Request, res: Response) => 
       email: user.email,
     });
   } catch (err) {
-    console.error('Inspector lookup error:', err);
+    logger.error({ err }, 'Inspector lookup error');
     res.status(500).json({ error: 'Failed to look up inspector' });
   }
 });

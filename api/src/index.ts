@@ -1,3 +1,4 @@
+import { logger } from './lib/logger.js';
 import express, { type Application } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -121,17 +122,17 @@ app.use('/api', serviceAuthMiddleware, credentialsRouter);
 // Error handling with detailed logging
 app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
   // Log with context
-  console.error('=== API Error ===');
-  console.error(`Method: ${req.method}`);
-  console.error(`Path: ${req.path}`);
-  console.error(`Error: ${err.message}`);
-  console.error(`Stack: ${err.stack}`);
-  console.error('=================');
+  logger.error({
+    method: req.method,
+    path: req.path,
+    err,
+  }, 'Unhandled API error');
+
   
   // Check for common issues and provide hints
   const message = err.message.toLowerCase();
   if (message.includes('prisma') || message.includes('database') || message.includes('connect')) {
-    console.error('💡 Hint: Check DATABASE_URL is set correctly');
+    logger.error('Hint: Check DATABASE_URL is set correctly');
   }
   
   res.status(500).json({ error: 'Internal server error' });
@@ -145,12 +146,12 @@ async function start(): Promise<void> {
   await startReportWorker();
 
   const server = app.listen(PORT, () => {
-    console.log(`API server running on port ${PORT}`);
+    logger.info({ port: PORT }, 'API server running');
   });
 
   // Graceful shutdown
   const shutdown = async (signal: string): Promise<void> => {
-    console.log(`\n[Server] ${signal} received — shutting down gracefully`);
+    logger.info({ signal }, 'Shutting down gracefully');
     server.close(async () => {
       await stopReportWorker();
       process.exit(0);
@@ -162,7 +163,7 @@ async function start(): Promise<void> {
 }
 
 start().catch(err => {
-  console.error('Failed to start server:', err);
+  logger.fatal({ err }, 'Failed to start server');
   process.exit(1);
 });
 
