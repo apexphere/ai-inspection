@@ -174,3 +174,51 @@ Changelog maintained in `skills/building-inspection/CHANGELOG.md`.
 - Photo viewing/management (future)
 - Multi-inspector support (future)
 - Scoped service auth (#577)
+
+---
+
+## Addendum: PPI Element-Level Guidance
+
+*Added 2026-03-01 — Ref #584*
+
+The skill must walk through specific NZS 4306:2005 elements per category rather than giving a single broad prompt. See full element structure and conversation flow below.
+
+### Problem
+
+Current skill gives one prompt per category (e.g. "Check roof, gutters, cladding..."). Inspector must remember everything — items get missed.
+
+### NZS 4306:2005 Element List
+
+**SITE:**
+Site drainage · Landscaping · Fencing/gates · Paths/driveways · Retaining walls · Outbuildings · Services/utilities
+
+**EXTERIOR — Roof:**
+Roof covering · Roof structure · Gutters and downpipes · Flashings · Fascia and bargeboards
+
+**EXTERIOR — Walls:**
+Wall cladding · Cladding/wall junctions · Window/door frames and flashings · Soffits · External painting
+
+**EXTERIOR — Foundation:**
+Foundation type/condition · Subfloor structure · Subfloor moisture/ventilation · Piles/bearers/joists
+
+**INTERIOR (per room group — living · kitchen · bedrooms · bathrooms · laundry · hallways · roof space):**
+Walls and linings · Ceilings · Floors · Windows and doors · Moisture/dampness
+
+**DECKS (if present):**
+Deck structure/framing · Deck surface · Balustrades · Waterproofing/falls · Fixings to house
+
+**SERVICES:**
+Electrical (switchboard/wiring) · Plumbing (supply) · Hot water system · Drainage · Gas · Heating/ventilation · Smoke alarms · Insulation
+
+### Conversation Flow
+
+Kai prompts each element in turn with a short question. Inspector responds with:
+- `"pass"` — records PASS, moves to next
+- `"fail [note]"` — records FAIL with note
+- `"skip"` — records N/A, moves to next
+- `"all pass"` — marks remaining items in category as PASS
+- `"done"` — moves to next category
+
+### Skill Impact
+
+Add element lists and loop logic to the PPI section of `SKILL.md`. Use bulk checklist endpoint for efficiency when inspector uses "all pass".
