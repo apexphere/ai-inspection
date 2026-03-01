@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import { auth } from '@/auth';
 import { ProjectList } from './project-list';
 import { ProjectFilters } from './project-filters';
 
@@ -40,7 +41,11 @@ function ListSkeleton(): React.ReactElement {
   );
 }
 
-export default function ProjectsPage(): React.ReactElement {
+export default async function ProjectsPage(): Promise<React.ReactElement> {
+  const session = await auth();
+  // @ts-expect-error apiToken is added via extended session
+  const apiToken: string = session?.apiToken ?? '';
+
   return (
     <div>
       {/* Page Header */}
@@ -56,7 +61,7 @@ export default function ProjectsPage(): React.ReactElement {
       </Suspense>
 
       <Suspense fallback={<ListSkeleton />}>
-        <ProjectList />
+        <ProjectList apiToken={apiToken} />
       </Suspense>
     </div>
   );

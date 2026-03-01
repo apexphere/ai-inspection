@@ -59,7 +59,7 @@ function ProjectListSkeleton(): React.ReactElement {
   );
 }
 
-export function ProjectList(): React.ReactElement {
+export function ProjectList({ apiToken }: { apiToken: string }): React.ReactElement {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -84,7 +84,7 @@ export function ProjectList(): React.ReactElement {
         }
 
         const response = await fetch(`${API_URL}/api/projects?${params}`, {
-          credentials: 'include',
+          headers: apiToken ? { Authorization: `Bearer ${apiToken}` } : {},
         });
 
         if (!response.ok) {
@@ -138,7 +138,7 @@ export function ProjectList(): React.ReactElement {
     }
 
     fetchProjects();
-  }, [status, search, sort, order]);
+  }, [status, search, sort, order, apiToken]);
 
   const handleSort = (column: string): void => {
     const params = new URLSearchParams(searchParams.toString());
