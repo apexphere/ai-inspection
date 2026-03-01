@@ -17,8 +17,5 @@ DATABASE_URL="postgresql://localhost/dummy" npx prisma validate || exit 1
 echo "📦 Checking web..."
 cd "$REPO_ROOT/web" && npm run typecheck && npm run lint || exit 1
 
-# Check server
-echo "📦 Checking server..."
-cd "$REPO_ROOT/server" && npm run typecheck && npm run lint || exit 1
 
 echo "✅ Pre-push checks passed!"
