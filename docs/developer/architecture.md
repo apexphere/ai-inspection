@@ -27,7 +27,7 @@ AI Inspection is a building inspection assistant that combines an AI agent (via 
 │              ▼                                  ▼                       │
 │   ┌─────────────────────┐           ┌─────────────────────┐            │
 │   │   OpenClaw Agent    │           │     Next.js         │            │
-│   │   + MCP Server      │           │     Frontend        │            │
+│   │   + Skills (curl)   │           │     Frontend        │            │
 │   └──────────┬──────────┘           └──────────┬──────────┘            │
 │              │                                  │                       │
 │              └──────────────┬───────────────────┘                       │
@@ -90,7 +90,7 @@ AI Inspection is a building inspection assistant that combines an AI agent (via 
 
 ### AI Agent: Inspector
 
-**Technology:** OpenClaw, Claude (Anthropic), MCP
+**Technology:** OpenClaw, Claude (Anthropic), Skills
 
 **Purpose:**
 - WhatsApp interface for field inspections
@@ -101,10 +101,10 @@ AI Inspection is a building inspection assistant that combines an AI agent (via 
 **How it works:**
 1. Inspector messages WhatsApp number
 2. OpenClaw receives message, invokes Claude
-3. Claude uses MCP tools to interact with API
+3. Claude uses skill-defined curl calls to interact with API
 4. Responses sent back via WhatsApp
 
-**Location:** `skill/` (conversation guidance), `server/` (MCP tools)
+**Location:** `skills/` (skill definitions with API curl patterns)
 
 ### Database: PostgreSQL
 
@@ -137,12 +137,12 @@ AI Inspection is a building inspection assistant that combines an AI agent (via 
 ### Inspection Capture (WhatsApp)
 
 ```
-Inspector        WhatsApp       OpenClaw        MCP Server       API          Database
+Inspector        WhatsApp       OpenClaw+Claude        API          Database
     │               │               │               │              │              │
     │──"Start at    │               │               │              │              │
     │  123 Main"───▶│──────────────▶│               │              │              │
-    │               │               │──start_       │              │              │
-    │               │               │  inspection──▶│──POST /ins──▶│──INSERT─────▶│
+    │               │               │──POST /ins──▶│              │
+    │               │               │  (curl)       │──INSERT─────▶│
     │               │               │               │◀─────────────│◀─────────────│
     │               │               │◀──────────────│              │              │
     │◀──"Started.   │◀──────────────│               │              │              │
@@ -202,7 +202,7 @@ See [Deployment Runbook](../ops/deployment.md) for details.
 - CSRF protection
 
 ### API Security
-- Service API key for MCP server
+- Service API key for agent API access
 - Rate limiting
 - Input validation (Zod)
 
@@ -218,7 +218,7 @@ See [Deployment Runbook](../ops/deployment.md) for details.
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
 | WhatsApp for field | Native messaging | No app install, works on any phone |
-| MCP for AI tools | Standard protocol | Clean separation, testable tools |
+| Skills for AI tools | Skill-based curl | Simple, no extra server, direct API access |
 | Next.js for web | React + SSR | Fast, good DX, easy deployment |
 | PostgreSQL | Relational DB | Complex queries, ACID compliance |
 | R2 for storage | S3-compatible | No egress fees, simple API |

@@ -49,7 +49,7 @@ Authorization: Bearer eyJ...
 
 ### Service Auth (API Key)
 
-MCP server uses a service API key:
+Agent uses a service API key:
 
 ```bash
 Authorization: Bearer sk-...

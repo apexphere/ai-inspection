@@ -20,12 +20,5 @@ if git diff --cached --name-only | grep -q "^web/"; then
   npm run lint || exit 1
 fi
 
-# Check server workspace (MCP server)
-if git diff --cached --name-only | grep -q "^server/"; then
-  echo "📦 Checking server..."
-  cd "$REPO_ROOT/server"
-  npm run typecheck || exit 1
-  npm run lint || exit 1
-fi
 
 echo "✅ Pre-commit checks passed!"

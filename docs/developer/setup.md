@@ -51,8 +51,6 @@ cd api && npm install && cd ..
 # Web dependencies
 cd web && npm install && cd ..
 
-# MCP server dependencies
-cd server && npm install && cd ..
 ```
 
 ### 3. Start Services
@@ -105,15 +103,8 @@ ai-inspection/
 │   ├── components/       # React components
 │   └── package.json
 │
-├── server/               # MCP server (inspection tools)
-│   ├── src/
-│   │   ├── tools/        # MCP tool implementations
-│   │   └── services/     # PDF generation, etc.
-│   └── package.json
-│
-├── skill/                # OpenClaw skill definition
-│   ├── SKILL.md          # Conversation guidance
-│   └── mcp.json          # MCP server config
+├── skills/               # OpenClaw skill definitions
+│   └── inspect/          # Inspection skill (curl-based API calls)
 │
 ├── config/               # Configuration files
 │   ├── checklists/       # Inspection templates
@@ -148,14 +139,6 @@ docker-compose up api db
 
 # Terminal 2: Frontend
 cd web && npm run dev
-```
-
-### MCP Server (for Agent)
-
-```bash
-cd server
-npm run build
-npm run dev    # Watch mode
 ```
 
 ---
@@ -209,14 +192,6 @@ SERVICE_API_KEY="dev-api-key"
 NEXT_PUBLIC_API_URL="http://localhost:3000"
 ```
 
-### MCP Server
-
-Set in environment or `.env`:
-```env
-API_URL="http://localhost:3000"
-SERVICE_API_KEY="dev-api-key"
-```
-
 ---
 
 ## Running Tests
@@ -228,13 +203,6 @@ cd api
 npm test              # Run all tests
 npm run test:watch    # Watch mode
 npm run test:coverage # With coverage
-```
-
-### MCP Server Tests
-
-```bash
-cd server
-npm test
 ```
 
 ### E2E Tests
@@ -273,13 +241,6 @@ npm test
 1. Edit `api/prisma/schema.prisma`
 2. Run `npx prisma migrate dev --name description`
 3. Update seed data if needed
-
-### Adding MCP Tool
-
-1. Create tool in `server/src/tools/`
-2. Register in tool list
-3. Add tests
-4. Update SKILL.md with usage guidance
 
 ---
 
