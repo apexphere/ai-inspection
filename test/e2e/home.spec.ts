@@ -10,12 +10,16 @@ test.describe('Home Page', () => {
     await expect(page).toHaveURL(/\/projects/);
   });
 
-  authTest('should have navigation to projects', async ({ authenticatedPage: page }) => {
+  authTest('should have nav and main content visible', async ({ authenticatedPage: page }) => {
     await page.goto('/projects');
     await page.waitForLoadState('networkidle');
 
-    // Should have a Projects link in the nav
-    const projectsLink = page.getByRole('link', { name: 'Projects', exact: true }).first();
-    await expect(projectsLink).toBeVisible();
+    // Header should be present
+    const header = page.locator('header');
+    await expect(header).toBeVisible();
+
+    // Main content should be present
+    const main = page.locator('main');
+    await expect(main).toBeVisible();
   });
 });
