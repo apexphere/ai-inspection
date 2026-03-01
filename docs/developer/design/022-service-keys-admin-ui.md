@@ -34,7 +34,7 @@ Add an admin-only page at `/admin/service-keys` in the web UI to manage service 
 - **Scopes** — count + hover tooltip listing all scopes
 - **Last Used** — relative time or "Never"
 - **Status** — green dot (active) / grey dot (inactive)
-- **Actions** — Deactivate button (active keys only)
+- **Actions** — Regenerate + Deactivate buttons (active keys only)
 
 ### Create Key Modal
 
@@ -79,6 +79,22 @@ Opens on "+ Create Key":
 │                    [Done]       │
 └─────────────────────────────────┘
 ```
+
+### Regenerate Key
+
+Single action on active keys — deactivates the old key and creates a new one with the same name/actor/scopes. Shows the new plaintext key once.
+
+Row actions for active keys:
+```
+[↻ Regenerate]  [Deactivate]
+```
+
+Clicking Regenerate shows inline confirmation:
+```
+Regenerate "kai-agent"? Old key will stop working immediately. [Confirm] [Cancel]
+```
+
+On confirm: calls `POST /api/admin/service-keys/:id/regenerate`, then shows the Key Created modal with the new key.
 
 ### Deactivate Confirmation
 
@@ -127,7 +143,13 @@ POST /api/admin/service-keys
 
 // Deactivate
 DELETE /api/admin/service-keys/:id
+
+// Regenerate (deactivates old, creates new with same name/actor/scopes)
+POST /api/admin/service-keys/:id/regenerate
+→ { key: "sk_...", id, name, actor, scopes }
 ```
+
+**Note:** `regenerate` endpoint needs to be added to the API (#606 scope).
 
 ### Components
 
@@ -173,4 +195,5 @@ This requires a small backend + NextAuth config change.
 | Story | Role | Work |
 |-------|------|------|
 | Backend: include `isAdmin` in auth response + NextAuth JWT | Alex | Small |
-| Frontend: admin layout + service keys page + create/deactivate | Sam | Main page |
+| Backend: add `POST /api/admin/service-keys/:id/regenerate` endpoint | Alex | Small |
+| Frontend: admin layout + service keys page + create/deactivate/regenerate | Sam | Main page |
