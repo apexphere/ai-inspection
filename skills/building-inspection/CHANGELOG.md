@@ -1,5 +1,13 @@
 # Changelog — Building Inspection Skill
 
+## [2.1.0] — 2026-03-01
+
+### Added
+- PPI element-level prompting per NZS 4306:2005
+- Full element lists for SITE, EXTERIOR (Roof/Walls/Foundation), INTERIOR, DECKS, SERVICES
+- Per-element commands: pass / fail [note] / skip / all pass / done
+- Completion summary after all categories done
+
 ## [2.0.1] — 2026-03-01
 
 ### Changed

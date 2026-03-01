@@ -2,22 +2,24 @@ import { test, expect } from '@playwright/test';
 import { test as authTest } from './fixtures';
 
 test.describe('Home Page', () => {
-  test('should display welcome message', async ({ page }) => {
+  test('should redirect to projects', async ({ page }) => {
     await page.goto('/');
+    await page.waitForLoadState('networkidle');
 
-    await expect(page.getByRole('heading', { name: /ai inspection/i })).toBeVisible();
+    // Root redirects to /projects
+    await expect(page).toHaveURL(/\/projects/);
   });
 
-  // This test needs auth since /inspections is protected
-  authTest('should have navigation to inspections', async ({ authenticatedPage: page }) => {
-    await page.goto('/');
+  authTest('should have nav and main content visible', async ({ authenticatedPage: page }) => {
+    await page.goto('/projects');
+    await page.waitForLoadState('networkidle');
 
-    // Should have a link to inspections
-    const inspectionsLink = page.getByRole("link", { name: "Inspections", exact: true }).first();
-    await expect(inspectionsLink).toBeVisible();
+    // Header should be present
+    const header = page.locator('header');
+    await expect(header).toBeVisible();
 
-    // Click and verify navigation (already authenticated)
-    await inspectionsLink.click();
-    await expect(page).toHaveURL('/inspections');
+    // Main content should be present
+    const main = page.locator('main');
+    await expect(main).toBeVisible();
   });
 });

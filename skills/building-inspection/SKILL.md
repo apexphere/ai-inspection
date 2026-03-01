@@ -1,6 +1,6 @@
 ---
 name: building-inspection
-version: 2.0.1
+version: 2.1.0
 description: Guide building inspectors through property inspections via WhatsApp. Supports PPI, COA, CCC, and Safe & Sanitary inspection types. Creates properties, clients, projects, and site inspections via the API.
 ---
 
@@ -107,17 +107,75 @@ Save `id` as `INSPECTION_ID`. Confirm to inspector:
 
 ## 2. PPI Workflow (Pre-Purchase Inspection)
 
-Walk through categories in order. For each finding, create a checklist item.
+Walk through categories in order, prompting each NZS 4306:2005 element individually.
 
-### Categories & Prompts
+### Element List (NZS 4306:2005)
 
-| Category | Prompt |
-|----------|--------|
-| SITE | "Check drainage, landscaping, fencing, paths, driveways" |
-| EXTERIOR | "Check roof, gutters, cladding, external walls, windows, doors" |
-| INTERIOR | "Check walls, ceilings, floors, doors, windows, moisture" |
-| DECKS | "Check deck structure, balustrades, waterproofing, fixings" |
-| SERVICES | "Check electrical, plumbing, hot water, ventilation, insulation" |
+**SITE:**
+1. Site drainage
+2. Landscaping
+3. Fencing/gates
+4. Paths/driveways
+5. Retaining walls
+6. Outbuildings
+7. Services/utilities
+
+**EXTERIOR — Roof:**
+1. Roof covering
+2. Roof structure
+3. Gutters/downpipes
+4. Flashings
+5. Fascia/bargeboards
+
+**EXTERIOR — Walls:**
+1. Cladding
+2. Cladding/wall junctions
+3. Window/door frames
+4. Soffits
+5. External painting
+
+**EXTERIOR — Foundation:**
+1. Foundation type/condition
+2. Subfloor structure
+3. Subfloor moisture/ventilation
+4. Piles/bearers/joists
+
+**INTERIOR** (per room group — living · kitchen · bedrooms · bathrooms · laundry · hallways · roof space):
+1. Walls/linings
+2. Ceilings
+3. Floors
+4. Windows/doors
+5. Moisture
+
+**DECKS** (if present):
+1. Structure
+2. Surface
+3. Balustrades
+4. Waterproofing
+5. Fixings
+
+**SERVICES:**
+1. Electrical
+2. Plumbing
+3. Hot water
+4. Drainage
+5. Gas
+6. Heating/ventilation
+7. Smoke alarms
+8. Insulation
+
+### Per-Element Flow
+
+For each element, prompt the inspector:
+> "**{Element}** — pass / fail [note] / skip?"
+
+| Inspector says | Action |
+|----------------|--------|
+| `pass` | Record PASS, show next element |
+| `fail [note]` | Record FAIL + note, show next element |
+| `skip` | Record NA, show next element |
+| `all pass` | Record remaining elements in category as PASS |
+| `done` | Move to next category |
 
 ### Add Checklist Item
 
@@ -127,9 +185,9 @@ curl -X POST "$API_URL/api/site-inspections/{INSPECTION_ID}/checklist-items" \
   -H "X-API-Key: $API_SERVICE_KEY" \
   -d '{
     "category": "{SITE|EXTERIOR|INTERIOR|DECKS|SERVICES}",
-    "description": "{finding description}",
+    "description": "{element name}",
     "result": "{PASS|FAIL|NA}",
-    "notes": "{optional notes}",
+    "notes": "{inspector note if fail}",
     "severity": "{minor|major|urgent}"
   }'
 ```
@@ -141,9 +199,14 @@ curl "$API_URL/api/site-inspections/{INSPECTION_ID}/checklist-summary" \
   -H "X-API-Key: $API_SERVICE_KEY"
 ```
 
+### Completion
+
+When all categories done, summarise:
+> "✅ PPI complete. X items checked, Y fails. Ready to complete the inspection?"
+
 ### Skip Category
 
-Inspector can skip any category — move to next on request.
+Inspector can say "skip category" at any time — move to next.
 
 ---
 
