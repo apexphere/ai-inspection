@@ -50,6 +50,16 @@ export class PrismaProjectRepository implements IProjectRepository {
   async findAll(params?: ProjectSearchParams): Promise<Project[]> {
     const where: Record<string, unknown> = {};
 
+    // Free-text search: match job number, address, or client name (OR)
+    if (params?.search) {
+      where.OR = [
+        { jobNumber: { contains: params.search, mode: 'insensitive' } },
+        { property: { streetAddress: { contains: params.search, mode: 'insensitive' } } },
+        { client: { name: { contains: params.search, mode: 'insensitive' } } },
+      ];
+    }
+
+    // Exact field filters (AND)
     if (params?.jobNumber) {
       where.jobNumber = { contains: params.jobNumber, mode: 'insensitive' };
     }

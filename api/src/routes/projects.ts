@@ -51,9 +51,10 @@ projectsRouter.post('/', async (req: Request, res: Response, next: NextFunction)
 // GET /api/projects - List projects with optional filters
 projectsRouter.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { jobNumber, address, clientName, status, reportType } = req.query;
+    const { search, jobNumber, address, clientName, status, reportType } = req.query;
 
     const projects = await service.findAll({
+      search: search as string | undefined,
       jobNumber: jobNumber as string | undefined,
       address: address as string | undefined,
       clientName: clientName as string | undefined,

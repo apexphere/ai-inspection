@@ -11,10 +11,10 @@ export default function HomePage(): React.ReactElement {
         and automated PDF report generation.
       </p>
       <Link
-        href="/inspections"
+        href="/projects"
         className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
       >
-        View Inspections
+        View Projects
       </Link>
     </div>
   );
