@@ -1,125 +1,85 @@
-# Logging & Observability
+# Logging Infrastructure Setup
 
 ## Overview
 
-Structured JSON logging with Grafana Cloud for centralized log aggregation.
+Centralized log aggregation using Grafana Cloud (free tier) with Railway log drain.
 
-| Component | Purpose |
-|-----------|---------|
-| **Pino** | Structured JSON logger (API + MCP server) |
-| **pino-http** | Automatic HTTP request/response logging (API) |
-| **Grafana Cloud Loki** | Log storage + query engine |
-| **Railway Log Drain** | Ships stdout logs → Loki |
-| **Grafana** | UI for search, dashboards, alerting |
-
-## Application Logging
-
-Both the API and MCP server use [Pino](https://github.com/pinojs/pino) for structured JSON logging to stdout.
-
-### Log Format
-
-```json
-{
-  "level": 30,
-  "time": 1709283600000,
-  "msg": "Inspection created",
-  "service": "api",
-  "reqId": "abc-123",
-  "userId": "user-uuid",
-  "inspectionId": "insp-uuid"
-}
+```
+Railway API (stdout) ──► Railway Log Drain ──► Grafana Cloud Loki ──► Grafana UI
 ```
 
-### Log Levels
+## Account Required
 
-| Level | Value | Use |
-|-------|-------|-----|
-| `fatal` | 60 | Process cannot continue |
-| `error` | 50 | Operation failed |
-| `warn` | 40 | Unexpected but recoverable |
-| `info` | 30 | Significant events (default) |
-| `debug` | 20 | Diagnostic detail |
-| `trace` | 10 | Verbose debugging |
+| Service | Purpose | Sign Up |
+|---------|---------|---------|
+| **Grafana Cloud** | Loki (log storage) + Grafana (UI) | [grafana.com/cloud](https://grafana.com/products/cloud/) |
 
-**Default level:** `info` (override via `LOG_LEVEL` env var).
+Free tier: 50GB/month logs, 14 day retention, 3 users.
 
-### HTTP Request Logging (API)
+## Setup Steps
 
-`pino-http` automatically logs every request/response:
+### 1. Create Grafana Cloud Account
 
-```json
-{
-  "level": 30,
-  "msg": "request completed",
-  "req": { "method": "POST", "url": "/api/inspections" },
-  "res": { "statusCode": 201 },
-  "responseTime": 45
-}
-```
+1. Sign up at [grafana.com/cloud](https://grafana.com/products/cloud/)
+2. Create a stack (choose region closest to Railway — e.g., `us-east`)
+3. Note your stack URL: `https://<your-stack>.grafana.net`
 
-Errors (4xx/5xx) are logged at `warn`/`error` level automatically.
+### 2. Get Loki Credentials
 
-### Sensitive Data
+1. Grafana Cloud → **Connections** → **Hosted Logs (Loki)**
+2. Note the push URL: `https://logs-prod-<region>.grafana.net/loki/api/v1/push`
+3. Create an API token: **Configuration** → **API Keys** → **Add API Key**
+   - Role: `MetricsPublisher`
+   - Copy the token (shown once)
+4. Note your Loki username (numeric ID shown on the Hosted Logs page)
 
-**Never logged:** passwords, tokens, API keys, JWT contents, `SERVICE_API_KEY`.
+### 3. Configure Railway Log Drain
 
-Pino redaction is configured to strip sensitive fields from request headers and body.
+1. Railway Dashboard → Select API service
+2. **Settings** → **Observability** → **Log Drain**
+3. Add log drain:
+   - **Type:** HTTP
+   - **URL:** `https://<loki-username>:<api-token>@logs-prod-<region>.grafana.net/loki/api/v1/push`
+   - **Format:** JSON
+4. Save — logs start shipping immediately
 
-## Infrastructure
+### 4. Verify
 
-### Grafana Cloud (Free Tier)
+1. Open Grafana Cloud → **Explore**
+2. Select **Loki** data source
+3. Run query: `{service="api"}`
+4. You should see logs from the API service
 
-- **Loki** — log storage, 50GB/month free
-- **Grafana** — dashboards and explore UI
-- **Credentials** — stored in deployment runbook (not in repo)
+## Dashboard Setup
 
-### Railway Log Drain
+Import the service health dashboard:
 
-Railway ships all stdout/stderr from the API service to Grafana Cloud Loki via HTTP push.
+1. Grafana → **Dashboards** → **New** → **Import**
+2. Dashboard includes:
+   - Error rate over time (line chart)
+   - Logs by level (pie chart: info/warn/error)
+   - Recent errors (log panel, filtered to level ≥ error)
+   - Service selector dropdown
 
-Configuration: Railway Dashboard → Service → Settings → Log Drain → Loki HTTP endpoint.
+## Credentials Storage
 
-### Log Retention
+| Credential | Where to Store |
+|------------|---------------|
+| Grafana Cloud URL | Deployment runbook (not in repo) |
+| Loki username | Deployment runbook |
+| Loki API token | Deployment runbook |
+| Railway log drain URL | Railway dashboard (auto-saved) |
 
-- **Grafana Cloud free tier:** 30 days
-- Sufficient for diagnosing recent issues; historical analysis not required
+**⚠️ Never commit Grafana credentials to the repository.**
 
-## Querying Logs
+## Log Retention
 
-### Grafana Explore
+| Tier | Retention | Storage |
+|------|-----------|---------|
+| Free | 14 days | 50GB/month |
+| Pro | 30+ days | Pay-per-use |
 
-Access via Grafana Cloud → Explore → Select Loki data source.
-
-**Common queries (LogQL):**
-
-```logql
-# All API errors
-{service="api"} |= "error" | json | level >= 50
-
-# Auth failures
-{service="api"} |= "401"
-
-# Specific inspection
-{service="api"} | json | inspectionId="<uuid>"
-
-# Slow requests (>1s)
-{service="api"} | json | responseTime > 1000
-```
-
-### Dashboard
-
-The **Service Health** dashboard includes:
-
-1. **Error rate over time** — line chart, per service
-2. **Logs by level** — pie chart (info/warn/error)
-3. **Recent errors** — log panel, filtered to level ≥ error
-4. **Service selector** — dropdown to filter by api/mcp-server
-
-## Environment Variables
-
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `LOG_LEVEL` | `info` | Minimum log level |
+Free tier is sufficient for diagnosing recent production issues.
 
 ## Future Path
 
@@ -129,4 +89,4 @@ Phase 2 (later): + Tempo (distributed traces)
 Phase 3 (later): + Prometheus (metrics)
 ```
 
-Same Grafana ecosystem — add trace IDs to logs, correlate in Grafana UI.
+Same Grafana ecosystem — all visible in the same UI.
