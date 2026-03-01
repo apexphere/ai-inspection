@@ -2,7 +2,7 @@ import { test, expect } from './fixtures';
 
 test.describe('Profile Page', () => {
   test('should be accessible from header email link', async ({ authenticatedPage: page }) => {
-    await page.goto('/inspections');
+    await page.goto('/projects');
     const profileLink = page.locator('a[href="/profile"]');
     await expect(profileLink).toBeVisible();
     await profileLink.click();
