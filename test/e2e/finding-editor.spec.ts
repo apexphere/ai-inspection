@@ -4,10 +4,17 @@ import { test, expect } from './fixtures';
  * Helper to navigate to first inspection detail page
  */
 async function navigateToInspectionDetail(page: import('@playwright/test').Page): Promise<boolean> {
-  await page.goto('/inspections');
+  await page.goto('/projects');
   await page.waitForLoadState('networkidle');
 
-  const inspectionLink = page.locator('a[href^="/inspections/"]').first();
+  // Navigate into a project first
+  const projectLink = page.locator('a[href^="/projects/"]').first();
+  if (!await projectLink.isVisible()) return false;
+  await projectLink.click();
+  await page.waitForLoadState('networkidle');
+
+  // Then into an inspection
+  const inspectionLink = page.locator('a[href*="/inspections/"]').first();
   if (await inspectionLink.isVisible()) {
     await inspectionLink.click();
     await page.waitForLoadState('networkidle');
