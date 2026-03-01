@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Parse flags
+FORCE=false
+for arg in "$@"; do
+  case "$arg" in
+    --force|-f) FORCE=true ;;
+  esac
+done
+
 # Deploy building-inspection skill to Kai's OpenClaw workspace
 # Issue #612 — version-aware, session-safe, atomic swap
 
@@ -69,9 +77,13 @@ if command -v openclaw &>/dev/null; then
 fi
 
 if [[ "$SESSION_ACTIVE" == "true" ]]; then
-  echo "WARNING: Kai has an active session — aborting deploy to avoid disruption." >&2
-  echo "Wait for the session to end and retry." >&2
-  exit 2
+  if [[ "$FORCE" == "true" ]]; then
+    log "WARNING: Kai has an active session — deploying anyway (--force)."
+  else
+    echo "WARNING: Kai has an active session — aborting deploy to avoid disruption." >&2
+    echo "Use --force to override, or wait for the session to end and retry." >&2
+    exit 2
+  fi
 fi
 
 # ── Deploy (atomic swap) ──────────────────────────────────────────────────────
