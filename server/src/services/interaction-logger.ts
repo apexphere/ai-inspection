@@ -1,3 +1,4 @@
+import { logger } from "../lib/logger.js";
 /**
  * Interaction Logger Service
  * Issue #512 - Interaction Observability
@@ -26,7 +27,7 @@ async function flushLogs(): Promise<void> {
     await interactionLogsApi.createBatch(logsToSend);
   } catch (error) {
     // Log failure but don't throw - logging should not break tools
-    console.error('[InteractionLogger] Failed to flush logs:', error);
+    logger.error({ err: error }, 'Failed to flush interaction logs');
   }
 }
 
