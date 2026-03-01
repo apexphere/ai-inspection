@@ -1,3 +1,4 @@
+import { logger } from '../lib/logger.js';
 /**
  * Public Photos Route
  * Issue #524 - Photos must be accessible without auth for <img> tags
@@ -29,7 +30,7 @@ photosPublicRouter.get('/:id', async (req: Request, res: Response, next: NextFun
     try {
       fileBuffer = await service.getFileBuffer(id);
     } catch (err) {
-      console.error(`[PhotosPublic] Failed to get file buffer for ${id}:`, err);
+      logger.error({ id, err }, "Failed to get photo file buffer");
       res.status(404).json({ error: 'Photo file not found' });
       return;
     }
