@@ -45,7 +45,7 @@ export function AppHeader(): React.ReactElement | null {
                 href="/projects"
                 className="text-sm font-medium text-gray-600 hover:text-gray-900"
               >
-                Inspections
+                Projects
               </Link>
               {isAdmin && (
                 <Link
@@ -102,7 +102,7 @@ export function AppHeader(): React.ReactElement | null {
               onClick={() => setMobileMenuOpen(false)}
               className="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50"
             >
-              Inspections
+              Projects
             </Link>
             {isAdmin && (
               <Link

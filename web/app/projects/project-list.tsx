@@ -13,7 +13,7 @@ interface Project {
   status: string;
   updatedAt: string;
   property?: {
-    address: string;
+    streetAddress: string;
   };
   client?: {
     name: string;
@@ -80,8 +80,7 @@ export function ProjectList(): React.ReactElement {
         const params = new URLSearchParams();
         if (status) params.set('status', status);
         if (search) {
-          params.set('address', search);
-          params.set('jobNumber', search);
+          params.set('search', search);
         }
 
         const response = await fetch(`${API_URL}/api/projects?${params}`, {
@@ -105,8 +104,8 @@ export function ProjectList(): React.ReactElement {
               bVal = b.jobNumber || '';
               break;
             case 'address':
-              aVal = a.property?.address || '';
-              bVal = b.property?.address || '';
+              aVal = a.property?.streetAddress || '';
+              bVal = b.property?.streetAddress || '';
               break;
             case 'client':
               aVal = a.client?.name || '';
@@ -207,7 +206,7 @@ export function ProjectList(): React.ReactElement {
                   </div>
                 )}
                 <div className="text-sm font-medium text-gray-900 line-clamp-2">
-                  {project.property?.address || '—'}
+                  {project.property?.streetAddress || '—'}
                 </div>
               </div>
               <span className={`flex-shrink-0 inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${STATUS_COLORS[project.status] || 'bg-gray-100 text-gray-700'}`}>
@@ -276,7 +275,7 @@ export function ProjectList(): React.ReactElement {
                     {project.jobNumber || '—'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    {project.property?.address || '—'}
+                    {project.property?.streetAddress || '—'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                     {project.client?.name || '—'}

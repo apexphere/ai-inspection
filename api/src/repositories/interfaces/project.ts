@@ -19,6 +19,7 @@ export interface UpdateProjectInput {
 }
 
 export interface ProjectSearchParams {
+  search?: string;
   jobNumber?: string;
   address?: string;
   clientName?: string;
