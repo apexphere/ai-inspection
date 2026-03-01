@@ -111,3 +111,37 @@ export SERVICE_API_KEY=sk_abc12345...
 ```
 
 The building-inspection skill sends it automatically as `X-API-Key: $SERVICE_API_KEY` on every API call.
+
+## Kai Agent Configuration
+
+### OpenClaw (Recommended)
+
+Store the key in Kai's agent config in `openclaw.json` — injected at runtime, never touches the repo or workspace:
+
+```json
+{
+  "agents": {
+    "list": [
+      {
+        "id": "kai",
+        "env": {
+          "API_SERVICE_KEY": "sk_..."
+        }
+      }
+    ]
+  }
+}
+```
+
+The building-inspection skill reads `$API_SERVICE_KEY` and sends it as `X-API-Key` on every API call.
+
+> **Note:** `openclaw.json` is not committed to the repo. It lives at `~/.openclaw/openclaw.json` on the host machine.
+
+### Current Keys
+
+| Key | Location | Status |
+|-----|----------|--------|
+| `API_SERVICE_KEY` in `openclaw.json` | Kai agent env | ✅ Active — scoped DB key |
+| `SERVICE_API_KEY` in host env | Host environment | ⚠️ Legacy — to be retired after #618 |
+
+Once #618 is complete, the host-level `SERVICE_API_KEY` can be removed.
