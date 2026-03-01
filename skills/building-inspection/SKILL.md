@@ -12,10 +12,10 @@ Guide inspectors through property inspections via WhatsApp. Supports four inspec
 
 ```
 API_URL="$AI_INSPECTION_API_URL"
-AUTH='-H "X-API-Key: $SERVICE_API_KEY"'
+AUTH='-H "X-API-Key: $API_SERVICE_KEY"'
 ```
 
-All curl calls include `-H "Content-Type: application/json" -H "X-API-Key: $SERVICE_API_KEY"`.
+All curl calls include `-H "Content-Type: application/json" -H "X-API-Key: $API_SERVICE_KEY"`.
 
 ---
 
@@ -47,7 +47,7 @@ Map response to inspection type:
 ```bash
 curl -X POST "$API_URL/api/properties" \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: $SERVICE_API_KEY" \
+  -H "X-API-Key: $API_SERVICE_KEY" \
   -d '{
     "streetAddress": "{address}",
     "suburb": "{suburb_if_known}",
@@ -64,7 +64,7 @@ Ask for client name (or use "TBC" to start fast):
 ```bash
 curl -X POST "$API_URL/api/clients" \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: $SERVICE_API_KEY" \
+  -H "X-API-Key: $API_SERVICE_KEY" \
   -d '{
     "name": "{client_name}"
   }'
@@ -77,7 +77,7 @@ Save `id` as `CLIENT_ID`.
 ```bash
 curl -X POST "$API_URL/api/projects" \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: $SERVICE_API_KEY" \
+  -H "X-API-Key: $API_SERVICE_KEY" \
   -d '{
     "reportType": "{PPI|COA|CCC_GAP|SAFE_SANITARY}",
     "propertyId": "{PROPERTY_ID}",
@@ -92,7 +92,7 @@ Save `id` as `PROJECT_ID`.
 ```bash
 curl -X POST "$API_URL/api/projects/{PROJECT_ID}/inspections" \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: $SERVICE_API_KEY" \
+  -H "X-API-Key: $API_SERVICE_KEY" \
   -d '{
     "type": "{SIMPLE|CLAUSE_REVIEW}",
     "stage": "{INS_01|COA|CCC_GA|S_AND_S}"
@@ -124,7 +124,7 @@ Walk through categories in order. For each finding, create a checklist item.
 ```bash
 curl -X POST "$API_URL/api/site-inspections/{INSPECTION_ID}/checklist-items" \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: $SERVICE_API_KEY" \
+  -H "X-API-Key: $API_SERVICE_KEY" \
   -d '{
     "category": "{SITE|EXTERIOR|INTERIOR|DECKS|SERVICES}",
     "description": "{finding description}",
@@ -138,7 +138,7 @@ curl -X POST "$API_URL/api/site-inspections/{INSPECTION_ID}/checklist-items" \
 
 ```bash
 curl "$API_URL/api/site-inspections/{INSPECTION_ID}/checklist-summary" \
-  -H "X-API-Key: $SERVICE_API_KEY"
+  -H "X-API-Key: $API_SERVICE_KEY"
 ```
 
 ### Skip Category
@@ -156,12 +156,12 @@ First, fetch available clauses, then initialise:
 ```bash
 # Get all clauses
 curl "$API_URL/api/building-code/clauses" \
-  -H "X-API-Key: $SERVICE_API_KEY"
+  -H "X-API-Key: $API_SERVICE_KEY"
 
 # Init reviews for this inspection
 curl -X POST "$API_URL/api/site-inspections/{INSPECTION_ID}/clause-reviews/init" \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: $SERVICE_API_KEY" \
+  -H "X-API-Key: $API_SERVICE_KEY" \
   -d '{ "clauseIds": [{all_clause_ids}] }'
 ```
 
@@ -187,7 +187,7 @@ For each clause, ask if applicable and record observations:
 # Mark applicable with observations
 curl -X PUT "$API_URL/api/clause-reviews/{review_id}" \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: $SERVICE_API_KEY" \
+  -H "X-API-Key: $API_SERVICE_KEY" \
   -d '{
     "status": "APPLICABLE",
     "observations": "{inspector observations}"
@@ -196,7 +196,7 @@ curl -X PUT "$API_URL/api/clause-reviews/{review_id}" \
 # Mark not applicable
 curl -X POST "$API_URL/api/clause-reviews/{review_id}/mark-na" \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: $SERVICE_API_KEY" \
+  -H "X-API-Key: $API_SERVICE_KEY" \
   -d '{ "reason": "{reason}" }'
 ```
 
@@ -204,7 +204,7 @@ curl -X POST "$API_URL/api/clause-reviews/{review_id}/mark-na" \
 
 ```bash
 curl "$API_URL/api/site-inspections/{INSPECTION_ID}/clause-review-summary" \
-  -H "X-API-Key: $SERVICE_API_KEY"
+  -H "X-API-Key: $API_SERVICE_KEY"
 ```
 
 ---
@@ -240,7 +240,7 @@ Use same checklist-items API as PPI.
 ```bash
 curl -X POST "$API_URL/api/projects/{PROJECT_ID}/photos/base64" \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: $SERVICE_API_KEY" \
+  -H "X-API-Key: $API_SERVICE_KEY" \
   -d '{
     "data": "{base64_image}",
     "filename": "{filename}.jpg",
@@ -253,7 +253,7 @@ curl -X POST "$API_URL/api/projects/{PROJECT_ID}/photos/base64" \
 
 ```bash
 curl "$API_URL/api/site-inspections/{INSPECTION_ID}" \
-  -H "X-API-Key: $SERVICE_API_KEY"
+  -H "X-API-Key: $API_SERVICE_KEY"
 ```
 
 ### Complete Inspection
@@ -261,7 +261,7 @@ curl "$API_URL/api/site-inspections/{INSPECTION_ID}" \
 ```bash
 curl -X PUT "$API_URL/api/site-inspections/{INSPECTION_ID}" \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: $SERVICE_API_KEY" \
+  -H "X-API-Key: $API_SERVICE_KEY" \
   -d '{
     "status": "COMPLETED",
     "weatherConditions": "{Fine|Overcast|Rain}",

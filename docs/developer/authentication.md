@@ -21,11 +21,11 @@ The token can be sent as:
 
 ## API Key Authentication (Service/Agent)
 
-The OpenClaw agent (Kai) authenticates using a shared secret configured via the `SERVICE_API_KEY` environment variable. The key must be set in both:
+The OpenClaw agent (Kai) authenticates using a shared secret configured via the `API_SERVICE_KEY` environment variable. The key must be set in both:
 1. **Railway** (API server) — so the middleware can validate incoming keys
 2. **Host environment** (where OpenClaw runs) — so the agent sends the key
 
-**Middleware:** `serviceAuthMiddleware` — checks `X-API-Key` header first. If it matches `SERVICE_API_KEY`, the request is authenticated with `req.userId = 'service'`. If no API key is present, falls back to JWT validation.
+**Middleware:** `serviceAuthMiddleware` — checks `X-API-Key` header first. If it matches `API_SERVICE_KEY`, the request is authenticated with `req.userId = 'service'`. If no API key is present, falls back to JWT validation.
 
 ## Route Configuration
 
@@ -40,7 +40,7 @@ Routes are wired in `api/src/index.ts`:
 ```
 Kai (OpenClaw agent)
   → Reads SKILL.md (building-inspection)
-  → Makes curl calls with -H "X-API-Key: $SERVICE_API_KEY"
+  → Makes curl calls with -H "X-API-Key: $API_SERVICE_KEY"
   → Hits Railway API
   → serviceAuthMiddleware validates key
   → Request proceeds as userId "service"
@@ -65,6 +65,6 @@ Kai (OpenClaw agent)
 | Variable | Where | Purpose |
 |----------|-------|---------|
 | `JWT_SECRET` | Railway | Signs/verifies JWT tokens |
-| `SERVICE_API_KEY` | Railway + OpenClaw host | Shared secret for agent auth |
+| `API_SERVICE_KEY` | Railway + OpenClaw host | Shared secret for agent auth |
 | `AI_INSPECTION_API_URL` | OpenClaw host | API base URL for agent calls |
 | `ADMIN_USER_IDS` | Railway | Comma-separated user IDs for admin access |

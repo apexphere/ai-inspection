@@ -98,7 +98,7 @@ Key is deactivated (not deleted) — `active: false`. Existing requests using it
 ## Key Rotation (Zero-Downtime)
 
 1. Create a new key with the same scopes
-2. Update the consumer (e.g. set `SERVICE_API_KEY` in OpenClaw agent env)
+2. Update the consumer (e.g. set `API_SERVICE_KEY` in OpenClaw agent env)
 3. Deactivate the old key
 4. Both keys work during the transition window
 
@@ -107,7 +107,7 @@ Key is deactivated (not deleted) — `active: false`. Existing requests using it
 Set the key in the OpenClaw host environment:
 
 ```bash
-export SERVICE_API_KEY=sk_abc12345...
+export API_SERVICE_KEY=sk_abc12345...
 ```
 
-The building-inspection skill sends it automatically as `X-API-Key: $SERVICE_API_KEY` on every API call.
+The building-inspection skill sends it automatically as `X-API-Key: $API_SERVICE_KEY` on every API call.

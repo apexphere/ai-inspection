@@ -1,3 +1,7 @@
+## [Unreleased]
+### Fixed
+- Renamed env var from `SERVICE_API_KEY` to `API_SERVICE_KEY` to match OpenClaw agent config
+
 # Changelog — Building Inspection Skill
 
 ## [2.0.0] — 2026-03-01
