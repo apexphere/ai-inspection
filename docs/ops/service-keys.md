@@ -4,7 +4,18 @@
 
 Service API keys allow external services (e.g. the Kai WhatsApp agent) to authenticate with the API without a JWT. Keys are scoped to specific resources and stored hashed in the database.
 
-## Creating a Service Key
+## Admin UI
+
+Service keys can be managed via the web UI at `/admin/service-keys` (admin users only).
+
+The UI supports:
+- **Create** — fill in name, actor, scope checkboxes; plaintext key shown once with copy-to-clipboard
+- **Regenerate** — deactivates old key, creates new one with same scopes; plaintext shown once
+- **Deactivate** — disables a key immediately
+
+Use the UI for day-to-day key management. Use the API (below) for scripting or automation.
+
+## Creating a Service Key (API)
 
 Call the admin endpoint (requires admin JWT):
 
