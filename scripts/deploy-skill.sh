@@ -14,6 +14,11 @@ if [[ ! -f "$SOURCE_SKILL" ]]; then
   exit 1
 fi
 
+# Remove broken symlink if present
+if [[ -L "$TARGET_DIR" ]]; then
+  rm "$TARGET_DIR"
+fi
+
 mkdir -p "$TARGET_DIR"
 
 cp "$SOURCE_SKILL" "$TARGET_SKILL"

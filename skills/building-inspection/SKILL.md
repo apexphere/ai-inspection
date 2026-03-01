@@ -1,157 +1,317 @@
 ---
 name: building-inspection
-description: Guide building inspectors through property inspections via WhatsApp. Use when user mentions inspection, property check, building survey, or arrives at an address. Captures findings and photos section-by-section, generates PDF reports.
+version: 2.0.0
+description: Guide building inspectors through property inspections via WhatsApp. Supports PPI, COA, CCC, and Safe & Sanitary inspection types. Creates properties, clients, projects, and site inspections via the API.
 ---
 
-# Building Inspection Assistant
+# Building Inspection Assistant v2
 
-Guide inspectors through NZS4306-style residential property inspections via WhatsApp.
+Guide inspectors through property inspections via WhatsApp. Supports four inspection types: PPI, COA, CCC Gap Analysis, and Safe & Sanitary.
 
 ## API Configuration
 
-**Base URL:** `$AI_INSPECTION_API_URL`
-
-All API calls use `curl` with JSON. Include API key if set in environment:
-
-```bash
+```
 API_URL="$AI_INSPECTION_API_URL"
-API_KEY="$SERVICE_API_KEY"
+AUTH='-H "X-API-Key: $SERVICE_API_KEY"'
 ```
 
-## Workflow
+All curl calls include `-H "Content-Type: application/json" -H "X-API-Key: $SERVICE_API_KEY"`.
 
-### 1. Start Inspection
+---
 
-When inspector mentions an address:
+## 1. Onboarding Flow
+
+### Step 1: Address
+
+When inspector mentions an address, confirm it and ask inspection type:
+
+> "Got it — **{address}**. What type of inspection?
+> 1️⃣ PPI (Pre-Purchase)
+> 2️⃣ COA (Code of Compliance)
+> 3️⃣ CCC (CCC Gap Analysis)
+> 4️⃣ SS (Safe & Sanitary)"
+
+### Step 2: Type Selection
+
+Map response to inspection type:
+
+| Choice | reportType | type | stage |
+|--------|-----------|------|-------|
+| PPI | PPI | SIMPLE | INS_01 |
+| COA | COA | CLAUSE_REVIEW | COA |
+| CCC | CCC_GAP | SIMPLE | CCC_GA |
+| SS | SAFE_SANITARY | SIMPLE | S_AND_S |
+
+### Step 3: Create Property
 
 ```bash
-curl -X POST "$API_URL/api/inspections" \
+curl -X POST "$API_URL/api/properties" \
   -H "Content-Type: application/json" \
   -H "X-API-Key: $SERVICE_API_KEY" \
   -d '{
-    "address": "45 Oak Avenue",
-    "client_name": "Smith",
-    "inspector_name": "John",
-    "checklist": "nz-ppi"
+    "streetAddress": "{address}",
+    "suburb": "{suburb_if_known}",
+    "city": "{city_if_known}"
   }'
 ```
 
-**Response:** `{ "id": "uuid", "address": "...", "status": "IN_PROGRESS", ... }`
+Save `id` as `PROPERTY_ID`. If property exists, use existing ID.
 
-Save the `id` for subsequent calls.
+### Step 4: Create Client
 
-### 2. Get Inspection Status
+Ask for client name (or use "TBC" to start fast):
 
 ```bash
-curl "$API_URL/api/inspections/{id}" \
+curl -X POST "$API_URL/api/clients" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $SERVICE_API_KEY" \
+  -d '{
+    "name": "{client_name}"
+  }'
+```
+
+Save `id` as `CLIENT_ID`.
+
+### Step 5: Create Project
+
+```bash
+curl -X POST "$API_URL/api/projects" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $SERVICE_API_KEY" \
+  -d '{
+    "reportType": "{PPI|COA|CCC_GAP|SAFE_SANITARY}",
+    "propertyId": "{PROPERTY_ID}",
+    "clientId": "{CLIENT_ID}"
+  }'
+```
+
+Save `id` as `PROJECT_ID`.
+
+### Step 6: Create Site Inspection
+
+```bash
+curl -X POST "$API_URL/api/projects/{PROJECT_ID}/inspections" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $SERVICE_API_KEY" \
+  -d '{
+    "type": "{SIMPLE|CLAUSE_REVIEW}",
+    "stage": "{INS_01|COA|CCC_GA|S_AND_S}"
+  }'
+```
+
+Save `id` as `INSPECTION_ID`. Confirm to inspector:
+
+> "✅ {type} inspection started at {address}. Let's begin."
+
+---
+
+## 2. PPI Workflow (Pre-Purchase Inspection)
+
+Walk through categories in order. For each finding, create a checklist item.
+
+### Categories & Prompts
+
+| Category | Prompt |
+|----------|--------|
+| SITE | "Check drainage, landscaping, fencing, paths, driveways" |
+| EXTERIOR | "Check roof, gutters, cladding, external walls, windows, doors" |
+| INTERIOR | "Check walls, ceilings, floors, doors, windows, moisture" |
+| DECKS | "Check deck structure, balustrades, waterproofing, fixings" |
+| SERVICES | "Check electrical, plumbing, hot water, ventilation, insulation" |
+
+### Add Checklist Item
+
+```bash
+curl -X POST "$API_URL/api/site-inspections/{INSPECTION_ID}/checklist-items" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $SERVICE_API_KEY" \
+  -d '{
+    "category": "{SITE|EXTERIOR|INTERIOR|DECKS|SERVICES}",
+    "description": "{finding description}",
+    "result": "{PASS|FAIL|NA}",
+    "notes": "{optional notes}",
+    "severity": "{minor|major|urgent}"
+  }'
+```
+
+### Check Summary
+
+```bash
+curl "$API_URL/api/site-inspections/{INSPECTION_ID}/checklist-summary" \
   -H "X-API-Key: $SERVICE_API_KEY"
 ```
 
-### 3. Add Finding
+### Skip Category
+
+Inspector can skip any category — move to next on request.
+
+---
+
+## 3. COA Workflow (Code of Compliance Assessment)
+
+### Init Clause Reviews
+
+First, fetch available clauses, then initialise:
 
 ```bash
-curl -X POST "$API_URL/api/inspections/{id}/findings" \
+# Get all clauses
+curl "$API_URL/api/building-code/clauses" \
+  -H "X-API-Key: $SERVICE_API_KEY"
+
+# Init reviews for this inspection
+curl -X POST "$API_URL/api/site-inspections/{INSPECTION_ID}/clause-reviews/init" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $SERVICE_API_KEY" \
+  -d '{ "clauseIds": [{all_clause_ids}] }'
+```
+
+### NZBC Categories
+
+Work through clauses by category:
+
+| Category | Description |
+|----------|-------------|
+| B | Structure |
+| C | Fire Safety |
+| D | Access |
+| E | Moisture |
+| F | Safety of Users |
+| G | Services & Facilities |
+| H | Energy Efficiency |
+
+### Update Clause Review
+
+For each clause, ask if applicable and record observations:
+
+```bash
+# Mark applicable with observations
+curl -X PUT "$API_URL/api/clause-reviews/{review_id}" \
   -H "Content-Type: application/json" \
   -H "X-API-Key: $SERVICE_API_KEY" \
   -d '{
-    "section": "exterior",
-    "text": "Gutters rusted on north side",
-    "severity": "minor"
+    "status": "APPLICABLE",
+    "observations": "{inspector observations}"
   }'
-```
 
-**Severity options:** `info`, `minor`, `major`, `urgent`
-
-### 4. Add Photo to Finding
-
-```bash
-curl -X POST "$API_URL/api/findings/{finding_id}/photos" \
+# Mark not applicable
+curl -X POST "$API_URL/api/clause-reviews/{review_id}/mark-na" \
   -H "Content-Type: application/json" \
   -H "X-API-Key: $SERVICE_API_KEY" \
-  -d '{
-    "data": "<base64>",
-    "filename": "gutters.jpg",
-    "mime_type": "image/jpeg"
-  }'
+  -d '{ "reason": "{reason}" }'
 ```
 
-### 5. Navigate Sections
+### Check Summary
 
 ```bash
-curl -X POST "$API_URL/api/inspections/{id}/navigate" \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: $SERVICE_API_KEY" \
-  -d '{ "section": "interior" }'
-```
-
-**Section order:** exterior → subfloor → interior → kitchen → bathroom → electrical → plumbing → roof_space
-
-### 6. Complete Inspection
-
-```bash
-curl -X POST "$API_URL/api/inspections/{id}/complete" \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: $SERVICE_API_KEY" \
-  -d '{
-    "summary_notes": "Overall good condition",
-    "weather": "Fine"
-  }'
-```
-
-### 7. Get Report
-
-```bash
-curl "$API_URL/api/inspections/{id}/report?format=pdf" \
+curl "$API_URL/api/site-inspections/{INSPECTION_ID}/clause-review-summary" \
   -H "X-API-Key: $SERVICE_API_KEY"
 ```
 
-## Key Behaviors
+---
 
-1. **Confirm everything** — Echo back what you captured
-2. **Stay concise** — Inspector is on-site, keep responses short
-3. **Infer section** — Use current section if not specified
-4. **Handle photos** — Convert WhatsApp images to base64 for API
+## 4. CCC Workflow (CCC Gap Analysis)
 
-## Section Prompts
+Same flow as PPI but framed as defect analysis against consented plans.
 
-| Section | Prompt |
-|---------|--------|
-| Exterior | "Check roof, gutters, cladding, external walls, decks" |
-| Subfloor | "Check moisture, ventilation, piles, insulation" |
-| Interior | "Check walls, ceilings, floors, doors, windows" |
-| Kitchen | "Check under sink, rangehood, cabinetry, benchtops" |
-| Bathroom | "Check shower/bath, toilet, vanity, ventilation, tiles" |
-| Electrical | "Check switchboard, outlets, switches, wiring, smoke alarms" |
-| Plumbing | "Check hot water, pipes, water pressure, drainage" |
-| Roof Space | "Check framing, insulation, ventilation, signs of leaks" |
+- **Categories:** SITE, EXTERIOR, INTERIOR, DECKS, SERVICES
+- **Results:** PASS (no defect) / FAIL (defect found) / NA
+- **Prompt prefix:** "Any defects against consented plans for {category}?"
 
-## Conversation Boundaries
+Use same checklist-items API as PPI.
 
-### During Active Inspection
+---
 
-Stay focused. Redirect to inspection.
+## 5. SS Workflow (Safe & Sanitary)
 
-### No Active Inspection
+Simplified inspection. Focus on habitability under Building Act 1991 s.64.
 
-> "Hi! Ready to start an inspection? Give me the address."
+- **Categories:** EXTERIOR, INTERIOR, SERVICES (subset — skip SITE and DECKS unless needed)
+- **Results:** PASS (safe) / FAIL (insanitary) / NA
+- **Prompt prefix:** "Safe & sanitary assessment for {category}:"
 
-## Error Handling
+Use same checklist-items API as PPI.
+
+---
+
+## 6. Common Operations
+
+### Add Photo
+
+```bash
+curl -X POST "$API_URL/api/projects/{PROJECT_ID}/photos/base64" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $SERVICE_API_KEY" \
+  -d '{
+    "data": "{base64_image}",
+    "filename": "{filename}.jpg",
+    "mimeType": "image/jpeg",
+    "caption": "{optional caption}"
+  }'
+```
+
+### Get Inspection Status
+
+```bash
+curl "$API_URL/api/site-inspections/{INSPECTION_ID}" \
+  -H "X-API-Key: $SERVICE_API_KEY"
+```
+
+### Complete Inspection
+
+```bash
+curl -X PUT "$API_URL/api/site-inspections/{INSPECTION_ID}" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $SERVICE_API_KEY" \
+  -d '{
+    "status": "COMPLETED",
+    "weatherConditions": "{Fine|Overcast|Rain}",
+    "notes": "{summary notes}"
+  }'
+```
+
+Confirm to inspector: "✅ Inspection complete. Report will be generated shortly."
+
+---
+
+## 7. Error Handling
 
 | Situation | Response |
 |-----------|----------|
-| No active inspection | "No inspection in progress. Tell me the address to start." |
-| API error | "Trouble saving that. Trying again..." (retry once) |
+| No active inspection | "Ready to start. Give me the address." |
+| API error (4xx) | "Hmm, that didn't work. Let me try again..." (retry once) |
+| API error (5xx) | "Having trouble connecting. Try again in a moment." |
 | Photo failed | "Couldn't process that photo. Can you send it again?" |
+| Unknown type | "Please choose: 1=PPI, 2=COA, 3=CCC, 4=SS" |
 
-## API Endpoints Reference
+---
 
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/api/inspections` | POST | Create inspection |
-| `/api/inspections/{id}` | GET | Get inspection status |
-| `/api/inspections/{id}` | PUT | Update inspection |
-| `/api/inspections/{id}/findings` | POST | Add finding |
-| `/api/inspections/{id}/navigate` | POST | Navigate sections |
-| `/api/inspections/{id}/complete` | POST | Complete inspection |
-| `/api/inspections/{id}/report` | GET | Get report |
-| `/api/findings/{id}/photos` | POST | Add photo to finding |
+## 8. Key Behaviours
+
+1. **Confirm everything** — Echo back what you captured
+2. **Stay concise** — Inspector is on-site, keep responses short
+3. **Don't block on optional data** — Start inspection fast, client can be "TBC"
+4. **Track context** — Remember INSPECTION_ID, PROJECT_ID across the session
+5. **Handle photos** — Convert WhatsApp images to base64 for API
+
+---
+
+## 9. API Reference
+
+| Action | Method | Endpoint |
+|--------|--------|----------|
+| Create property | POST | `/api/properties` |
+| Search properties | GET | `/api/properties?streetAddress=...` |
+| Create client | POST | `/api/clients` |
+| Create project | POST | `/api/projects` |
+| Get project | GET | `/api/projects/{id}` |
+| Create inspection | POST | `/api/projects/{projectId}/inspections` |
+| Get inspection | GET | `/api/site-inspections/{id}` |
+| Update inspection | PUT | `/api/site-inspections/{id}` |
+| Add checklist item | POST | `/api/site-inspections/{id}/checklist-items` |
+| Get checklist summary | GET | `/api/site-inspections/{id}/checklist-summary` |
+| Init clause reviews | POST | `/api/site-inspections/{id}/clause-reviews/init` |
+| Update clause review | PUT | `/api/clause-reviews/{id}` |
+| Mark clause N/A | POST | `/api/clause-reviews/{id}/mark-na` |
+| Get clause summary | GET | `/api/site-inspections/{id}/clause-review-summary` |
+| Get building code | GET | `/api/building-code/clauses` |
+| Upload photo | POST | `/api/projects/{id}/photos/base64` |
