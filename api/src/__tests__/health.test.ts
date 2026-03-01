@@ -4,10 +4,15 @@ import { version } from '../config/version.js';
 describe('Health Endpoint', () => {
   describe('Version info', () => {
     it('should have required version fields', () => {
+      expect(version).toHaveProperty('semver');
       expect(version).toHaveProperty('sha');
       expect(version).toHaveProperty('shortSha');
       expect(version).toHaveProperty('branch');
       expect(version).toHaveProperty('buildTime');
+    });
+
+    it('should have valid semver from package.json', () => {
+      expect(version.semver).toMatch(/^\d+\.\d+\.\d+/);
     });
 
     it('should have shortSha as 7 characters or "unknown"', () => {
@@ -19,13 +24,11 @@ describe('Health Endpoint', () => {
     });
 
     it('should have valid buildTime format', () => {
-      // Should be ISO 8601 format
       expect(() => new Date(version.buildTime)).not.toThrow();
       expect(new Date(version.buildTime).toISOString()).toBeTruthy();
     });
 
     it('should default to unknown for missing env vars', () => {
-      // In test environment, env vars are typically not set
       expect(['unknown', version.sha]).toContain(version.sha);
       expect(['unknown', version.branch]).toContain(version.branch);
     });
