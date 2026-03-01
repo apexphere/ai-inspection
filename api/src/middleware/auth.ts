@@ -1,16 +1,24 @@
 /**
- * Auth Middleware — Issue #41
+ * Auth Middleware — Issue #41, #595
  *
- * JWT-based authentication middleware.
+ * JWT-based authentication + DB-backed scoped service key auth.
  */
 
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import { PrismaClient } from '@prisma/client';
+import { logger } from '../lib/logger.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'development-secret-min-32-chars!!';
 
+const prisma = new PrismaClient();
+
 export interface AuthRequest extends Request {
   userId?: string;
+  serviceActor?: string;
+  serviceScopes?: string[];
+  isServiceAuth?: boolean;
 }
 
 /**
@@ -21,7 +29,6 @@ export function authMiddleware(
   res: Response,
   next: NextFunction
 ): void {
-  // Get token from cookie or Authorization header
   const cookieToken = req.cookies?.token;
   const headerToken = req.headers.authorization?.replace('Bearer ', '');
   const token = cookieToken || headerToken;
@@ -48,24 +55,74 @@ export function generateToken(userId: string): string {
 }
 
 /**
- * Service authentication middleware — Issue #351
- * Allows either JWT token OR X-API-Key header for service-to-service auth.
- * Used for endpoints that OpenClaw agent needs to call.
+ * Service authentication middleware — Issue #351, #595
+ *
+ * Allows either:
+ * 1. DB-backed scoped API key (X-API-Key header, prefix lookup + bcrypt)
+ * 2. Legacy SERVICE_API_KEY env var (backward compat)
+ * 3. JWT token (cookie or Authorization header)
  */
-export function serviceAuthMiddleware(
+export async function serviceAuthMiddleware(
   req: AuthRequest,
   res: Response,
   next: NextFunction
-): void {
-  // Check for API key first (service-to-service auth)
-  const apiKey = req.headers['x-api-key'];
-  const expectedApiKey = process.env.SERVICE_API_KEY;
+): Promise<void> {
+  const apiKey = req.headers['x-api-key'] as string | undefined;
 
-  if (apiKey && expectedApiKey && apiKey === expectedApiKey) {
-    // Service auth successful - no userId needed
-    req.userId = 'service';
-    next();
-    return;
+  if (apiKey) {
+    // Try DB-backed key lookup first
+    const prefix = apiKey.slice(0, 8);
+    try {
+      const serviceKey = await prisma.serviceKey.findFirst({
+        where: { keyPrefix: prefix },
+      });
+
+      if (serviceKey) {
+        // Check active
+        if (!serviceKey.active) {
+          res.status(401).json({ error: 'API key is inactive' });
+          return;
+        }
+
+        // Check expiry
+        if (serviceKey.expiresAt && serviceKey.expiresAt < new Date()) {
+          res.status(401).json({ error: 'API key expired' });
+          return;
+        }
+
+        // Bcrypt compare
+        const valid = await bcrypt.compare(apiKey, serviceKey.keyHash);
+        if (valid) {
+          req.userId = `service:${serviceKey.name}`;
+          req.serviceActor = serviceKey.actor;
+          req.serviceScopes = serviceKey.scopes;
+          req.isServiceAuth = true;
+
+          // Update lastUsedAt (fire-and-forget)
+          prisma.serviceKey.update({
+            where: { id: serviceKey.id },
+            data: { lastUsedAt: new Date() },
+          }).catch((err) => {
+            logger.warn({ err, keyId: serviceKey.id }, 'Failed to update lastUsedAt');
+          });
+
+          next();
+          return;
+        }
+      }
+    } catch (err) {
+      // DB error — fall through to legacy check
+      logger.warn({ err }, 'Service key DB lookup failed, trying legacy');
+    }
+
+    // Legacy fallback: SERVICE_API_KEY env var
+    const expectedApiKey = process.env.SERVICE_API_KEY;
+    if (expectedApiKey && apiKey === expectedApiKey) {
+      req.userId = 'service';
+      req.isServiceAuth = true;
+      next();
+      return;
+    }
   }
 
   // Fall back to JWT auth
@@ -88,30 +145,67 @@ export function serviceAuthMiddleware(
 }
 
 /**
+ * Scope check middleware factory — Issue #595
+ *
+ * Returns middleware that checks if the service key has the required scope.
+ * JWT users bypass scope checks (they have full access via session).
+ * Supports wildcard scopes: "inspections:*" matches "inspections:read".
+ */
+export function requireScope(scope: string) {
+  return (req: AuthRequest, res: Response, next: NextFunction): void => {
+    // JWT users bypass scope checks
+    if (!req.isServiceAuth) {
+      next();
+      return;
+    }
+
+    // Legacy service auth (no scopes) — allow for backward compat
+    if (!req.serviceScopes) {
+      next();
+      return;
+    }
+
+    const [resource, action] = scope.split(':');
+    const hasScope = req.serviceScopes.some((s) => {
+      if (s === scope) return true;
+      // Wildcard: "inspections:*" matches "inspections:read"
+      const [sResource, sAction] = s.split(':');
+      return sResource === resource && sAction === '*';
+    });
+
+    if (!hasScope) {
+      res.status(403).json({
+        error: 'Insufficient scope',
+        required: scope,
+        actor: req.serviceActor,
+      });
+      return;
+    }
+
+    next();
+  };
+}
+
+/**
  * Require admin role for protected endpoints
- * For now, admins are identified by checking personnel role
  */
 export function requireAdmin(
   req: AuthRequest,
   res: Response,
   next: NextFunction
 ): void {
-  // Check if user is authenticated
   if (!req.userId) {
     res.status(401).json({ error: 'Authentication required' });
     return;
   }
 
-  // For MVP: Check if user ID is in admin list (env var)
-  // In production: Look up user's personnel role
   const adminUsers = (process.env.ADMIN_USER_IDS || '').split(',').filter(Boolean);
-  
+
   if (adminUsers.length > 0 && !adminUsers.includes(req.userId)) {
     res.status(403).json({ error: 'Admin access required' });
     return;
   }
 
-  // If no admin list configured, allow access (development mode)
   next();
 }
 
@@ -122,23 +216,15 @@ export async function verifyPassword(
   password: string,
   expectedPassword: string
 ): Promise<boolean> {
-  // For MVP, we use plain text comparison from env var
-  // In production, use bcrypt.compare with hashed password
-  const bcrypt = await import('bcryptjs');
-  
-  // If AUTH_PASSWORD is already hashed (starts with $2), use bcrypt compare
   if (expectedPassword.startsWith('$2')) {
     return bcrypt.compare(password, expectedPassword);
   }
-  
-  // Otherwise, do constant-time comparison for plain text (MVP mode)
+
   const crypto = await import('crypto');
-  
-  // timingSafeEqual requires same-length buffers
   if (password.length !== expectedPassword.length) {
     return false;
   }
-  
+
   return crypto.timingSafeEqual(
     Buffer.from(password),
     Buffer.from(expectedPassword)
