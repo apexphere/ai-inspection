@@ -1,4 +1,5 @@
 import { logger } from './lib/logger.js';
+import { pinoHttp as PinoHttp, type Options as PinoHttpOptions } from 'pino-http';
 import express, { type Application } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -77,6 +78,16 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json({ limit: '10mb' })); // Increased limit for base64 photos
 
+// Structured request logging — Issue #573
+app.use(PinoHttp({
+  logger,
+  autoLogging: {
+    ignore: (req) => req.url === '/health' || req.url === '/health/ready',
+  },
+  customSuccessMessage: (req, res) => `${req.method} ${req.url} ${res.statusCode}`,
+  customErrorMessage: (req, res) => `${req.method} ${req.url} ${res.statusCode}`,
+}));
+
 // Public routes (no auth required)
 app.use('/health', healthRouter);
 app.use('/api', openApiRouter);  // OpenAPI docs (no auth required)
@@ -121,20 +132,21 @@ app.use('/api', serviceAuthMiddleware, credentialsRouter);
 
 // Error handling with detailed logging
 app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  // Log with context
-  logger.error({
+  // Use pino-http request logger if available, fall back to shared logger
+  const log = req.log || logger;
+  log.error({
     method: req.method,
     path: req.path,
+    statusCode: 500,
     err,
   }, 'Unhandled API error');
 
-  
   // Check for common issues and provide hints
   const message = err.message.toLowerCase();
   if (message.includes('prisma') || message.includes('database') || message.includes('connect')) {
-    logger.error('Hint: Check DATABASE_URL is set correctly');
+    log.error('Hint: Check DATABASE_URL is set correctly');
   }
-  
+
   res.status(500).json({ error: 'Internal server error' });
 });
 
