@@ -40,8 +40,9 @@ import { generatedReportsRouter } from './routes/generated-reports.js';
 import { personnelRouter } from './routes/personnel.js';
 import { credentialsRouter } from './routes/credentials.js';
 import { interactionLogsRouter } from './routes/interaction-logs.js';
+import { serviceKeysAdminRouter } from './routes/admin/service-keys.js';
 import { openApiRouter } from './openapi/index.js';
-import { authMiddleware, serviceAuthMiddleware, requireScope } from './middleware/auth.js';
+import { authMiddleware, serviceAuthMiddleware, requireScope, requireAdmin } from './middleware/auth.js';
 import { getAllowedOrigins } from './config/domain.js';
 import { logStartupDiagnostics } from './config/startup.js';
 
@@ -130,6 +131,10 @@ app.use('/api/na-reason-templates', serviceAuthMiddleware, naReasonTemplatesRout
 app.use('/api', serviceAuthMiddleware, costEstimatesRouter);
 app.use('/api', serviceAuthMiddleware, reportGenerationRouter);
 app.use('/api', serviceAuthMiddleware, reportTemplatesRouter);
+
+// Admin routes — JWT + admin only
+app.use("/api/admin/service-keys", authMiddleware, requireAdmin, serviceKeysAdminRouter);
+
 app.use('/api/reports', serviceAuthMiddleware, generatedReportsRouter);
 
 // Error handling with detailed logging
