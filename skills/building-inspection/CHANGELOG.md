@@ -1,5 +1,11 @@
 # Changelog — Building Inspection Skill
 
+## [2.0.1] — 2026-03-01
+
+### Changed
+- Replace `$SERVICE_API_KEY` with `$API_SERVICE_KEY` throughout skill
+- Kai now authenticates via scoped DB-backed key (Issue #618)
+
 ## [2.0.0] — 2026-03-01
 
 ### Changed (Breaking)
