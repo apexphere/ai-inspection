@@ -7,119 +7,156 @@
 
 ---
 
+## Real PPI Workflow (NZS4306:2005)
+
+This is the authoritative description of what a PPI inspection captures, derived from real reports.
+
+### Data Collected Upfront (before inspection starts)
+
+- Property address, client name
+- Weather conditions, rainfall in last 3 days (mm)
+- BRANZ zone data: Climate Zone, Earthquake Zone, Exposure Zone, Lee Zone, Rainfall Range, Wind Region, Wind Zone
+- Building info: type (new/existing), storeys, year built, bedrooms, bathrooms, rooms, parking
+
+### Inspection Sections (NZS4306:2005 order)
+
+1. **Site & Ground** — topography, boundaries, retaining walls, fencing, access paths, driveways, garden/landscaping
+2. **Exterior** — roof (type, condition, flashings, gutters), cladding (type, condition, penetrations, sealants), joinery (glazing type, hardware, restrictors), foundation
+3. **Interior** — room-by-room: floors, walls, ceilings, doors, windows, moisture readings, attic
+4. **Services** — power, internet, water supply (potable/non-potable), hot water, gas, drainage, security, smoke alarms, ventilation, heat pump, stormwater
+
+### Specialist Tests (recorded separately as Appendices)
+
+- **Appendix B** — Non-invasive moisture testing: meter readings + floor plan location map
+- **Appendix C** — Floor level laser survey: measurements per room/area
+- **Appendix D** — Infrared thermal imaging: room by room
+
+### Per Finding
+
+Each finding records:
+- What was observed (specific, technical description)
+- Severity: `immediate-attention` | `further-investigation` | `monitor` | `no-action`
+- Photo reference numbers
+- Conclusion per section (free text summary)
+
+---
+
 ## Problem
 
-The current data model captures inspection findings at a flat category level (SITE, EXTERIOR, INTERIOR, SERVICES) with pass/fail checklist items. Real NZS4306:2005 PPI reports require significantly richer structure:
+The current data model does not support this workflow:
 
-- Room-level findings within Interior (not just "INTERIOR" as a category)
-- Specialist test data: moisture readings (with meter values + locations), floor level survey, thermal imaging
-- Building metadata: storeys, room count, CCC status, year built
-- Weather conditions including rainfall in last 3 days
-- Per-section conclusion text
-- "Further investigation required" as a distinct severity/outcome
-- Section-level photo groupings with specific captions (e.g. "Photograph 11 — Isolated decay in retaining wall posts")
-
-Without this, Kai can guide an inspector through a walk but cannot produce a report that matches real PPI standards.
-
----
-
-## Proposed Changes
-
-### 1. SiteInspection — additional fields
-
-```prisma
-model SiteInspection {
-  // existing fields ...
-  
-  // New fields
-  rainfallLast3Days  Float?   // mm, e.g. 0.0
-  inspectorNotes     String?  // free-form notes for report intro
-  areasNotAccessed   String?  // limitations note
-}
-```
-
-Weather is already partially captured (weatherConditions). Add `rainfallLast3Days`.
+| Required | Current State |
+|----------|--------------|
+| Weather + rainfall last 3 days | ❌ Weather string only, no rainfall |
+| Building info (type, storeys, rooms, parking) | ❌ Only `yearBuilt` on Property |
+| BRANZ zone data | ✅ Already on Property |
+| Room-level interior findings | ❌ Category-level only (e.g. "INTERIOR") |
+| Severity: immediate-attention / further-investigation / monitor / no-action | ❌ Only minor/major/urgent |
+| Conclusion text per section | ❌ Not stored |
+| Moisture readings (meter value + location) | ❌ Not stored |
+| Floor level survey measurements | ❌ Not stored |
+| Thermal imaging results (room by room) | ❌ Not stored |
+| Photo reference linked to specific finding | ⚠️ Photos exist but not linked to checklist items |
 
 ---
 
-### 2. Property — building metadata fields
+## Proposed Schema Changes
+
+### 1. Property — building info fields
 
 ```prisma
 model Property {
-  // existing fields ...
-  
-  // New fields
-  buildingType    String?   // e.g. "Two-Storey Residential House"
-  storeys         Int?      // number of storeys
-  bedrooms        Int?
-  bathrooms       Int?
-  parking         String?   // e.g. "Single Garaging", "Garage + off street"
-  // yearBuilt already exists
+  // existing fields unchanged ...
+
+  // New: building info
+  buildingType  String?   // e.g. "Two-Storey Residential House (New)", "Three-Storey (1990)"
+  storeys       Int?
+  bedrooms      Int?
+  bathrooms     Int?
+  rooms         String?   // free text: "Family 1, Dining 1, Kitchen 1, WC 1"
+  parking       String?   // e.g. "Single Garaging", "Garage + off street"
 }
 ```
 
----
+### 2. SiteInspection — weather enrichment
 
-### 3. ChecklistItem — room-level support + section conclusion
+```prisma
+model SiteInspection {
+  // existing fields unchanged ...
 
-Current: flat `category` + `description`.  
-Proposed: add `room` (nullable) and a separate `InspectionSectionConclusion` model.
+  // New
+  rainfallLast3Days  Float?   // mm
+  areasNotAccessed   String?  // limitations note for report
+}
+```
+
+### 3. ChecklistItem — room + severity alignment
 
 ```prisma
 model ChecklistItem {
-  // existing fields ...
-  
-  // New fields
-  room        String?  // e.g. "Bedroom 1", "Kitchen", "Attic" — null for exterior/site
-  severity    String?  // existing: minor|major|urgent — add: "further-investigation"
-}
+  // existing fields unchanged ...
 
+  // New
+  room      String?  // e.g. "Bedroom 1", "Kitchen", "Attic" — null for site/exterior/services
+  
+  // severity enum extended:
+  // existing: minor | major | urgent
+  // add:      immediate-attention | further-investigation | monitor | no-action
+}
+```
+
+### 4. InspectionSectionConclusion — new model
+
+```prisma
 model InspectionSectionConclusion {
   id            String         @id @default(cuid())
   inspectionId  String
   inspection    SiteInspection @relation(fields: [inspectionId], references: [id])
   section       String         // SITE | EXTERIOR | INTERIOR | SERVICES
-  conclusion    String         // free text, e.g. "No obvious defects..."
+  conclusion    String         // e.g. "No obvious defects were noted. No requirement of immediate attention."
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+
+  @@unique([inspectionId, section])
 }
 ```
 
----
+### 5. SpecialistTest — new model
 
-### 4. SpecialistTest — new model for moisture, floor survey, thermal imaging
-
-These are distinct from checklist items. Each is a structured record tied to an inspection.
+Covers all three appendices (moisture, floor survey, thermal imaging).
 
 ```prisma
 enum SpecialistTestType {
-  MOISTURE_READING
-  FLOOR_LEVEL_SURVEY
-  THERMAL_IMAGING
+  MOISTURE_READING     // Appendix B
+  FLOOR_LEVEL_SURVEY   // Appendix C
+  THERMAL_IMAGING      // Appendix D
 }
 
 model SpecialistTest {
-  id            String              @id @default(cuid())
+  id            String             @id @default(cuid())
   inspectionId  String
-  inspection    SiteInspection      @relation(fields: [inspectionId], references: [id])
+  inspection    SiteInspection     @relation(fields: [inspectionId], references: [id])
   type          SpecialistTestType
-  
-  // MOISTURE_READING fields
-  location      String?   // e.g. "RHS bottom corner backdoor frame, Laundry"
-  meterReading  Float?    // e.g. 95.0 (Trotec T660 units)
+
+  // MOISTURE_READING
+  location      String?   // e.g. "RHS bottom corner, backdoor sill, Laundry"
+  meterReading  Float?    // e.g. 95.0 (Trotec T660 scale 0–200)
   meterModel    String?   // e.g. "Trotec T660"
   result        String?   // "dry" | "elevated" | "wet"
-  
-  // FLOOR_LEVEL_SURVEY fields
+
+  // FLOOR_LEVEL_SURVEY
+  area          String?   // e.g. "Ground Floor", "1st Floor"
   maxDeviation  Float?    // mm
-  conclusion    String?   // e.g. "Within acceptable tolerance"
-  
-  // THERMAL_IMAGING fields
-  room          String?   // which room was imaged
-  anomaly       Boolean?  // was an anomaly detected?
-  notes         String?
-  
-  photoIds      String[]  // linked photo IDs
+  withinTolerance Boolean?
+
+  // THERMAL_IMAGING
+  room          String?   // room imaged
+  anomalyFound  Boolean?
+  anomalyNotes  String?
+
+  // shared
+  conclusion    String?
+  photoIds      String[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -135,77 +172,70 @@ model SpecialistTest {
 |--------|----------|---------|
 | POST | `/api/site-inspections/:id/specialist-tests` | Add moisture/floor/thermal record |
 | GET | `/api/site-inspections/:id/specialist-tests` | List all specialist tests |
-| POST | `/api/site-inspections/:id/section-conclusions` | Set conclusion for a section |
+| PUT | `/api/site-inspections/:id/specialist-tests/:tid` | Update a specialist test |
+| POST | `/api/site-inspections/:id/section-conclusions` | Set/update conclusion for a section |
 | GET | `/api/site-inspections/:id/section-conclusions` | Get all section conclusions |
 
 ### Modified endpoints
 
 - `PUT /api/site-inspections/:id` — accept `rainfallLast3Days`, `areasNotAccessed`
-- `POST /api/properties` / `PUT /api/properties/:id` — accept `buildingType`, `storeys`, `bedrooms`, `bathrooms`, `parking`
-- `POST /api/site-inspections/:id/checklist-items` — accept `room`, extend `severity` enum
+- `POST /api/properties` / `PUT /api/properties/:id` — accept `buildingType`, `storeys`, `bedrooms`, `bathrooms`, `rooms`, `parking`
+- `POST /api/site-inspections/:id/checklist-items` — accept `room`; extend severity values
 
 ---
 
-## Kai / SKILL.md Changes (after data model is built)
+## Kai / SKILL.md Changes (Phase 2 — after data model ships)
 
-The SKILL.md onboarding flow gains two new phases:
+**Onboarding additions:**
 
-**Phase A — Building info (after project confirmed):**
-> "Quick building details — how many storeys? Year built? CCC issued?"
+1. After address confirmed → collect building info:
+   > "Quick building details — new or existing? How many storeys, bedrooms, bathrooms? Parking?"
 
-Stores to `property` fields.
+2. At inspection start → collect weather:
+   > "Weather today? Rainfall in last 3 days (mm)?"
 
-**Phase B — Weather (at inspection start):**
-> "Today's weather? And rainfall in the last 3 days (mm)?"
+**Interior section:**
+- Walk room by room, not category-level
+- Each finding tagged with room name
+- Prompt: *"Which room? Findings for [room]?"*
 
-Stores to `siteInspection`.
+**After each section:**
+- Prompt for conclusion text
+- Prompt: *"Section conclusion for [Site/Exterior/Interior/Services]?"*
 
-**Interior section** changes from flat category prompts to room-by-room:
-> "Moving to interior — which room are you in? Kitchen / Bedroom 1 / Bathroom..."
+**Moisture readings** — captured inline during interior walk:
+- When inspector reports elevated moisture → create `SpecialistTest(MOISTURE_READING)`
+- Prompt: *"Where exactly? Meter reading?"*
 
-Each finding tagged with `room`.
-
-**After each section**, Kai prompts for conclusion:
-> "Section conclusion for Site — any defects? (or say 'no obvious defects')"
-
-**Moisture readings** captured inline when inspector reports elevated moisture:
-> "Elevated moisture — where exactly? What reading? (e.g. '95 at RHS sill, Master Bedroom')"
-
-Creates a `SpecialistTest` of type `MOISTURE_READING`.
-
----
-
-## Out of Scope (this design)
-
-- Floor plan upload / moisture location mapping (requires UI work)
-- Thermal imaging photo analysis (AI future feature)
-- Report PDF template changes (separate design)
+**Specialist tests** — prompted at appropriate points:
+- After interior: *"Floor level survey done? Results?"*
+- After interior: *"Thermal imaging done? Any anomalies?"*
 
 ---
 
 ## Implementation Phases
 
-### Phase 1 — Schema + API (backend)
-- Prisma migration: new fields on `SiteInspection`, `Property`, `ChecklistItem`
+### Phase 1 — Schema + API
+- Prisma migration
 - New models: `SpecialistTest`, `InspectionSectionConclusion`
+- New fields on `Property`, `SiteInspection`, `ChecklistItem`
 - New API endpoints
 - Unit + integration tests
 
-### Phase 2 — Kai / SKILL.md update
-- Rewrite PPI onboarding and section flows
-- Add moisture reading capture inline
-- Add section conclusion prompts
-- Smoke test with real inspection scenario
+### Phase 2 — Kai / SKILL.md
+- Rewrite PPI flow in SKILL.md
+- Room-by-room interior guidance
+- Moisture / conclusion prompts
+- Smoke test with real scenario
 
-### Phase 3 — Report template (separate)
-- Update PPI PDF template to use new data
-- Appendix B (moisture), C (floor survey), D (thermal) sections
+### Phase 3 — Report Template (separate design)
+- Update PPI PDF template to use new fields
+- Appendix B (moisture table), C (floor survey), D (thermal imaging)
 
 ---
 
 ## Open Questions for Master
 
-1. **Room list** — should Kai prompt the inspector to list rooms at the start ("how many bedrooms?") and then walk through each, or discover rooms dynamically as the inspector walks through?
-2. **Floor level survey** — is this always done for PPI, or only ground floor / multi-storey? Should Kai prompt for it or is it recorded separately?
-3. **Thermal imaging** — always done? Some reports have it, some may not. Should it be optional in the flow?
-4. **Building metadata** — some fields (bedrooms, bathrooms) could be pulled from BRANZ/council data or the listing. Worth scraping, or always ask Kai?
+1. **Room discovery** — should Kai ask for the room list upfront ("how many bedrooms?") and walk through each in order, or let the inspector name rooms dynamically as they walk?
+2. **Floor level survey** — always required for PPI, or only when relevant (e.g. ground floor slab, multi-storey)?
+3. **Thermal imaging** — always done, or optional per job?
