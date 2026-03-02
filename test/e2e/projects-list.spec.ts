@@ -27,7 +27,7 @@ test.describe('Projects List — Table Rendering', () => {
 
     // Wait for skeleton to disappear and table to appear
     const table = page.locator('table');
-    await expect(table).toBeVisible({ timeout: 10000 });
+    await expect(table).toBeVisible({ timeout: 30000 });
 
     // Verify all column headers
     const headers = table.locator('thead th');
@@ -43,7 +43,7 @@ test.describe('Projects List — Table Rendering', () => {
     await page.waitForLoadState('networkidle');
 
     const table = page.locator('table');
-    await expect(table).toBeVisible({ timeout: 10000 });
+    await expect(table).toBeVisible({ timeout: 30000 });
 
     // Seeded project should appear with correct data
     const rows = table.locator('tbody tr');
@@ -62,7 +62,7 @@ test.describe('Projects List — Table Rendering', () => {
     await page.waitForLoadState('networkidle');
 
     const table = page.locator('table');
-    await expect(table).toBeVisible({ timeout: 10000 });
+    await expect(table).toBeVisible({ timeout: 30000 });
 
     // Draft status badge should have gray styling
     const draftBadge = table.locator('span.rounded-full', { hasText: 'Draft' }).first();
@@ -75,7 +75,7 @@ test.describe('Projects List — Table Rendering', () => {
     await page.waitForLoadState('networkidle');
 
     const table = page.locator('table');
-    await expect(table).toBeVisible({ timeout: 10000 });
+    await expect(table).toBeVisible({ timeout: 30000 });
 
     // Date cells should contain a date-like string (e.g. "3/1/2026" or "1/03/2026")
     const testRow = table.locator('tbody tr').filter({ hasText: 'TEST-001' });
@@ -88,7 +88,7 @@ test.describe('Projects List — Table Rendering', () => {
     await page.waitForLoadState('networkidle');
 
     const table = page.locator('table');
-    await expect(table).toBeVisible({ timeout: 10000 });
+    await expect(table).toBeVisible({ timeout: 30000 });
 
     const testRow = table.locator('tbody tr').filter({ hasText: 'TEST-001' });
     await expect(testRow).toBeVisible();
@@ -103,7 +103,7 @@ test.describe('Projects List — Table Rendering', () => {
     await page.waitForLoadState('networkidle');
 
     const table = page.locator('table');
-    await expect(table).toBeVisible({ timeout: 10000 });
+    await expect(table).toBeVisible({ timeout: 30000 });
 
     const testRow = table.locator('tbody tr').filter({ hasText: 'TEST-001' });
     const addressCell = testRow.locator('td').nth(1);

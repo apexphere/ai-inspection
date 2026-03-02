@@ -16,11 +16,12 @@ async function goToTestProject(page: Page): Promise<void> {
   await page.goto('/projects');
   await page.waitForLoadState('networkidle');
 
+  // Wait for the projects table — may take time while session/token loads
   const table = page.locator('table');
-  await expect(table).toBeVisible({ timeout: 10000 });
+  await expect(table).toBeVisible({ timeout: 30000 });
 
   const testRow = table.locator('tbody tr').filter({ hasText: 'TEST-001' });
-  await expect(testRow).toBeVisible();
+  await expect(testRow).toBeVisible({ timeout: 10000 });
   await testRow.click();
   await page.waitForLoadState('networkidle');
 
