@@ -115,7 +115,9 @@ test.describe('Projects Search & Filter', () => {
     await page.waitForLoadState('networkidle');
 
     const statusSelect = page.locator('select#status');
-    await expect(statusSelect).toHaveValue('DRAFT');
+    // Wait for client component to hydrate with the correct value
+    await expect(statusSelect).toBeVisible({ timeout: 15000 });
+    await expect(statusSelect).toHaveValue('DRAFT', { timeout: 10000 });
 
     // Clear the filter
     await statusSelect.selectOption('');

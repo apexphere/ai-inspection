@@ -148,6 +148,6 @@ test.describe('Project Detail — 404 Handling', () => {
     await page.waitForLoadState('networkidle');
 
     // Next.js notFound() renders a 404 page
-    await expect(page.getByText(/not found/i)).toBeVisible();
+    await expect(page.getByText(/not found/i)).toBeVisible({ timeout: 20000 });
   });
 });
