@@ -53,7 +53,7 @@ model Property {
   storeys         Int?      // number of storeys
   bedrooms        Int?
   bathrooms       Int?
-  cccStatus       String?   // e.g. "CCC & Title Issued", "Pre-CCC"
+  parking         String?   // e.g. "Single Garaging", "Garage + off street"
   // yearBuilt already exists
 }
 ```
@@ -141,7 +141,7 @@ model SpecialistTest {
 ### Modified endpoints
 
 - `PUT /api/site-inspections/:id` — accept `rainfallLast3Days`, `areasNotAccessed`
-- `POST /api/properties` / `PUT /api/properties/:id` — accept `buildingType`, `storeys`, `bedrooms`, `bathrooms`, `cccStatus`
+- `POST /api/properties` / `PUT /api/properties/:id` — accept `buildingType`, `storeys`, `bedrooms`, `bathrooms`, `parking`
 - `POST /api/site-inspections/:id/checklist-items` — accept `room`, extend `severity` enum
 
 ---
