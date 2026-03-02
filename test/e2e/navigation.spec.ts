@@ -93,23 +93,12 @@ test.describe('Navigation — Auth Guard', () => {
   });
 
   baseTest('should not show header on login page', async ({ page }) => {
-    // Add Vercel bypass header so we reach the actual app (not Vercel auth wall)
-    const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
-    if (bypassSecret) {
-      await page.setExtraHTTPHeaders({
-        'x-vercel-protection-bypass': bypassSecret,
-      });
-    } else {
-      // Without bypass secret we cannot reach the login page past Vercel auth wall
-      console.log('Skipping: VERCEL_AUTOMATION_BYPASS_SECRET not set');
-      return;
-    }
-
+    // Vercel bypass is applied globally in playwright.config.ts via baseURL + extraHTTPHeaders
     await page.goto('/login');
     await page.waitForLoadState('networkidle');
 
-    // Confirm we're on the actual login page (not Vercel auth wall)
-    await expect(page.locator('input[type="email"]')).toBeVisible({ timeout: 10000 });
+    // Confirm we're on the actual login page
+    await expect(page.locator('#email')).toBeVisible({ timeout: 10000 });
 
     // AppHeader returns null on /login — no <header> should be in the DOM
     const header = page.locator('header');
