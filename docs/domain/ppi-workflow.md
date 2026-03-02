@@ -6,6 +6,36 @@
 
 ---
 
+## 0. Session Flow
+
+This is the sequence Kai follows for every PPI. Steps are sequential — do not skip.
+
+```
+1. Inspector gives address
+        ↓
+2. Search for existing project (GET /api/projects?address=...)
+        ↓
+3a. Existing project found → confirm with inspector, reuse it
+3b. Nothing found → create property → create client → create project
+        ↓
+4. Collect upfront data (weather, rainfall, building info)
+   Store to: Property + SiteInspection
+        ↓
+5. Create site inspection record
+        ↓
+6. Walk through inspection sections in order:
+   Site & Ground → Exterior → Interior (room-by-room) → Services
+        ↓
+7. Record specialist tests:
+   Moisture readings (inline during interior) → Floor survey → Thermal imaging
+        ↓
+8. Conclude each section (free text summary)
+        ↓
+9. Complete inspection
+```
+
+---
+
 ## 1. Data Collected Upfront
 
 Before the inspection begins, capture:

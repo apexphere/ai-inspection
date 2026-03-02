@@ -186,30 +186,53 @@ model SpecialistTest {
 
 ## Kai / SKILL.md Changes (Phase 2 — after data model ships)
 
-**Onboarding additions:**
+### Confirmed Session Flow
 
-1. After address confirmed → collect building info:
-   > "Quick building details — new or existing? How many storeys, bedrooms, bathrooms? Parking?"
+```
+1. Inspector gives address
+2. Search for existing project → reuse or create new
+3. Create site inspection record
+4. ★ Collect upfront data (NEW) — store to Property + SiteInspection
+5. Walk inspection sections: Site → Exterior → Interior → Services
+6. Specialist tests inline / at end
+7. Conclude each section
+8. Complete inspection
+```
 
-2. At inspection start → collect weather:
-   > "Weather today? Rainfall in last 3 days (mm)?"
+### Step 4 — Upfront Data Collection (new phase)
 
-**Interior section:**
-- Walk room by room, not category-level
+After project and inspection are created, Kai collects:
+
+**Weather:**
+> "What's the weather today? Any rainfall in the last 3 days? (mm)"
+
+Stores `weatherConditions` + `rainfallLast3Days` on `SiteInspection`.
+
+**Building info:**
+> "Quick building details — new build or existing? How many storeys? Year built? Bedrooms / bathrooms? Rooms (family, dining, etc.)? Parking?"
+
+Stores `buildingType`, `storeys`, `bedrooms`, `bathrooms`, `rooms`, `parking` on `Property`.
+
+Only then does Kai begin the inspection sections.
+
+### Step 5 — Interior: room-by-room (not category-level)
+
+- Kai asks which room the inspector is in
 - Each finding tagged with room name
-- Prompt: *"Which room? Findings for [room]?"*
+- Moisture readings captured inline → `SpecialistTest(MOISTURE_READING)`
 
-**After each section:**
-- Prompt for conclusion text
-- Prompt: *"Section conclusion for [Site/Exterior/Interior/Services]?"*
+### Step 6 — Specialist tests
 
-**Moisture readings** — captured inline during interior walk:
-- When inspector reports elevated moisture → create `SpecialistTest(MOISTURE_READING)`
-- Prompt: *"Where exactly? Meter reading?"*
+- Moisture: captured inline during interior walk
+- Floor survey: prompted after interior section
+- Thermal imaging: prompted after interior section
 
-**Specialist tests** — prompted at appropriate points:
-- After interior: *"Floor level survey done? Results?"*
-- After interior: *"Thermal imaging done? Any anomalies?"*
+### Step 7 — Section conclusions
+
+After each section, Kai prompts:
+> *"Conclusion for [Site/Exterior/Interior/Services]? (or say 'no obvious defects')"*
+
+Stores to `InspectionSectionConclusion`.
 
 ---
 
@@ -234,8 +257,8 @@ model SpecialistTest {
 
 ---
 
-## Open Questions for Master
+## Decisions
 
-1. **Room discovery** — should Kai ask for the room list upfront ("how many bedrooms?") and walk through each in order, or let the inspector name rooms dynamically as they walk?
-2. **Floor level survey** — always required for PPI, or only when relevant (e.g. ground floor slab, multi-storey)?
-3. **Thermal imaging** — always done, or optional per job?
+1. **Upfront data collection** is a mandatory phase immediately after project creation, before any inspection sections begin.
+2. **Room discovery** — Kai asks for room counts upfront (bedrooms, bathrooms, rooms) and walks through each dynamically as the inspector moves through the building.
+3. **Floor level survey and thermal imaging** — treated as standard PPI components; Kai prompts for both after the interior section. Inspector can skip if not conducted (noted as limitation).
