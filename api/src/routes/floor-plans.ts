@@ -1,9 +1,9 @@
 /**
  * Floor Plans routes
- * POST/GET /api/site-inspections/:id/floor-plans
- * PUT/DELETE /api/site-inspections/:id/floor-plans/:fid
+ * POST/GET /api/projects/:id/floor-plans
+ * PUT/DELETE /api/projects/:id/floor-plans/:fid
  *
- * Floor plan is the spatial anchor for the entire PPI inspection.
+ * Floor plan is building metadata owned by the Project.
  * Each floor has a canonical room list that interior findings reference.
  */
 
@@ -23,11 +23,11 @@ const CreateFloorPlanSchema = z.object({
 
 const UpdateFloorPlanSchema = CreateFloorPlanSchema.partial().omit({ floor: true });
 
-// GET /api/site-inspections/:id/floor-plans
+// GET /api/projects/:id/floor-plans
 floorPlansRouter.get('/', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const floorPlans = await prisma.floorPlan.findMany({
-      where: { inspectionId: req.params.id as string },
+      where: { projectId: req.params.id as string },
       orderBy: { floor: 'asc' },
     });
     res.json(floorPlans);
@@ -36,21 +36,20 @@ floorPlansRouter.get('/', async (req: Request, res: Response, next: NextFunction
   }
 });
 
-// POST /api/site-inspections/:id/floor-plans
+// POST /api/projects/:id/floor-plans
 floorPlansRouter.post('/', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const data = CreateFloorPlanSchema.parse(req.body);
 
-    // Verify inspection exists
-    const inspection = await prisma.siteInspection.findUnique({ where: { id: req.params.id as string } });
-    if (!inspection) {
-      res.status(404).json({ error: 'Inspection not found' });
+    const project = await prisma.project.findUnique({ where: { id: req.params.id as string } });
+    if (!project) {
+      res.status(404).json({ error: 'Project not found' });
       return;
     }
 
     const floorPlan = await prisma.floorPlan.create({
       data: {
-        inspectionId: req.params.id as string,
+        projectId: req.params.id as string,
         floor: data.floor,
         label: data.label,
         rooms: data.rooms,
@@ -63,7 +62,7 @@ floorPlansRouter.post('/', async (req: Request, res: Response, next: NextFunctio
   }
 });
 
-// PUT /api/site-inspections/:id/floor-plans/:fid
+// PUT /api/projects/:id/floor-plans/:fid
 floorPlansRouter.put('/:fid', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const data = UpdateFloorPlanSchema.parse(req.body);
@@ -77,7 +76,7 @@ floorPlansRouter.put('/:fid', async (req: Request, res: Response, next: NextFunc
   }
 });
 
-// DELETE /api/site-inspections/:id/floor-plans/:fid
+// DELETE /api/projects/:id/floor-plans/:fid
 floorPlansRouter.delete('/:fid', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     await prisma.floorPlan.delete({ where: { id: req.params.fid as string } });

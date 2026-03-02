@@ -188,7 +188,7 @@ export default async function ProjectPage({ params }: ProjectPageProps): Promise
       </div>
 
       {/* Sections */}
-      <ProjectSections project={project} />
+      <ProjectSections project={project} authToken={token} />
     </div>
   );
 }
