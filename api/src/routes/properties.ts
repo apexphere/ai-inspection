@@ -36,6 +36,12 @@ const CreatePropertySchema = z.object({
   rainfallRange: z.string().optional(),
   windRegion: z.string().optional(),
   windZone: z.string().optional(),
+  // Building Info — Issue #650
+  buildingType: z.string().optional(),
+  storeys: z.number().int().min(1).max(20).optional(),
+  bedrooms: z.number().int().min(0).max(50).optional(),
+  bathrooms: z.number().int().min(0).max(50).optional(),
+  parking: z.string().optional(),
 });
 
 const UpdatePropertySchema = z.object({
@@ -58,6 +64,12 @@ const UpdatePropertySchema = z.object({
   rainfallRange: z.string().optional(),
   windRegion: z.string().optional(),
   windZone: z.string().optional(),
+  // Building Info — Issue #650
+  buildingType: z.string().optional(),
+  storeys: z.number().int().min(1).max(20).optional(),
+  bedrooms: z.number().int().min(0).max(50).optional(),
+  bathrooms: z.number().int().min(0).max(50).optional(),
+  parking: z.string().optional(),
 });
 
 // POST /api/properties - Create property

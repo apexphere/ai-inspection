@@ -30,6 +30,8 @@ const sampleReading: MoistureReading = {
   linkedClauseId: null,
   notes: null,
   takenAt: null,
+  meterModel: null,
+  meterReading: null,
   sortOrder: 0,
   createdAt: new Date(),
   updatedAt: new Date(),

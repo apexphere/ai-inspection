@@ -13,6 +13,7 @@ export const checklistItemsRouter: RouterType = Router();
 // Enums
 const checklistCategories = ['EXTERIOR', 'INTERIOR', 'DECKS', 'SERVICES', 'SITE'] as const;
 const decisions = ['PASS', 'FAIL', 'NA'] as const;
+const findingSeverities = ['IMMEDIATE_ATTENTION', 'FURTHER_INVESTIGATION', 'MONITOR', 'NO_ACTION'] as const;
 
 // Validation schemas
 const CreateChecklistItemSchema = z.object({
@@ -21,6 +22,10 @@ const CreateChecklistItemSchema = z.object({
   decision: z.enum(decisions),
   notes: z.string().max(2000).optional(),
   photoIds: z.array(z.string().uuid()).max(50).optional(),
+  // PPI enrichment — Issue #650
+  room: z.string().max(100).optional(),
+  floorPlanId: z.string().uuid().optional(),
+  severity: z.enum(findingSeverities).optional(),
   sortOrder: z.number().int().optional(),
 });
 
@@ -30,6 +35,10 @@ const UpdateChecklistItemSchema = z.object({
   decision: z.enum(decisions).optional(),
   notes: z.string().max(2000).optional(),
   photoIds: z.array(z.string().uuid()).max(50).optional(),
+  // PPI enrichment — Issue #650
+  room: z.string().max(100).optional(),
+  floorPlanId: z.string().uuid().optional(),
+  severity: z.enum(findingSeverities).optional(),
   sortOrder: z.number().int().optional(),
 });
 
