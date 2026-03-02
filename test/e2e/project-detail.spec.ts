@@ -33,12 +33,13 @@ test.describe('Project Detail — Header & Breadcrumbs', () => {
   test('should display breadcrumb navigation', async ({ authenticatedPage: page }) => {
     await goToTestProject(page);
 
-    // Breadcrumb: Projects / TEST-001
-    const nav = page.locator('nav');
-    await expect(nav.getByText('Projects')).toBeVisible();
+    // Breadcrumb nav has class "mb-4" — distinct from AppHeader nav
+    const breadcrumb = page.locator('nav.mb-4');
+    await expect(breadcrumb).toBeVisible();
+    await expect(breadcrumb.getByText('Projects')).toBeVisible();
 
     // Projects breadcrumb should be a link back to /projects
-    const projectsLink = nav.locator('a[href="/projects"]');
+    const projectsLink = breadcrumb.locator('a[href="/projects"]');
     await expect(projectsLink).toBeVisible();
   });
 
@@ -71,8 +72,9 @@ test.describe('Project Detail — Header & Breadcrumbs', () => {
   test('should navigate back to projects list via breadcrumb', async ({ authenticatedPage: page }) => {
     await goToTestProject(page);
 
-    const projectsLink = page.locator('nav a[href="/projects"]');
-    await projectsLink.click();
+    // Use breadcrumb nav (class "mb-4") to avoid matching AppHeader nav
+    const breadcrumb = page.locator('nav.mb-4');
+    await breadcrumb.locator('a[href="/projects"]').click();
     await page.waitForLoadState('networkidle');
 
     await expect(page).toHaveURL(/\/projects$/);
