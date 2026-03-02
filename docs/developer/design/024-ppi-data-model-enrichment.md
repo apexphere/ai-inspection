@@ -56,7 +56,7 @@ The current data model does not support this workflow:
 | Moisture readings (meter value + location) | ❌ Not stored |
 | Floor level survey measurements | ❌ Not stored |
 | Thermal imaging results (room by room) | ❌ Not stored |
-| Photo reference linked to specific finding | ⚠️ Photos exist but not linked to checklist items |
+| Photo reference linked to specific finding | ❌ Photos exist but not linked to checklist items → fixed: `ChecklistItem.photoIds[]` |
 
 ---
 
@@ -73,8 +73,8 @@ model Property {
   storeys       Int?
   bedrooms      Int?
   bathrooms     Int?
-  rooms         String?   // free text: "Family 1, Dining 1, Kitchen 1, WC 1"
   parking       String?   // e.g. "Single Garaging", "Garage + off street"
+  // Note: room list is captured in FloorPlan.rooms[] — not stored on Property
 }
 ```
 
@@ -121,7 +121,7 @@ model FloorPlan {
   floor         Int            // 1-based: 1 = ground/first floor
   label         String?        // e.g. "Ground Floor", "First Floor", "Third Floor"
   rooms         String[]       // e.g. ["Garage", "Storage", "Hall", "Stairs"]
-  photoId       String?        // reference to uploaded floor plan photo (existing Photo model)
+  photoIds      String[]       // floor plan photo references (one per floor, or shared) (existing Photo model)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
@@ -134,7 +134,7 @@ model FloorPlan {
 2. *"How many floors?"*
 3. For each floor: *"Rooms on floor [N]? (e.g. Garage, Storage, Hall, Stairs)"*
 
-The uploaded photo is stored as a project photo and referenced in `FloorPlan.photoId`. It serves as the base image for the moisture reading location map (Appendix B) and floor level survey (Appendix C).
+Photos are stored as project photos and referenced in `FloorPlan.photoIds[]`. Each floor may have its own floor plan image. They serve as the base images for Appendix B (moisture map), Appendix C (floor survey), and Appendix D (thermal imaging).
 
 ---
 
@@ -145,13 +145,18 @@ model ChecklistItem {
   // existing fields unchanged ...
 
   // New
-  room      String?  // e.g. "Bedroom 1", "Kitchen", "Attic" — null for site/exterior/services
+  room        String?  // must match a room declared in FloorPlan.rooms[] for INTERIOR items
+                       // null for SITE, EXTERIOR, SERVICES categories
+  floorPlanId String?  // reference to the FloorPlan record this room belongs to
+  photoIds    String[] // photos directly linked to this finding
   
-  // severity enum extended:
-  // existing: minor | major | urgent
-  // add:      immediate-attention | further-investigation | monitor | no-action
+  // severity — REPLACE existing minor|major|urgent with NZS4306:2005 vocabulary:
+  // immediate-attention | further-investigation | monitor | no-action
+  // Migration: minor → monitor, major → immediate-attention, urgent → immediate-attention
 }
 ```
+
+> **Room validation rule:** For `category = INTERIOR`, `room` must match one of the rooms declared in the referenced `FloorPlan`. Kai enforces this by only offering rooms from the floor plan during the interior walk.
 
 ### 5. InspectionSectionConclusion — new model
 
@@ -229,7 +234,7 @@ model SpecialistTest {
 ### Modified endpoints
 
 - `PUT /api/site-inspections/:id` — accept `rainfallLast3Days`, `areasNotAccessed`
-- `POST /api/properties` / `PUT /api/properties/:id` — accept `buildingType`, `storeys`, `bedrooms`, `bathrooms`, `rooms`, `parking`
+- `POST /api/properties` / `PUT /api/properties/:id` — accept `buildingType`, `storeys`, `bedrooms`, `bathrooms`, `parking`
 - `POST /api/site-inspections/:id/checklist-items` — accept `room`; extend severity values
 
 ---

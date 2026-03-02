@@ -66,6 +66,7 @@ Before the inspection begins, capture:
 | **Floor plan** | The spatial anchor for the entire inspection |
 | → Photo | Inspector uploads floor plan image — base for all appendix maps |
 | → Room list per floor | e.g. Floor 1: Garage, Storage, Hall · Floor 2: Bedroom 1, Bathroom... |
+| | Room list is the canonical source — all interior findings reference it |
 
 > **Why the floor plan matters:** Every finding, photo, moisture reading, and measurement is anchored to a room on the floor plan. The report is generated in floor plan order. The floor plan photo becomes the base image for Appendix A (photos), B (moisture map), C (floor survey), and D (thermal imaging).
 
