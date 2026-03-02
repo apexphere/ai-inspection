@@ -1,6 +1,6 @@
 ---
 name: building-inspection
-version: 3.1.0
+version: 3.2.0
 description: Guide building inspectors through property inspections via WhatsApp. Supports PPI, COA, CCC, and Safe & Sanitary inspection types. Always searches for existing property/project before creating new ones.
 ---
 
@@ -146,19 +146,20 @@ This returns a list of `upfrontData` items — each with `id`, `label`, `descrip
 
 **Present all items at once** — do not ask sequentially:
 
-> "Before we start, I need a few things — send them in any order:
+> "Before we start, I need a few things — send them in any order, or say *skip* for anything:
 > 🌤 **Weather** — current conditions + rainfall last 3 days (mm)
 > 🏠 **Building info** — new/existing, storeys, year built, bedrooms, bathrooms, parking
-> 📐 **Floor plan** — photo (optional) + room list per floor
->
-> Send what you have. Required items must be provided before we begin."
+> 📐 **Floor plan** — photo (optional) + room list per floor"
 
-**Track state** — maintain a checklist of which items are submitted vs pending. As each piece arrives, confirm it:
+**Track state** — maintain a checklist of which items are submitted, skipped, or pending. As each piece arrives, confirm it:
 > "✅ Weather noted — Fine, 0mm rainfall."
 > "✅ Building info saved — 2-storey existing, 4 bed/2 bath, single garage."
+> "⏭ Weather skipped."
 
-Once all `required` items are done (optional can be skipped):
-> "✅ All set. Starting inspection — **Site & Ground** first."
+**Inspector can skip any item** — including required ones. Accept "skip", "skip all", or "let's start" as a signal to proceed. Note skipped items but do not block.
+
+Once all items are either submitted or skipped:
+> "Got it. Starting inspection — **Site & Ground** first."
 
 ---
 
