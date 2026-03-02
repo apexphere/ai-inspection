@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { useApiToken } from '@/lib/use-api';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -65,6 +66,7 @@ export function ProjectList(): React.ReactElement {
   const [error, setError] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const router = useRouter();
+  const apiToken = useApiToken();
 
   const status = searchParams.get('status') || '';
   const search = searchParams.get('search') || '';
@@ -84,7 +86,9 @@ export function ProjectList(): React.ReactElement {
         }
 
         const response = await fetch(`${API_URL}/api/projects?${params}`, {
-          credentials: 'include',
+          headers: {
+            ...(apiToken && { Authorization: `Bearer ${apiToken}` }),
+          },
         });
 
         if (!response.ok) {
@@ -138,7 +142,7 @@ export function ProjectList(): React.ReactElement {
     }
 
     fetchProjects();
-  }, [status, search, sort, order]);
+  }, [status, search, sort, order, apiToken]);
 
   const handleSort = (column: string): void => {
     const params = new URLSearchParams(searchParams.toString());
