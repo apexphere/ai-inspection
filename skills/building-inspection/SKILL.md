@@ -1,7 +1,7 @@
 ---
 name: building-inspection
 version: 2.1.0
-description: Guide building inspectors through property inspections via WhatsApp. Supports PPI, COA, CCC, and Safe & Sanitary inspection types. Creates properties, clients, projects, and site inspections via the API.
+description: Guide building inspectors through property inspections via WhatsApp. Supports PPI, COA, CCC, and Safe & Sanitary inspection types. Always searches for existing property/project before creating new ones.
 ---
 
 # Building Inspection Assistant v2
@@ -23,15 +23,43 @@ All curl calls include `-H "Content-Type: application/json" -H "X-API-Key: $API_
 
 ### Step 1: Address
 
-When inspector mentions an address, confirm it and ask inspection type:
+When inspector mentions an address, confirm it and **search for existing projects first**:
 
-> "Got it — **{address}**. What type of inspection?
+```bash
+curl "$API_URL/api/projects?address={encoded_address}" \
+  -H "X-API-Key: $API_SERVICE_KEY"
+```
+
+#### Branch A — Existing project(s) found
+
+List them to the inspector:
+
+> "I found {N} existing project(s) at **{address}**:
+> 1️⃣ Job {jobNumber} — {reportType} ({status})
+> [2️⃣ ...]
+>
+> Continue one of these, or start a new project?"
+
+- If inspector picks an existing project → save as `PROJECT_ID` and its `propertyId` as `PROPERTY_ID`, skip to Step 5 (Create Site Inspection)
+- If inspector wants a new project → proceed to Step 2
+
+#### Branch B — Nothing found
+
+> "Starting fresh at **{address}**. What type of inspection?
+
+Proceed to Step 2.
+
+---
+
+### Step 2: Type Selection
+
+Ask if not already known:
+
+> "What type of inspection?
 > 1️⃣ PPI (Pre-Purchase)
 > 2️⃣ COA (Code of Compliance)
 > 3️⃣ CCC (CCC Gap Analysis)
 > 4️⃣ SS (Safe & Sanitary)"
-
-### Step 2: Type Selection
 
 Map response to inspection type:
 
@@ -42,7 +70,7 @@ Map response to inspection type:
 | CCC | CCC_GAP | SIMPLE | CCC_GA |
 | SS | SAFE_SANITARY | SIMPLE | S_AND_S |
 
-### Step 3: Create Property
+### Step 3: Create Property (if not found in Step 1)
 
 ```bash
 curl -X POST "$API_URL/api/properties" \
@@ -55,9 +83,9 @@ curl -X POST "$API_URL/api/properties" \
   }'
 ```
 
-Save `id` as `PROPERTY_ID`. If property exists, use existing ID.
+Save `id` as `PROPERTY_ID`.
 
-### Step 4: Create Client
+### Step 4: Create Client + Project (if not reusing existing)
 
 Ask for client name (or use "TBC" to start fast):
 
@@ -72,8 +100,6 @@ curl -X POST "$API_URL/api/clients" \
 
 Save `id` as `CLIENT_ID`.
 
-### Step 5: Create Project
-
 ```bash
 curl -X POST "$API_URL/api/projects" \
   -H "Content-Type: application/json" \
@@ -87,7 +113,7 @@ curl -X POST "$API_URL/api/projects" \
 
 Save `id` as `PROJECT_ID`.
 
-### Step 6: Create Site Inspection
+### Step 5: Create Site Inspection
 
 ```bash
 curl -X POST "$API_URL/api/projects/{PROJECT_ID}/inspections" \
@@ -364,6 +390,7 @@ Confirm to inspector: "✅ Inspection complete. Report will be generated shortly
 |--------|--------|----------|
 | Create property | POST | `/api/properties` |
 | Search properties | GET | `/api/properties?streetAddress=...` |
+| Search projects by address | GET | `/api/projects?address=...` |
 | Create client | POST | `/api/clients` |
 | Create project | POST | `/api/projects` |
 | Get project | GET | `/api/projects/{id}` |
