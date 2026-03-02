@@ -86,7 +86,7 @@ test.describe('Project Detail — Collapsible Sections', () => {
     await goToTestProject(page);
 
     // The section heading
-    await expect(page.getByText('Project Info')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Project Info', level: 2 })).toBeVisible();
 
     // Data fields — scoped to section to avoid strict mode violations
     const projectInfoSection = page.locator('#section-content-project-info');
@@ -98,7 +98,7 @@ test.describe('Project Detail — Collapsible Sections', () => {
     await goToTestProject(page);
 
     const clientSection = page.locator('#section-content-client');
-    await expect(page.getByText('Client').first()).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Client', level: 2 })).toBeVisible();
     await expect(clientSection.getByText('Test Client')).toBeVisible();
     await expect(clientSection.getByText('testclient@example.com')).toBeVisible();
   });
@@ -107,7 +107,7 @@ test.describe('Project Detail — Collapsible Sections', () => {
     await goToTestProject(page);
 
     const propertySection = page.locator('#section-content-property');
-    await expect(page.getByText('Property').first()).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Property', level: 2 })).toBeVisible();
     await expect(propertySection.getByText('123 Test Street')).toBeVisible();
     await expect(propertySection.getByText('Testville')).toBeVisible();
     await expect(propertySection.getByText('Auckland', { exact: true })).toBeVisible();
@@ -126,19 +126,19 @@ test.describe('Project Detail — Collapsible Sections', () => {
   test('should display BRANZ Zone Data section', async ({ authenticatedPage: page }) => {
     await goToTestProject(page);
 
-    await expect(page.getByText('BRANZ Zone Data')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'BRANZ Zone Data', level: 2 })).toBeVisible();
   });
 
   test('should display Documents section', async ({ authenticatedPage: page }) => {
     await goToTestProject(page);
 
-    await expect(page.getByText('Documents')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Documents', level: 2 })).toBeVisible();
   });
 
   test('should display Photos section', async ({ authenticatedPage: page }) => {
     await goToTestProject(page);
 
-    await expect(page.getByText('Photos')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Photos', level: 2 })).toBeVisible();
   });
 });
 
