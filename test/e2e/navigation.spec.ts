@@ -101,7 +101,7 @@ test.describe('Navigation — Auth Guard', () => {
       });
     } else {
       // Without bypass secret we cannot reach the login page past Vercel auth wall — skip
-      test.skip();
+      baseTest.skip(true, 'VERCEL_AUTOMATION_BYPASS_SECRET not set');
       return;
     }
 
