@@ -104,8 +104,12 @@ test.describe('Navigation — Auth Guard', () => {
     await page.goto('/login');
     await page.waitForLoadState('networkidle');
 
+    // Confirm we're on the actual login page (not Vercel auth wall)
+    await expect(page.locator('input[type="email"]')).toBeVisible({ timeout: 10000 });
+
+    // AppHeader returns null on /login — no <header> should be in the DOM
     const header = page.locator('header');
-    await expect(header).not.toBeVisible();
+    await expect(header).toHaveCount(0);
   });
 });
 
