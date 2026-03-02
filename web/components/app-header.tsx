@@ -7,6 +7,7 @@ import { useSession, signOut } from 'next-auth/react';
 
 export function AppHeader(): React.ReactElement | null {
   const pathname = usePathname();
+  const isProjectsActive = pathname.startsWith('/projects');
   const { data: session, status } = useSession();
   const isAuthenticated = status === 'authenticated';
   const isAdmin = !!(session as { isAdmin?: boolean })?.isAdmin;
@@ -43,7 +44,7 @@ export function AppHeader(): React.ReactElement | null {
             <nav className="hidden md:flex items-center gap-6">
               <Link
                 href="/projects"
-                className="text-sm font-medium text-gray-600 hover:text-gray-900"
+                className={`text-sm font-medium hover:text-gray-900 ${isProjectsActive ? 'text-gray-900 border-b-2 border-gray-900' : 'text-gray-600'}`}
               >
                 Projects
               </Link>
@@ -100,7 +101,7 @@ export function AppHeader(): React.ReactElement | null {
             <Link
               href="/projects"
               onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+              className={`block px-3 py-2 rounded-md text-base font-medium hover:text-gray-900 hover:bg-gray-50 ${isProjectsActive ? 'text-gray-900 bg-gray-50' : 'text-gray-600'}`}
             >
               Projects
             </Link>
