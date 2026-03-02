@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import { auth } from '@/auth';
 import { ProjectSections } from './project-sections';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
@@ -75,10 +76,13 @@ interface Project {
   }>;
 }
 
-async function getProject(id: string): Promise<Project | null> {
+async function getProject(id: string, token?: string): Promise<Project | null> {
   try {
     const response = await fetch(`${API_URL}/api/projects/${id}`, {
       cache: 'no-store',
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
     });
 
     if (!response.ok) {
@@ -119,7 +123,9 @@ const REPORT_TYPE_LABELS: Record<string, string> = {
 
 export async function generateMetadata({ params }: ProjectPageProps): Promise<{ title: string }> {
   const { id } = await params;
-  const project = await getProject(id);
+  const session = await auth();
+  const token = (session as { apiToken?: string } | null)?.apiToken;
+  const project = await getProject(id, token);
   
   if (!project) {
     return { title: 'Project Not Found | AI Inspection' };
@@ -132,7 +138,9 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<{ 
 
 export default async function ProjectPage({ params }: ProjectPageProps): Promise<React.ReactElement> {
   const { id } = await params;
-  const project = await getProject(id);
+  const session = await auth();
+  const token = (session as { apiToken?: string } | null)?.apiToken;
+  const project = await getProject(id, token);
 
   if (!project) {
     notFound();
