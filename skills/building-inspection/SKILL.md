@@ -1,6 +1,6 @@
 ---
 name: building-inspection
-version: 3.2.0
+version: 3.3.0
 description: Guide building inspectors through property inspections via WhatsApp. Supports PPI, COA, CCC, and Safe & Sanitary inspection types. Always searches for existing property/project before creating new ones.
 ---
 
@@ -192,7 +192,9 @@ curl -X PUT "$API_URL/api/properties/{PROPERTY_ID}" \
   }'
 ```
 
-**Floor plan** (`storeOn: floorPlan`, optional):
+**Floor plan** (`storeOn: project`, optional):
+
+Floor plan is metadata about the building — stored on the Project, not the inspection.
 
 If photo received → upload first:
 
@@ -212,7 +214,7 @@ curl -X POST "$API_URL/api/projects/{PROJECT_ID}/photos/base64" \
 Save photo `id` as `FLOOR_PLAN_PHOTO_ID`. Then for each floor:
 
 ```bash
-curl -X POST "$API_URL/api/site-inspections/{INSPECTION_ID}/floor-plans" \
+curl -X POST "$API_URL/api/projects/{PROJECT_ID}/floor-plans" \
   -H "Content-Type: application/json" \
   -H "X-API-Key: $API_SERVICE_KEY" \
   -d '{

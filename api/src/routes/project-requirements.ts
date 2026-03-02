@@ -17,7 +17,7 @@ interface UpfrontDataItem {
   label: string;
   description: string;
   required: boolean;
-  storeOn: 'siteInspection' | 'property' | 'floorPlan';
+  storeOn: 'siteInspection' | 'property' | 'project';
   fields: string[];
 }
 
@@ -51,7 +51,7 @@ const REQUIREMENTS: Record<string, ProjectRequirements> = {
         label: 'Floor plan',
         description: 'Floor plan photo (optional) + room list per floor',
         required: false,
-        storeOn: 'floorPlan',
+        storeOn: 'project',
         fields: ['photoIds', 'rooms'],
       },
     ],

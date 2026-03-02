@@ -117,7 +117,7 @@ app.use('/api', serviceAuthMiddleware, requireScope('inspections:read'), buildin
 app.use('/api', serviceAuthMiddleware, requireScope('inspections:read'), siteMeasurementsRouter);
 app.use('/api', serviceAuthMiddleware, requireScope('inspections:read'), moistureReadingsRouter);
 app.use('/api/project-requirements', serviceAuthMiddleware, requireScope('projects:read'), projectRequirementsRouter);
-app.use('/api/site-inspections/:id/floor-plans', serviceAuthMiddleware, requireScope('inspections:read'), floorPlansRouter);
+app.use('/api/projects/:id/floor-plans', serviceAuthMiddleware, requireScope('projects:read'), floorPlansRouter);
 app.use('/api/site-inspections/:id/section-conclusions', serviceAuthMiddleware, requireScope('inspections:read'), sectionConclusionsRouter);
 app.use('/api/site-inspections/:id/floor-level-surveys', serviceAuthMiddleware, requireScope('inspections:read'), floorLevelSurveysRouter);
 app.use('/api/site-inspections/:id/thermal-imaging', serviceAuthMiddleware, requireScope('inspections:read'), thermalImagingRouter);
