@@ -1,19 +1,12 @@
 /**
- * E2E Tests: Inspections → Projects navigation (#624)
- * /inspections now redirects to /projects
+ * E2E Tests: Legacy Inspections routes (#624)
+ *
+ * All /inspections routes now redirect to /projects.
+ * These tests verify the redirects work correctly.
  */
 import { test, expect } from './fixtures';
 
-test.describe('Projects List', () => {
-  test('should display projects list page', async ({ authenticatedPage: page }) => {
-    await page.goto('/projects');
-    await page.waitForLoadState('networkidle');
-
-    // Should show the page heading or content
-    const content = page.locator('main');
-    await expect(content).toBeVisible();
-  });
-
+test.describe('Legacy Inspections Redirects', () => {
   test('/inspections redirects to /projects', async ({ authenticatedPage: page }) => {
     await page.goto('/inspections');
     await page.waitForLoadState('networkidle');
@@ -21,15 +14,19 @@ test.describe('Projects List', () => {
     await expect(page).toHaveURL(/\/projects/);
   });
 
-  test('should navigate to project detail when clicking a project', async ({ authenticatedPage: page }) => {
-    await page.goto('/projects');
+  test('/inspections/new redirects to /projects', async ({ authenticatedPage: page }) => {
+    await page.goto('/inspections/new');
     await page.waitForLoadState('networkidle');
 
-    const projectLink = page.locator('a[href^="/projects/"]').first();
+    await expect(page).toHaveURL(/\/projects/);
+  });
 
-    if (await projectLink.isVisible()) {
-      await projectLink.click();
-      await expect(page).toHaveURL(/\/projects\/.+/);
-    }
+  test('projects page loads with content after redirect', async ({ authenticatedPage: page }) => {
+    await page.goto('/inspections');
+    await page.waitForLoadState('networkidle');
+
+    // After redirect, verify the projects page actually rendered
+    await expect(page.getByRole('heading', { name: 'Projects' })).toBeVisible();
+    await expect(page.getByText('View and manage your inspection projects')).toBeVisible();
   });
 });
