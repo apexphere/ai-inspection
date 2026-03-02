@@ -90,9 +90,28 @@ model SiteInspection {
 }
 ```
 
-### 3. FloorPlan — new model
+### 3. FloorPlan — new model (spatial anchor)
 
-Captures the room layout per floor, collected upfront before the interior walk. The floor plan photo is reused as the base image for moisture and floor survey maps (Appendix B/C).
+The floor plan is the **spatial index** of the entire inspection. Every finding, photo, moisture reading, and measurement is anchored to a room, which lives on a floor, which lives on the floor plan.
+
+This is not just metadata — it is the foundation the report is built on.
+
+```
+FloorPlan
+  └── Floor (1, 2, 3...)
+        └── Room ("Master Bedroom", "Kitchen", "Garage"...)
+              ├── ChecklistItems    (findings)
+              ├── SpecialistTests   (moisture readings, thermal)
+              └── Photos            (evidence)
+```
+
+Everything in the report is generated in floor plan order. The floor plan photo becomes the base image for:
+- Appendix A — room photo groupings
+- Appendix B — moisture reading location map
+- Appendix C — floor level survey measurements
+- Appendix D — thermal imaging room sequence
+
+Future: defect locations visualised directly on the floor plan image.
 
 ```prisma
 model FloorPlan {
