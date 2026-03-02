@@ -56,7 +56,7 @@ The current data model does not support this workflow:
 | Moisture readings (meter value + location) | ❌ Not stored |
 | Floor level survey measurements | ❌ Not stored |
 | Thermal imaging results (room by room) | ❌ Not stored |
-| Photo reference linked to specific finding | ⚠️ Photos exist but not linked to checklist items |
+| Photo reference linked to specific finding | ❌ Photos exist but not linked to checklist items → fixed: `ChecklistItem.photoIds[]` |
 
 ---
 
@@ -73,8 +73,8 @@ model Property {
   storeys       Int?
   bedrooms      Int?
   bathrooms     Int?
-  rooms         String?   // free text: "Family 1, Dining 1, Kitchen 1, WC 1"
   parking       String?   // e.g. "Single Garaging", "Garage + off street"
+  // Note: room list is captured in FloorPlan.rooms[] — not stored on Property
 }
 ```
 
@@ -90,22 +90,75 @@ model SiteInspection {
 }
 ```
 
-### 3. ChecklistItem — room + severity alignment
+### 3. FloorPlan — new model (spatial anchor)
+
+The floor plan is the **spatial index** of the entire inspection. Every finding, photo, moisture reading, and measurement is anchored to a room, which lives on a floor, which lives on the floor plan.
+
+This is not just metadata — it is the foundation the report is built on.
+
+```
+FloorPlan
+  └── Floor (1, 2, 3...)
+        └── Room ("Master Bedroom", "Kitchen", "Garage"...)
+              ├── ChecklistItems    (findings)
+              ├── SpecialistTests   (moisture readings, thermal)
+              └── Photos            (evidence)
+```
+
+Everything in the report is generated in floor plan order. The floor plan photo becomes the base image for:
+- Appendix A — room photo groupings
+- Appendix B — moisture reading location map
+- Appendix C — floor level survey measurements
+- Appendix D — thermal imaging room sequence
+
+Future: defect locations visualised directly on the floor plan image.
+
+```prisma
+model FloorPlan {
+  id            String         @id @default(cuid())
+  inspectionId  String
+  inspection    SiteInspection @relation(fields: [inspectionId], references: [id])
+  floor         Int            // 1-based: 1 = ground/first floor
+  label         String?        // e.g. "Ground Floor", "First Floor", "Third Floor"
+  rooms         String[]       // e.g. ["Garage", "Storage", "Hall", "Stairs"]
+  photoIds      String[]       // floor plan photo references (one per floor, or shared) (existing Photo model)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@unique([inspectionId, floor])
+}
+```
+
+**Kai flow for floor plan collection (Step 4, after building info):**
+1. *"Do you have a floor plan photo? Send it now or skip."* → uploads via existing photo API, tagged as floor plan
+2. *"How many floors?"*
+3. For each floor: *"Rooms on floor [N]? (e.g. Garage, Storage, Hall, Stairs)"*
+
+Photos are stored as project photos and referenced in `FloorPlan.photoIds[]`. Each floor may have its own floor plan image. They serve as the base images for Appendix B (moisture map), Appendix C (floor survey), and Appendix D (thermal imaging).
+
+---
+
+### 4. ChecklistItem — room + severity alignment
 
 ```prisma
 model ChecklistItem {
   // existing fields unchanged ...
 
   // New
-  room      String?  // e.g. "Bedroom 1", "Kitchen", "Attic" — null for site/exterior/services
+  room        String?  // must match a room declared in FloorPlan.rooms[] for INTERIOR items
+                       // null for SITE, EXTERIOR, SERVICES categories
+  floorPlanId String?  // reference to the FloorPlan record this room belongs to
+  photoIds    String[] // photos directly linked to this finding
   
-  // severity enum extended:
-  // existing: minor | major | urgent
-  // add:      immediate-attention | further-investigation | monitor | no-action
+  // severity — REPLACE existing minor|major|urgent with NZS4306:2005 vocabulary:
+  // immediate-attention | further-investigation | monitor | no-action
+  // Migration: minor → monitor, major → immediate-attention, urgent → immediate-attention
 }
 ```
 
-### 4. InspectionSectionConclusion — new model
+> **Room validation rule:** For `category = INTERIOR`, `room` must match one of the rooms declared in the referenced `FloorPlan`. Kai enforces this by only offering rooms from the floor plan during the interior walk.
+
+### 5. InspectionSectionConclusion — new model
 
 ```prisma
 model InspectionSectionConclusion {
@@ -121,7 +174,7 @@ model InspectionSectionConclusion {
 }
 ```
 
-### 5. SpecialistTest — new model
+### 6. SpecialistTest — new model
 
 Covers all three appendices (moisture, floor survey, thermal imaging).
 
@@ -170,6 +223,8 @@ model SpecialistTest {
 
 | Method | Endpoint | Purpose |
 |--------|----------|---------|
+| POST | `/api/site-inspections/:id/floor-plans` | Add floor plan (rooms per floor) |
+| GET | `/api/site-inspections/:id/floor-plans` | Get all floor plans |
 | POST | `/api/site-inspections/:id/specialist-tests` | Add moisture/floor/thermal record |
 | GET | `/api/site-inspections/:id/specialist-tests` | List all specialist tests |
 | PUT | `/api/site-inspections/:id/specialist-tests/:tid` | Update a specialist test |
@@ -179,37 +234,67 @@ model SpecialistTest {
 ### Modified endpoints
 
 - `PUT /api/site-inspections/:id` — accept `rainfallLast3Days`, `areasNotAccessed`
-- `POST /api/properties` / `PUT /api/properties/:id` — accept `buildingType`, `storeys`, `bedrooms`, `bathrooms`, `rooms`, `parking`
+- `POST /api/properties` / `PUT /api/properties/:id` — accept `buildingType`, `storeys`, `bedrooms`, `bathrooms`, `parking`
 - `POST /api/site-inspections/:id/checklist-items` — accept `room`; extend severity values
 
 ---
 
 ## Kai / SKILL.md Changes (Phase 2 — after data model ships)
 
-**Onboarding additions:**
+### Confirmed Session Flow
 
-1. After address confirmed → collect building info:
-   > "Quick building details — new or existing? How many storeys, bedrooms, bathrooms? Parking?"
+```
+1. Inspector gives address
+2. Search for existing project → reuse or create new
+3. Create site inspection record
+4. ★ Collect upfront data (NEW) — store to Property + SiteInspection
+5. Walk inspection sections: Site → Exterior → Interior → Services
+6. Specialist tests inline / at end
+7. Conclude each section
+8. Complete inspection
+```
 
-2. At inspection start → collect weather:
-   > "Weather today? Rainfall in last 3 days (mm)?"
+### Step 4 — Upfront Data Collection (new phase)
 
-**Interior section:**
-- Walk room by room, not category-level
+After project and inspection are created, Kai collects:
+
+**Weather:**
+> "What's the weather today? Any rainfall in the last 3 days? (mm)"
+
+Stores `weatherConditions` + `rainfallLast3Days` on `SiteInspection`.
+
+**Building info:**
+> "Quick building details — new build or existing? How many storeys? Year built? Bedrooms / bathrooms? Parking?"
+
+Stores `buildingType`, `storeys`, `bedrooms`, `bathrooms`, `parking` on `Property`.
+
+**Floor plan:**
+> "Do you have a floor plan photo? Send it now or skip."
+> "Rooms on floor 1? (e.g. Garage, Storage, Hall)"
+> "Rooms on floor 2? ..."
+
+Stores `FloorPlan` records per floor. Photo stored as project photo, referenced in `FloorPlan.photoId`.
+
+Only then does Kai begin the inspection sections.
+
+### Step 5 — Interior: room-by-room (not category-level)
+
+- Kai asks which room the inspector is in
 - Each finding tagged with room name
-- Prompt: *"Which room? Findings for [room]?"*
+- Moisture readings captured inline → `SpecialistTest(MOISTURE_READING)`
 
-**After each section:**
-- Prompt for conclusion text
-- Prompt: *"Section conclusion for [Site/Exterior/Interior/Services]?"*
+### Step 6 — Specialist tests
 
-**Moisture readings** — captured inline during interior walk:
-- When inspector reports elevated moisture → create `SpecialistTest(MOISTURE_READING)`
-- Prompt: *"Where exactly? Meter reading?"*
+- Moisture: captured inline during interior walk
+- Floor survey: prompted after interior section
+- Thermal imaging: prompted after interior section
 
-**Specialist tests** — prompted at appropriate points:
-- After interior: *"Floor level survey done? Results?"*
-- After interior: *"Thermal imaging done? Any anomalies?"*
+### Step 7 — Section conclusions
+
+After each section, Kai prompts:
+> *"Conclusion for [Site/Exterior/Interior/Services]? (or say 'no obvious defects')"*
+
+Stores to `InspectionSectionConclusion`.
 
 ---
 
@@ -234,8 +319,8 @@ model SpecialistTest {
 
 ---
 
-## Open Questions for Master
+## Decisions
 
-1. **Room discovery** — should Kai ask for the room list upfront ("how many bedrooms?") and walk through each in order, or let the inspector name rooms dynamically as they walk?
-2. **Floor level survey** — always required for PPI, or only when relevant (e.g. ground floor slab, multi-storey)?
-3. **Thermal imaging** — always done, or optional per job?
+1. **Upfront data collection** is a mandatory phase immediately after project creation, before any inspection sections begin.
+2. **Room discovery** — Kai asks for room counts upfront (bedrooms, bathrooms, rooms) and walks through each dynamically as the inspector moves through the building.
+3. **Floor level survey and thermal imaging** — treated as standard PPI components; Kai prompts for both after the interior section. Inspector can skip if not conducted (noted as limitation).

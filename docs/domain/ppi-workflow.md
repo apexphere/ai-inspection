@@ -6,6 +6,36 @@
 
 ---
 
+## 0. Session Flow
+
+This is the sequence Kai follows for every PPI. Steps are sequential — do not skip.
+
+```
+1. Inspector gives address
+        ↓
+2. Search for existing project (GET /api/projects?address=...)
+        ↓
+3a. Existing project found → confirm with inspector, reuse it
+3b. Nothing found → create property → create client → create project
+        ↓
+4. Collect upfront data (weather, rainfall, building info)
+   Store to: Property + SiteInspection
+        ↓
+5. Create site inspection record
+        ↓
+6. Walk through inspection sections in order:
+   Site & Ground → Exterior → Interior (room-by-room) → Services
+        ↓
+7. Record specialist tests:
+   Moisture readings (inline during interior) → Floor survey → Thermal imaging
+        ↓
+8. Conclude each section (free text summary)
+        ↓
+9. Complete inspection
+```
+
+---
+
 ## 1. Data Collected Upfront
 
 Before the inspection begins, capture:
@@ -32,8 +62,13 @@ Before the inspection begins, capture:
 | → Year built | |
 | → Bedrooms | |
 | → Bathrooms | |
-| → Rooms | Family, dining, living, WC, storage, etc. |
 | → Parking | e.g. "Single Garaging", "Garage + off street" |
+| **Floor plan** | The spatial anchor for the entire inspection |
+| → Photo | Inspector uploads floor plan image — base for all appendix maps |
+| → Room list per floor | e.g. Floor 1: Garage, Storage, Hall · Floor 2: Bedroom 1, Bathroom... |
+| | Room list is the canonical source — all interior findings reference it |
+
+> **Why the floor plan matters:** Every finding, photo, moisture reading, and measurement is anchored to a room on the floor plan. The report is generated in floor plan order. The floor plan photo becomes the base image for Appendix A (photos), B (moisture map), C (floor survey), and D (thermal imaging).
 
 ---
 
@@ -52,11 +87,11 @@ Before the inspection begins, capture:
 - **Foundation** — type and condition
 
 ### Section 8 — Interior of Building
-Inspected **room by room**:
+Inspected **room by room** (using floor plan declared upfront):
 - Floors, walls, ceilings
 - Doors and windows
 - Internal fittings and fixtures
-- Moisture readings at risk points
+- Moisture readings at risk points (recorded as SpecialistTest inline)
 - Attic space
 
 ### Section 9 — Service Systems
