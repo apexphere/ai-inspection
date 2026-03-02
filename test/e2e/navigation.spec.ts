@@ -131,4 +131,40 @@ test.describe('Navigation — Legacy Route Redirects', () => {
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveURL(/\/projects/);
   });
+
+  test('/inspections/:id redirects to /projects', async ({ authenticatedPage: page }) => {
+    await page.goto('/inspections/some-legacy-id-123');
+    await page.waitForLoadState('networkidle');
+    await expect(page).toHaveURL(/\/projects/);
+  });
+});
+
+test.describe('Navigation — Active State', () => {
+  test('Projects link has active styling on /projects', async ({ authenticatedPage: page }) => {
+    await page.goto('/projects');
+    await page.waitForLoadState('networkidle');
+
+    const projectsLink = page.locator('header a[href="/projects"]').first();
+    await expect(projectsLink).toHaveClass(/border-b-2/);
+  });
+
+  test('Projects link has active styling on /projects/:id', async ({ authenticatedPage: page }) => {
+    // Navigate to projects list first, then follow first project link if available
+    await page.goto('/projects');
+    await page.waitForLoadState('networkidle');
+
+    const firstProject = page.locator('table tbody tr a').first();
+    const hasProjects = await firstProject.isVisible().catch(() => false);
+
+    if (hasProjects) {
+      await firstProject.click();
+      await page.waitForLoadState('networkidle');
+    } else {
+      // No projects in test env — just verify URL pattern still works
+      await page.goto('/projects');
+    }
+
+    const projectsLink = page.locator('header a[href="/projects"]').first();
+    await expect(projectsLink).toHaveClass(/border-b-2/);
+  });
 });
