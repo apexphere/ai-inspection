@@ -18,6 +18,7 @@ import { propertiesRouter } from './routes/properties.js';
 import { clientsRouter } from './routes/clients.js';
 import { siteInspectionsRouter } from './routes/site-inspections.js';
 import { floorPlansRouter } from './routes/floor-plans.js';
+import { projectRequirementsRouter } from './routes/project-requirements.js';
 import { sectionConclusionsRouter } from './routes/section-conclusions.js';
 import { floorLevelSurveysRouter } from './routes/floor-level-surveys.js';
 import { thermalImagingRouter } from './routes/thermal-imaging.js';
@@ -115,6 +116,7 @@ app.use('/api', serviceAuthMiddleware, requireScope('inspections:read'), defects
 app.use('/api', serviceAuthMiddleware, requireScope('inspections:read'), buildingHistoryRouter);
 app.use('/api', serviceAuthMiddleware, requireScope('inspections:read'), siteMeasurementsRouter);
 app.use('/api', serviceAuthMiddleware, requireScope('inspections:read'), moistureReadingsRouter);
+app.use('/api/project-requirements', serviceAuthMiddleware, requireScope('projects:read'), projectRequirementsRouter);
 app.use('/api/site-inspections/:id/floor-plans', serviceAuthMiddleware, requireScope('inspections:read'), floorPlansRouter);
 app.use('/api/site-inspections/:id/section-conclusions', serviceAuthMiddleware, requireScope('inspections:read'), sectionConclusionsRouter);
 app.use('/api/site-inspections/:id/floor-level-surveys', serviceAuthMiddleware, requireScope('inspections:read'), floorLevelSurveysRouter);
