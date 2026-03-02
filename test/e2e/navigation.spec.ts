@@ -99,6 +99,10 @@ test.describe('Navigation — Auth Guard', () => {
       await page.setExtraHTTPHeaders({
         'x-vercel-protection-bypass': bypassSecret,
       });
+    } else {
+      // Without bypass secret we cannot reach the login page past Vercel auth wall — skip
+      test.skip();
+      return;
     }
 
     await page.goto('/login');

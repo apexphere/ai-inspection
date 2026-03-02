@@ -88,27 +88,30 @@ test.describe('Project Detail — Collapsible Sections', () => {
     // The section heading
     await expect(page.getByText('Project Info')).toBeVisible();
 
-    // Data fields
-    await expect(page.getByText('TEST-001')).toBeVisible();
-    await expect(page.getByText('Test Inspection')).toBeVisible();
+    // Data fields — scoped to section to avoid strict mode violations
+    const projectInfoSection = page.locator('#section-content-project-info');
+    await expect(projectInfoSection.getByText('TEST-001')).toBeVisible();
+    await expect(projectInfoSection.getByText('Test Inspection')).toBeVisible();
   });
 
   test('should display Client section with correct data', async ({ authenticatedPage: page }) => {
     await goToTestProject(page);
 
-    await expect(page.getByText('Client')).toBeVisible();
-    await expect(page.getByText('Test Client')).toBeVisible();
-    await expect(page.getByText('testclient@example.com')).toBeVisible();
+    const clientSection = page.locator('#section-content-client');
+    await expect(page.getByText('Client').first()).toBeVisible();
+    await expect(clientSection.getByText('Test Client')).toBeVisible();
+    await expect(clientSection.getByText('testclient@example.com')).toBeVisible();
   });
 
   test('should display Property section with correct data', async ({ authenticatedPage: page }) => {
     await goToTestProject(page);
 
-    await expect(page.getByText('Property')).toBeVisible();
-    await expect(page.getByText('123 Test Street')).toBeVisible();
-    await expect(page.getByText('Testville')).toBeVisible();
-    await expect(page.getByText('Auckland')).toBeVisible();
-    await expect(page.getByText('Auckland Council')).toBeVisible();
+    const propertySection = page.locator('#section-content-property');
+    await expect(page.getByText('Property').first()).toBeVisible();
+    await expect(propertySection.getByText('123 Test Street')).toBeVisible();
+    await expect(propertySection.getByText('Testville')).toBeVisible();
+    await expect(propertySection.getByText('Auckland')).toBeVisible();
+    await expect(propertySection.getByText('Auckland Council')).toBeVisible();
   });
 
   test('should display Inspections section with empty state', async ({ authenticatedPage: page }) => {
