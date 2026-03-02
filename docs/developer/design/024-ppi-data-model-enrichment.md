@@ -90,7 +90,36 @@ model SiteInspection {
 }
 ```
 
-### 3. ChecklistItem — room + severity alignment
+### 3. FloorPlan — new model
+
+Captures the room layout per floor, collected upfront before the interior walk. The floor plan photo is reused as the base image for moisture and floor survey maps (Appendix B/C).
+
+```prisma
+model FloorPlan {
+  id            String         @id @default(cuid())
+  inspectionId  String
+  inspection    SiteInspection @relation(fields: [inspectionId], references: [id])
+  floor         Int            // 1-based: 1 = ground/first floor
+  label         String?        // e.g. "Ground Floor", "First Floor", "Third Floor"
+  rooms         String[]       // e.g. ["Garage", "Storage", "Hall", "Stairs"]
+  photoId       String?        // reference to uploaded floor plan photo (existing Photo model)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@unique([inspectionId, floor])
+}
+```
+
+**Kai flow for floor plan collection (Step 4, after building info):**
+1. *"Do you have a floor plan photo? Send it now or skip."* → uploads via existing photo API, tagged as floor plan
+2. *"How many floors?"*
+3. For each floor: *"Rooms on floor [N]? (e.g. Garage, Storage, Hall, Stairs)"*
+
+The uploaded photo is stored as a project photo and referenced in `FloorPlan.photoId`. It serves as the base image for the moisture reading location map (Appendix B) and floor level survey (Appendix C).
+
+---
+
+### 4. ChecklistItem — room + severity alignment
 
 ```prisma
 model ChecklistItem {
@@ -105,7 +134,7 @@ model ChecklistItem {
 }
 ```
 
-### 4. InspectionSectionConclusion — new model
+### 5. InspectionSectionConclusion — new model
 
 ```prisma
 model InspectionSectionConclusion {
@@ -121,7 +150,7 @@ model InspectionSectionConclusion {
 }
 ```
 
-### 5. SpecialistTest — new model
+### 6. SpecialistTest — new model
 
 Covers all three appendices (moisture, floor survey, thermal imaging).
 
@@ -170,6 +199,8 @@ model SpecialistTest {
 
 | Method | Endpoint | Purpose |
 |--------|----------|---------|
+| POST | `/api/site-inspections/:id/floor-plans` | Add floor plan (rooms per floor) |
+| GET | `/api/site-inspections/:id/floor-plans` | Get all floor plans |
 | POST | `/api/site-inspections/:id/specialist-tests` | Add moisture/floor/thermal record |
 | GET | `/api/site-inspections/:id/specialist-tests` | List all specialist tests |
 | PUT | `/api/site-inspections/:id/specialist-tests/:tid` | Update a specialist test |
@@ -209,9 +240,16 @@ After project and inspection are created, Kai collects:
 Stores `weatherConditions` + `rainfallLast3Days` on `SiteInspection`.
 
 **Building info:**
-> "Quick building details — new build or existing? How many storeys? Year built? Bedrooms / bathrooms? Rooms (family, dining, etc.)? Parking?"
+> "Quick building details — new build or existing? How many storeys? Year built? Bedrooms / bathrooms? Parking?"
 
-Stores `buildingType`, `storeys`, `bedrooms`, `bathrooms`, `rooms`, `parking` on `Property`.
+Stores `buildingType`, `storeys`, `bedrooms`, `bathrooms`, `parking` on `Property`.
+
+**Floor plan:**
+> "Do you have a floor plan photo? Send it now or skip."
+> "Rooms on floor 1? (e.g. Garage, Storage, Hall)"
+> "Rooms on floor 2? ..."
+
+Stores `FloorPlan` records per floor. Photo stored as project photo, referenced in `FloorPlan.photoId`.
 
 Only then does Kai begin the inspection sections.
 

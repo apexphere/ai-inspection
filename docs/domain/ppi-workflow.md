@@ -62,8 +62,10 @@ Before the inspection begins, capture:
 | → Year built | |
 | → Bedrooms | |
 | → Bathrooms | |
-| → Rooms | Family, dining, living, WC, storage, etc. |
 | → Parking | e.g. "Single Garaging", "Garage + off street" |
+| **Floor plan** | |
+| → Photo | Inspector uploads floor plan image (used as base for moisture map) |
+| → Room list per floor | e.g. Floor 1: Garage, Storage, Hall · Floor 2: Bedroom 1, Bathroom... |
 
 ---
 
@@ -82,11 +84,11 @@ Before the inspection begins, capture:
 - **Foundation** — type and condition
 
 ### Section 8 — Interior of Building
-Inspected **room by room**:
+Inspected **room by room** (using floor plan declared upfront):
 - Floors, walls, ceilings
 - Doors and windows
 - Internal fittings and fixtures
-- Moisture readings at risk points
+- Moisture readings at risk points (recorded as SpecialistTest inline)
 - Attic space
 
 ### Section 9 — Service Systems
