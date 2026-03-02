@@ -150,9 +150,9 @@ model ChecklistItem {
   floorPlanId String?  // reference to the FloorPlan record this room belongs to
   photoIds    String[] // photos directly linked to this finding
   
-  // severity — REPLACE existing minor|major|urgent with NZS4306:2005 vocabulary:
-  // immediate-attention | further-investigation | monitor | no-action
-  // Migration: minor → monitor, major → immediate-attention, urgent → immediate-attention
+  // severity — NEW nullable field. ChecklistItem never had severity before.
+  // NZS4306:2005 vocabulary: IMMEDIATE_ATTENTION | FURTHER_INVESTIGATION | MONITOR | NO_ACTION
+  // No data migration required — existing records have severity = null
 }
 ```
 
@@ -174,44 +174,49 @@ model InspectionSectionConclusion {
 }
 ```
 
-### 6. SpecialistTest — new model
+### 6. Specialist Tests — as-built
 
-Covers all three appendices (moisture, floor survey, thermal imaging).
+The original design proposed a single `SpecialistTest` model with a type discriminator. During implementation this was split into separate models to avoid nullable field sprawl, and the existing `MoistureReading` model was extended rather than replaced.
+
+#### 6a. MoistureReading (extended — Appendix B)
+
+`MoistureReading` already existed. Extended with Trotec T660 raw reading:
 
 ```prisma
-enum SpecialistTestType {
-  MOISTURE_READING     // Appendix B
-  FLOOR_LEVEL_SURVEY   // Appendix C
-  THERMAL_IMAGING      // Appendix D
-}
+// New fields added to existing MoistureReading model
+meterModel    String?   // e.g. "Trotec T660"
+meterReading  Float?    // Raw T660 units (0–200; 0–79 = dry, 80–200 = elevated)
+```
 
-model SpecialistTest {
-  id            String             @id @default(cuid())
-  inspectionId  String
-  inspection    SiteInspection     @relation(fields: [inspectionId], references: [id])
-  type          SpecialistTestType
+#### 6b. FloorLevelSurvey (new — Appendix C)
 
-  // MOISTURE_READING
-  location      String?   // e.g. "RHS bottom corner, backdoor sill, Laundry"
-  meterReading  Float?    // e.g. 95.0 (Trotec T660 scale 0–200)
-  meterModel    String?   // e.g. "Trotec T660"
-  result        String?   // "dry" | "elevated" | "wet"
-
-  // FLOOR_LEVEL_SURVEY
-  area          String?   // e.g. "Ground Floor", "1st Floor"
-  maxDeviation  Float?    // mm
+```prisma
+model FloorLevelSurvey {
+  id              String         @id @default(uuid())
+  inspectionId    String
+  area            String         // e.g. "Ground Floor", "1st Floor"
+  maxDeviation    Float?         // mm
   withinTolerance Boolean?
+  notes           String?
+  photoIds        String[]       @default([])
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+```
 
-  // THERMAL_IMAGING
-  room          String?   // room imaged
-  anomalyFound  Boolean?
-  anomalyNotes  String?
+#### 6c. ThermalImagingRecord (new — Appendix D)
 
-  // shared
-  conclusion    String?
-  photoIds      String[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+```prisma
+model ThermalImagingRecord {
+  id            String         @id @default(uuid())
+  inspectionId  String
+  room          String         // matches a FloorPlan room name
+  floor         Int?
+  anomalyFound  Boolean        @default(false)
+  notes         String?
+  photoIds      String[]       @default([])
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 }
 ```
 
@@ -223,13 +228,13 @@ model SpecialistTest {
 
 | Method | Endpoint | Purpose |
 |--------|----------|---------|
-| POST | `/api/site-inspections/:id/floor-plans` | Add floor plan (rooms per floor) |
-| GET | `/api/site-inspections/:id/floor-plans` | Get all floor plans |
-| POST | `/api/site-inspections/:id/specialist-tests` | Add moisture/floor/thermal record |
-| GET | `/api/site-inspections/:id/specialist-tests` | List all specialist tests |
-| PUT | `/api/site-inspections/:id/specialist-tests/:tid` | Update a specialist test |
-| POST | `/api/site-inspections/:id/section-conclusions` | Set/update conclusion for a section |
-| GET | `/api/site-inspections/:id/section-conclusions` | Get all section conclusions |
+| POST/GET | `/api/site-inspections/:id/floor-plans` | Floor plans (rooms per floor) |
+| PUT/DELETE | `/api/site-inspections/:id/floor-plans/:fid` | Update / remove a floor |
+| POST/GET | `/api/site-inspections/:id/section-conclusions` | Section conclusion (upsert by section) |
+| POST/GET | `/api/site-inspections/:id/floor-level-surveys` | Floor level survey (Appendix C) |
+| PUT/DELETE | `/api/site-inspections/:id/floor-level-surveys/:sid` | Update / remove a survey |
+| POST/GET | `/api/site-inspections/:id/thermal-imaging` | Thermal imaging records (Appendix D) |
+| PUT/DELETE | `/api/site-inspections/:id/thermal-imaging/:tid` | Update / remove a record |
 
 ### Modified endpoints
 
@@ -281,7 +286,7 @@ Only then does Kai begin the inspection sections.
 
 - Kai asks which room the inspector is in
 - Each finding tagged with room name
-- Moisture readings captured inline → `SpecialistTest(MOISTURE_READING)`
+- Moisture readings captured inline → `MoistureReading` (extended)
 
 ### Step 6 — Specialist tests
 
@@ -302,7 +307,7 @@ Stores to `InspectionSectionConclusion`.
 
 ### Phase 1 — Schema + API
 - Prisma migration
-- New models: `SpecialistTest`, `InspectionSectionConclusion`
+- New models: `FloorPlan`, `FloorLevelSurvey`, `ThermalImagingRecord`, `InspectionSectionConclusion`
 - New fields on `Property`, `SiteInspection`, `ChecklistItem`
 - New API endpoints
 - Unit + integration tests
