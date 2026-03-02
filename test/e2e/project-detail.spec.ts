@@ -126,7 +126,7 @@ test.describe('Project Detail — Collapsible Sections', () => {
   test('should display BRANZ Zone Data section', async ({ authenticatedPage: page }) => {
     await goToTestProject(page);
 
-    await expect(page.getByRole('heading', { name: 'BRANZ Zone Data', level: 2 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Site Data (BRANZ Maps)', level: 2 })).toBeVisible();
   });
 
   test('should display Documents section', async ({ authenticatedPage: page }) => {
