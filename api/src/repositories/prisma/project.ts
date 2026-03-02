@@ -33,6 +33,9 @@ export class PrismaProjectRepository implements IProjectRepository {
       include: {
         property: true,
         client: true,
+        siteInspections: {
+          orderBy: { date: 'asc' },
+        },
       },
     });
   }
