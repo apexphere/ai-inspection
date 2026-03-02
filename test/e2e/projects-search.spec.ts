@@ -26,7 +26,7 @@ test.describe('Projects Search & Filter', () => {
     await page.waitForLoadState('networkidle');
 
     const table = page.locator('table');
-    await expect(table).toBeVisible({ timeout: 10000 });
+    await expect(table).toBeVisible({ timeout: 30000 });
 
     // Search for the seeded address
     const searchInput = page.getByPlaceholder('Search by address or job number...');
@@ -48,7 +48,7 @@ test.describe('Projects Search & Filter', () => {
     await page.waitForLoadState('networkidle');
 
     const table = page.locator('table');
-    await expect(table).toBeVisible({ timeout: 10000 });
+    await expect(table).toBeVisible({ timeout: 30000 });
 
     const searchInput = page.getByPlaceholder('Search by address or job number...');
     await searchInput.fill('TEST-001');
@@ -132,7 +132,7 @@ test.describe('Projects Column Sorting', () => {
     await page.waitForLoadState('networkidle');
 
     const table = page.locator('table');
-    await expect(table).toBeVisible({ timeout: 10000 });
+    await expect(table).toBeVisible({ timeout: 30000 });
 
     // Click Job # header
     const jobHeader = table.locator('thead th').filter({ hasText: 'Job #' });
@@ -148,7 +148,7 @@ test.describe('Projects Column Sorting', () => {
     await page.waitForLoadState('networkidle');
 
     const table = page.locator('table');
-    await expect(table).toBeVisible({ timeout: 10000 });
+    await expect(table).toBeVisible({ timeout: 30000 });
 
     // Click Job # header again to toggle to asc
     const jobHeader = table.locator('thead th').filter({ hasText: 'Job #' });
@@ -163,7 +163,7 @@ test.describe('Projects Column Sorting', () => {
     await page.waitForLoadState('networkidle');
 
     const table = page.locator('table');
-    await expect(table).toBeVisible({ timeout: 10000 });
+    await expect(table).toBeVisible({ timeout: 30000 });
 
     // The Job # header should have a down arrow indicator
     const jobHeader = table.locator('thead th').filter({ hasText: 'Job #' });

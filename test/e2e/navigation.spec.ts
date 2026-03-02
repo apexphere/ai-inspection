@@ -76,6 +76,14 @@ test.describe('Navigation — Header Links', () => {
 
 test.describe('Navigation — Auth Guard', () => {
   baseTest('should redirect unauthenticated user to login', async ({ page }) => {
+    // Add Vercel bypass header so we reach the actual app (not Vercel auth wall)
+    const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+    if (bypassSecret) {
+      await page.setExtraHTTPHeaders({
+        'x-vercel-protection-bypass': bypassSecret,
+      });
+    }
+
     // No storageState — page is unauthenticated
     await page.context().clearCookies();
     await page.goto('/projects');
@@ -85,6 +93,14 @@ test.describe('Navigation — Auth Guard', () => {
   });
 
   baseTest('should not show header on login page', async ({ page }) => {
+    // Add Vercel bypass header so we reach the actual app (not Vercel auth wall)
+    const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+    if (bypassSecret) {
+      await page.setExtraHTTPHeaders({
+        'x-vercel-protection-bypass': bypassSecret,
+      });
+    }
+
     await page.goto('/login');
     await page.waitForLoadState('networkidle');
 
