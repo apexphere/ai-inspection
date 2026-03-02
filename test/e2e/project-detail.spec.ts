@@ -110,14 +110,14 @@ test.describe('Project Detail — Collapsible Sections', () => {
     await expect(page.getByText('Property').first()).toBeVisible();
     await expect(propertySection.getByText('123 Test Street')).toBeVisible();
     await expect(propertySection.getByText('Testville')).toBeVisible();
-    await expect(propertySection.getByText('Auckland')).toBeVisible();
+    await expect(propertySection.getByText('Auckland', { exact: true })).toBeVisible();
     await expect(propertySection.getByText('Auckland Council')).toBeVisible();
   });
 
   test('should display Inspections section with empty state', async ({ authenticatedPage: page }) => {
     await goToTestProject(page);
 
-    await expect(page.getByText('Inspections')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Inspections', level: 2 }).first()).toBeVisible();
 
     // Seeded project has no inspections
     await expect(page.getByText('No inspections recorded')).toBeVisible();
