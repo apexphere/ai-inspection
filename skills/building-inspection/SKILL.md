@@ -1,10 +1,10 @@
 ---
 name: building-inspection
-version: 2.1.0
+version: 3.0.0
 description: Guide building inspectors through property inspections via WhatsApp. Supports PPI, COA, CCC, and Safe & Sanitary inspection types. Always searches for existing property/project before creating new ones.
 ---
 
-# Building Inspection Assistant v2
+# Building Inspection Assistant v3
 
 Guide inspectors through property inspections via WhatsApp. Supports four inspection types: PPI, COA, CCC Gap Analysis, and Safe & Sanitary.
 
@@ -45,7 +45,7 @@ List them to the inspector:
 
 #### Branch B — Nothing found
 
-> "Starting fresh at **{address}**. What type of inspection?
+> "Starting fresh at **{address}**. What type of inspection?"
 
 Proceed to Step 2.
 
@@ -70,6 +70,8 @@ Map response to inspection type:
 | CCC | CCC_GAP | SIMPLE | CCC_GA |
 | SS | SAFE_SANITARY | SIMPLE | S_AND_S |
 
+---
+
 ### Step 3: Create Property (if not found in Step 1)
 
 ```bash
@@ -85,6 +87,8 @@ curl -X POST "$API_URL/api/properties" \
 
 Save `id` as `PROPERTY_ID`.
 
+---
+
 ### Step 4: Create Client + Project (if not reusing existing)
 
 Ask for client name (or use "TBC" to start fast):
@@ -93,9 +97,7 @@ Ask for client name (or use "TBC" to start fast):
 curl -X POST "$API_URL/api/clients" \
   -H "Content-Type: application/json" \
   -H "X-API-Key: $API_SERVICE_KEY" \
-  -d '{
-    "name": "{client_name}"
-  }'
+  -d '{ "name": "{client_name}" }'
 ```
 
 Save `id` as `CLIENT_ID`.
@@ -113,6 +115,8 @@ curl -X POST "$API_URL/api/projects" \
 
 Save `id` as `PROJECT_ID`.
 
+---
+
 ### Step 5: Create Site Inspection
 
 ```bash
@@ -125,114 +129,342 @@ curl -X POST "$API_URL/api/projects/{PROJECT_ID}/inspections" \
   }'
 ```
 
-Save `id` as `INSPECTION_ID`. Confirm to inspector:
-
-> "✅ {type} inspection started at {address}. Let's begin."
+Save `id` as `INSPECTION_ID`.
 
 ---
 
-## 2. PPI Workflow (Pre-Purchase Inspection)
+### Step 5.5: Upfront Data Collection (PPI only)
 
-Walk through categories in order, prompting each NZS 4306:2005 element individually.
+**Only for PPI.** Before starting sections, collect upfront data in three rounds.
 
-### Element List (NZS 4306:2005)
+#### Round 1 — Weather
 
-**SITE:**
-1. Site drainage
-2. Landscaping
-3. Fencing/gates
-4. Paths/driveways
-5. Retaining walls
-6. Outbuildings
-7. Services/utilities
+> "What's the weather today? Any rainfall in the last 3 days? (mm — or say 0 if dry)"
 
-**EXTERIOR — Roof:**
-1. Roof covering
-2. Roof structure
-3. Gutters/downpipes
-4. Flashings
-5. Fascia/bargeboards
+```bash
+curl -X PUT "$API_URL/api/site-inspections/{INSPECTION_ID}" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $API_SERVICE_KEY" \
+  -d '{
+    "weather": "{Fine|Overcast|Rain|etc}",
+    "rainfallLast3Days": {float_mm}
+  }'
+```
 
-**EXTERIOR — Walls:**
-1. Cladding
-2. Cladding/wall junctions
-3. Window/door frames
-4. Soffits
-5. External painting
+#### Round 2 — Building Info
 
-**EXTERIOR — Foundation:**
-1. Foundation type/condition
-2. Subfloor structure
-3. Subfloor moisture/ventilation
-4. Piles/bearers/joists
+> "Quick building details:
+> - New build or existing?
+> - How many storeys?
+> - Year built?
+> - Bedrooms / bathrooms?
+> - Parking? (e.g. Single garage, Street)"
 
-**INTERIOR** (per room group — living · kitchen · bedrooms · bathrooms · laundry · hallways · roof space):
-1. Walls/linings
-2. Ceilings
-3. Floors
-4. Windows/doors
-5. Moisture
+```bash
+curl -X PUT "$API_URL/api/properties/{PROPERTY_ID}" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $API_SERVICE_KEY" \
+  -d '{
+    "buildingType": "{e.g. Two-Storey Residential House (New 2025)}",
+    "storeys": {int},
+    "bedrooms": {int},
+    "bathrooms": {int},
+    "parking": "{e.g. Single Garaging}"
+  }'
+```
 
-**DECKS** (if present):
-1. Structure
-2. Surface
-3. Balustrades
-4. Waterproofing
-5. Fixings
+#### Round 3 — Floor Plan
 
-**SERVICES:**
-1. Electrical
-2. Plumbing
-3. Hot water
-4. Drainage
-5. Gas
-6. Heating/ventilation
-7. Smoke alarms
-8. Insulation
+> "Do you have a floor plan photo? Send it now or say skip."
 
-### Per-Element Flow
+If photo received → upload it:
 
-For each element, prompt the inspector:
-> "**{Element}** — pass / fail [note] / skip?"
+```bash
+curl -X POST "$API_URL/api/projects/{PROJECT_ID}/photos/base64" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $API_SERVICE_KEY" \
+  -d '{
+    "data": "{base64_image}",
+    "filename": "floor-plan.jpg",
+    "mimeType": "image/jpeg",
+    "caption": "Floor plan",
+    "inspectionId": "{INSPECTION_ID}"
+  }'
+```
 
-| Inspector says | Action |
-|----------------|--------|
-| `pass` | Record PASS, show next element |
-| `fail [note]` | Record FAIL + note, show next element |
-| `skip` | Record NA, show next element |
-| `all pass` | Record remaining elements in category as PASS |
-| `done` | Move to next category |
+Save returned photo `id` as `FLOOR_PLAN_PHOTO_ID`.
 
-### Add Checklist Item
+Then for each floor:
+
+> "Rooms on floor 1? (e.g. Garage, Storage, Hall, Stairs)"
+> "Rooms on floor 2? (e.g. Master Bedroom, Bedroom 2, Bathroom, Living)"
+> *(repeat for each floor)*
+
+```bash
+curl -X POST "$API_URL/api/site-inspections/{INSPECTION_ID}/floor-plans" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $API_SERVICE_KEY" \
+  -d '{
+    "floor": {1|2|3},
+    "label": "{Ground Floor|First Floor|Second Floor}",
+    "rooms": ["{room1}", "{room2}", "..."],
+    "photoIds": ["{FLOOR_PLAN_PHOTO_ID}"]
+  }'
+```
+
+Save each floor plan `id` as `FLOOR_PLAN_ID_{N}`. Build `ROOM_LIST` in floor order from all rooms.
+
+> "✅ Floor plan recorded. Starting inspection — **Site & Ground** first."
+
+---
+
+## 2. PPI Workflow (NZS4306:2005)
+
+Walk through four sections in order: **Site → Exterior → Interior → Services**.
+
+### Severity Vocabulary
+
+| Inspector says | Severity |
+|----------------|----------|
+| "immediate" / "fix now" / "urgent" | `IMMEDIATE_ATTENTION` |
+| "investigate" / "further investigation" / "specialist" | `FURTHER_INVESTIGATION` |
+| "monitor" / "keep an eye" / "watch" | `MONITOR` |
+| "ok" / "pass" / "no action" | `NO_ACTION` |
+
+Default when no severity given: `MONITOR`.
+
+---
+
+### Section 1 — Site & Ground (`SITE`)
+
+> "📍 **Site & Ground** — let's start outside."
+
+Elements (one at a time):
+
+1. **Topography** — slope, drainage away from building, ponding
+2. **Boundaries** — fence lines, encroachments
+3. **Retaining walls** — height, condition, drainage behind
+4. **Fencing & gates** — condition, security
+5. **Access paths** — condition, slip hazard
+6. **Driveways** — surface, drainage, condition
+7. **Garden & landscaping** — proximity to cladding, vegetation contact
+
+For each:
+> "**{Element}** — what's the condition? (pass / [description] / skip)"
 
 ```bash
 curl -X POST "$API_URL/api/site-inspections/{INSPECTION_ID}/checklist-items" \
   -H "Content-Type: application/json" \
   -H "X-API-Key: $API_SERVICE_KEY" \
   -d '{
-    "category": "{SITE|EXTERIOR|INTERIOR|DECKS|SERVICES}",
-    "description": "{element name}",
-    "result": "{PASS|FAIL|NA}",
-    "notes": "{inspector note if fail}",
-    "severity": "{minor|major|urgent}"
+    "category": "SITE",
+    "item": "{element name}",
+    "decision": "{PASS|FAIL|NA}",
+    "notes": "{inspector note}",
+    "severity": "{IMMEDIATE_ATTENTION|FURTHER_INVESTIGATION|MONITOR|NO_ACTION}"
   }'
 ```
 
-### Check Summary
+**Section conclusion:**
+
+> "Conclusion for Site & Ground? (or 'no obvious defects')"
 
 ```bash
-curl "$API_URL/api/site-inspections/{INSPECTION_ID}/checklist-summary" \
-  -H "X-API-Key: $API_SERVICE_KEY"
+curl -X POST "$API_URL/api/site-inspections/{INSPECTION_ID}/section-conclusions" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $API_SERVICE_KEY" \
+  -d '{ "section": "SITE", "conclusion": "{text}" }'
 ```
 
-### Completion
+> "✅ Site done. Moving to **Exterior**."
 
-When all categories done, summarise:
-> "✅ PPI complete. X items checked, Y fails. Ready to complete the inspection?"
+---
 
-### Skip Category
+### Section 2 — Exterior (`EXTERIOR`)
 
-Inspector can say "skip category" at any time — move to next.
+> "🏠 **Exterior** — working around the building."
+
+**Roof:**
+1. Roof covering — type, condition, damage
+2. Roof structure — sagging, visible damage
+3. Flashings — ridges, hips, penetrations
+4. Gutters — rust, leaks, blockages, falls
+5. Downpipes — connected, discharging correctly
+
+**Cladding:**
+6. Cladding type & condition — cracks, gaps, weathertightness, paint
+7. Penetrations & sealants — around windows, pipes, service entries
+8. Cladding/wall junctions — sealed, flashed
+
+**Joinery:**
+9. Glazing type — single/double/thermally broken
+10. Hardware & operation — latches, hinges, locks
+11. Restrictors — present on upper floor windows
+
+**Foundation:**
+12. Foundation type & condition — cracking, settlement, moisture
+
+Record each with `category: "EXTERIOR"` (no `room` field).
+
+**Section conclusion:**
+
+```bash
+curl -X POST "$API_URL/api/site-inspections/{INSPECTION_ID}/section-conclusions" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $API_SERVICE_KEY" \
+  -d '{ "section": "EXTERIOR", "conclusion": "{text}" }'
+```
+
+> "✅ Exterior done. Moving to **Interior**."
+
+---
+
+### Section 3 — Interior (`INTERIOR`) — Room by Room
+
+> "🏠 **Interior** — going room by room. Starting floor 1."
+
+Walk `ROOM_LIST` in order. For each room:
+
+> "📍 **{Room}** (Floor {N}) — what's the condition?"
+
+Elements per room:
+1. Floors — levelness, condition, squeaks, damage
+2. Walls — cracks, stains, damage, linings
+3. Ceilings — cracks, stains, sagging
+4. Doors — operation, frames, hardware
+5. Windows — operation, seals, condensation, restrictors
+
+```bash
+curl -X POST "$API_URL/api/site-inspections/{INSPECTION_ID}/checklist-items" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $API_SERVICE_KEY" \
+  -d '{
+    "category": "INTERIOR",
+    "item": "{element}",
+    "decision": "{PASS|FAIL|NA}",
+    "notes": "{note}",
+    "severity": "{IMMEDIATE_ATTENTION|FURTHER_INVESTIGATION|MONITOR|NO_ACTION}",
+    "room": "{room name}",
+    "floorPlanId": "{FLOOR_PLAN_ID_N}"
+  }'
+```
+
+#### Moisture Readings (inline — capture immediately when mentioned)
+
+> "Moisture reading — where exactly? Meter reading? (Trotec T660 scale 0–200)"
+
+```bash
+curl -X POST "$API_URL/api/site-inspections/{INSPECTION_ID}/moisture-readings" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $API_SERVICE_KEY" \
+  -d '{
+    "location": "{specific location, e.g. RHS bottom corner backdoor frame, Laundry}",
+    "reading": {normalised_0_to_100},
+    "meterModel": "Trotec T660",
+    "meterReading": {raw_t660_0_to_200},
+    "result": "{ACCEPTABLE|MARGINAL|UNACCEPTABLE}"
+  }'
+```
+
+T660 guide: 0–79 = ACCEPTABLE, 80–119 = MARGINAL, 120+ = UNACCEPTABLE.
+
+#### Attic / Roof Space
+
+After all rooms:
+
+> "**Roof space / attic** — accessible? What did you find?"
+
+Record as `"room": "Roof Space"`. Elements: framing, insulation, ventilation, leaks.
+
+#### Specialist Tests (after all rooms)
+
+**Floor Level Survey:**
+
+> "Floor level survey done? Results per floor? (max deviation mm)"
+
+```bash
+curl -X POST "$API_URL/api/site-inspections/{INSPECTION_ID}/floor-level-surveys" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $API_SERVICE_KEY" \
+  -d '{
+    "area": "{Ground Floor|1st Floor}",
+    "maxDeviation": {float_mm},
+    "withinTolerance": {true|false},
+    "notes": "{e.g. Within MBIE tolerances}"
+  }'
+```
+
+**Thermal Imaging:**
+
+> "Thermal imaging done? Go room by room — any anomalies?"
+
+```bash
+curl -X POST "$API_URL/api/site-inspections/{INSPECTION_ID}/thermal-imaging" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $API_SERVICE_KEY" \
+  -d '{
+    "room": "{room name}",
+    "floor": {int},
+    "anomalyFound": {true|false},
+    "notes": "{e.g. Thermal anomaly at RHS sliding door sill}"
+  }'
+```
+
+**Section conclusion:**
+
+```bash
+curl -X POST "$API_URL/api/site-inspections/{INSPECTION_ID}/section-conclusions" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $API_SERVICE_KEY" \
+  -d '{ "section": "INTERIOR", "conclusion": "{text}" }'
+```
+
+> "✅ Interior done. Moving to **Services**."
+
+---
+
+### Section 4 — Services (`SERVICES`)
+
+> "🔌 **Services** — checking all building systems."
+
+1. Power — switchboard, RCDs, visible wiring
+2. Internet / fibre — connection type, install quality
+3. Water supply (potable) — pressure, pipe condition
+4. Water supply (non-potable) — tank, pump, treatment
+5. Hot water — type, condition, temperature relief valve
+6. Gas — meter, pipework, appliances
+7. Drainage — waste pipes, access, condition
+8. Security system — type, condition (not tested)
+9. Smoke alarms — present, location, type, tested
+10. Ventilation — bathroom/kitchen extractors, HRV/DVS
+11. Heat pump — present, type, condition
+12. Stormwater — downpipe connections, soakage, discharge
+
+Note limitations (e.g. gas not testable if disconnected; stormwater impractical with <3 days rain).
+
+**Section conclusion:**
+
+```bash
+curl -X POST "$API_URL/api/site-inspections/{INSPECTION_ID}/section-conclusions" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $API_SERVICE_KEY" \
+  -d '{ "section": "SERVICES", "conclusion": "{text}" }'
+```
+
+---
+
+### PPI Completion
+
+> "✅ PPI complete. Ready to complete the inspection?"
+
+```bash
+curl -X PUT "$API_URL/api/site-inspections/{INSPECTION_ID}" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $API_SERVICE_KEY" \
+  -d '{ "status": "COMPLETED" }'
+```
+
+> "✅ Inspection complete. Report will be generated shortly."
 
 ---
 
@@ -240,14 +472,10 @@ Inspector can say "skip category" at any time — move to next.
 
 ### Init Clause Reviews
 
-First, fetch available clauses, then initialise:
-
 ```bash
-# Get all clauses
 curl "$API_URL/api/building-code/clauses" \
   -H "X-API-Key: $API_SERVICE_KEY"
 
-# Init reviews for this inspection
 curl -X POST "$API_URL/api/site-inspections/{INSPECTION_ID}/clause-reviews/init" \
   -H "Content-Type: application/json" \
   -H "X-API-Key: $API_SERVICE_KEY" \
@@ -255,8 +483,6 @@ curl -X POST "$API_URL/api/site-inspections/{INSPECTION_ID}/clause-reviews/init"
 ```
 
 ### NZBC Categories
-
-Work through clauses by category:
 
 | Category | Description |
 |----------|-------------|
@@ -270,19 +496,12 @@ Work through clauses by category:
 
 ### Update Clause Review
 
-For each clause, ask if applicable and record observations:
-
 ```bash
-# Mark applicable with observations
 curl -X PUT "$API_URL/api/clause-reviews/{review_id}" \
   -H "Content-Type: application/json" \
   -H "X-API-Key: $API_SERVICE_KEY" \
-  -d '{
-    "status": "APPLICABLE",
-    "observations": "{inspector observations}"
-  }'
+  -d '{ "status": "APPLICABLE", "observations": "{observations}" }'
 
-# Mark not applicable
 curl -X POST "$API_URL/api/clause-reviews/{review_id}/mark-na" \
   -H "Content-Type: application/json" \
   -H "X-API-Key: $API_SERVICE_KEY" \
@@ -306,19 +525,15 @@ Same flow as PPI but framed as defect analysis against consented plans.
 - **Results:** PASS (no defect) / FAIL (defect found) / NA
 - **Prompt prefix:** "Any defects against consented plans for {category}?"
 
-Use same checklist-items API as PPI.
-
 ---
 
 ## 5. SS Workflow (Safe & Sanitary)
 
-Simplified inspection. Focus on habitability under Building Act 1991 s.64.
+Simplified inspection under Building Act 1991 s.64.
 
-- **Categories:** EXTERIOR, INTERIOR, SERVICES (subset — skip SITE and DECKS unless needed)
+- **Categories:** EXTERIOR, INTERIOR, SERVICES
 - **Results:** PASS (safe) / FAIL (insanitary) / NA
 - **Prompt prefix:** "Safe & sanitary assessment for {category}:"
-
-Use same checklist-items API as PPI.
 
 ---
 
@@ -334,7 +549,8 @@ curl -X POST "$API_URL/api/projects/{PROJECT_ID}/photos/base64" \
     "data": "{base64_image}",
     "filename": "{filename}.jpg",
     "mimeType": "image/jpeg",
-    "caption": "{optional caption}"
+    "caption": "{caption}",
+    "inspectionId": "{INSPECTION_ID}"
   }'
 ```
 
@@ -344,21 +560,6 @@ curl -X POST "$API_URL/api/projects/{PROJECT_ID}/photos/base64" \
 curl "$API_URL/api/site-inspections/{INSPECTION_ID}" \
   -H "X-API-Key: $API_SERVICE_KEY"
 ```
-
-### Complete Inspection
-
-```bash
-curl -X PUT "$API_URL/api/site-inspections/{INSPECTION_ID}" \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: $API_SERVICE_KEY" \
-  -d '{
-    "status": "COMPLETED",
-    "weatherConditions": "{Fine|Overcast|Rain}",
-    "notes": "{summary notes}"
-  }'
-```
-
-Confirm to inspector: "✅ Inspection complete. Report will be generated shortly."
 
 ---
 
@@ -371,6 +572,7 @@ Confirm to inspector: "✅ Inspection complete. Report will be generated shortly
 | API error (5xx) | "Having trouble connecting. Try again in a moment." |
 | Photo failed | "Couldn't process that photo. Can you send it again?" |
 | Unknown type | "Please choose: 1=PPI, 2=COA, 3=CCC, 4=SS" |
+| No floor plan declared | Walk interior by room type (bedrooms, bathrooms, living) not named rooms |
 
 ---
 
@@ -378,9 +580,12 @@ Confirm to inspector: "✅ Inspection complete. Report will be generated shortly
 
 1. **Confirm everything** — Echo back what you captured
 2. **Stay concise** — Inspector is on-site, keep responses short
-3. **Don't block on optional data** — Start inspection fast, client can be "TBC"
-4. **Track context** — Remember INSPECTION_ID, PROJECT_ID across the session
+3. **Don't block on optional data** — Client can be "TBC", floor plan can be skipped
+4. **Track context** — Remember INSPECTION_ID, PROJECT_ID, PROPERTY_ID, FLOOR_PLAN_IDs, ROOM_LIST
 5. **Handle photos** — Convert WhatsApp images to base64 for API
+6. **Floor plan is the spine** — Walk interior in floor plan order
+7. **Moisture inline** — Capture readings immediately, never defer
+8. **One conclusion per section** — Always prompt before moving on
 
 ---
 
@@ -389,16 +594,22 @@ Confirm to inspector: "✅ Inspection complete. Report will be generated shortly
 | Action | Method | Endpoint |
 |--------|--------|----------|
 | Create property | POST | `/api/properties` |
-| Search properties | GET | `/api/properties?streetAddress=...` |
-| Search projects by address | GET | `/api/projects?address=...` |
+| Update property | PUT | `/api/properties/{id}` |
+| Search projects | GET | `/api/projects?address=...` |
 | Create client | POST | `/api/clients` |
 | Create project | POST | `/api/projects` |
-| Get project | GET | `/api/projects/{id}` |
-| Create inspection | POST | `/api/projects/{projectId}/inspections` |
+| Create inspection | POST | `/api/projects/{id}/inspections` |
 | Get inspection | GET | `/api/site-inspections/{id}` |
 | Update inspection | PUT | `/api/site-inspections/{id}` |
 | Add checklist item | POST | `/api/site-inspections/{id}/checklist-items` |
 | Get checklist summary | GET | `/api/site-inspections/{id}/checklist-summary` |
+| Add moisture reading | POST | `/api/site-inspections/{id}/moisture-readings` |
+| Add floor plan | POST | `/api/site-inspections/{id}/floor-plans` |
+| Get floor plans | GET | `/api/site-inspections/{id}/floor-plans` |
+| Set section conclusion | POST | `/api/site-inspections/{id}/section-conclusions` |
+| Get section conclusions | GET | `/api/site-inspections/{id}/section-conclusions` |
+| Add floor level survey | POST | `/api/site-inspections/{id}/floor-level-surveys` |
+| Add thermal imaging | POST | `/api/site-inspections/{id}/thermal-imaging` |
 | Init clause reviews | POST | `/api/site-inspections/{id}/clause-reviews/init` |
 | Update clause review | PUT | `/api/clause-reviews/{id}` |
 | Mark clause N/A | POST | `/api/clause-reviews/{id}/mark-na` |
