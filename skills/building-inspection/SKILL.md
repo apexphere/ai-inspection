@@ -1,6 +1,6 @@
 ---
 name: building-inspection
-version: 3.0.0
+version: 3.1.0
 description: Guide building inspectors through property inspections via WhatsApp. Supports PPI, COA, CCC, and Safe & Sanitary inspection types. Always searches for existing property/project before creating new ones.
 ---
 
@@ -135,11 +135,36 @@ Save `id` as `INSPECTION_ID`.
 
 ### Step 5.5: Upfront Data Collection (PPI only)
 
-**Only for PPI.** Before starting sections, collect upfront data in three rounds.
+**Only for PPI.** After creating the project, fetch what's required:
 
-#### Round 1 — Weather
+```bash
+curl "$API_URL/api/project-requirements/PPI" \
+  -H "X-API-Key: $API_SERVICE_KEY"
+```
 
-> "What's the weather today? Any rainfall in the last 3 days? (mm — or say 0 if dry)"
+This returns a list of `upfrontData` items — each with `id`, `label`, `description`, `required`.
+
+**Present all items at once** — do not ask sequentially:
+
+> "Before we start, I need a few things — send them in any order:
+> 🌤 **Weather** — current conditions + rainfall last 3 days (mm)
+> 🏠 **Building info** — new/existing, storeys, year built, bedrooms, bathrooms, parking
+> 📐 **Floor plan** — photo (optional) + room list per floor
+>
+> Send what you have. Required items must be provided before we begin."
+
+**Track state** — maintain a checklist of which items are submitted vs pending. As each piece arrives, confirm it:
+> "✅ Weather noted — Fine, 0mm rainfall."
+> "✅ Building info saved — 2-storey existing, 4 bed/2 bath, single garage."
+
+Once all `required` items are done (optional can be skipped):
+> "✅ All set. Starting inspection — **Site & Ground** first."
+
+---
+
+#### Storing Each Item
+
+**Weather** (`storeOn: siteInspection`):
 
 ```bash
 curl -X PUT "$API_URL/api/site-inspections/{INSPECTION_ID}" \
@@ -151,21 +176,14 @@ curl -X PUT "$API_URL/api/site-inspections/{INSPECTION_ID}" \
   }'
 ```
 
-#### Round 2 — Building Info
-
-> "Quick building details:
-> - New build or existing?
-> - How many storeys?
-> - Year built?
-> - Bedrooms / bathrooms?
-> - Parking? (e.g. Single garage, Street)"
+**Building info** (`storeOn: property`):
 
 ```bash
 curl -X PUT "$API_URL/api/properties/{PROPERTY_ID}" \
   -H "Content-Type: application/json" \
   -H "X-API-Key: $API_SERVICE_KEY" \
   -d '{
-    "buildingType": "{e.g. Two-Storey Residential House (New 2025)}",
+    "buildingType": "{e.g. Two-Storey Residential House (Existing)}",
     "storeys": {int},
     "bedrooms": {int},
     "bathrooms": {int},
@@ -173,11 +191,9 @@ curl -X PUT "$API_URL/api/properties/{PROPERTY_ID}" \
   }'
 ```
 
-#### Round 3 — Floor Plan
+**Floor plan** (`storeOn: floorPlan`, optional):
 
-> "Do you have a floor plan photo? Send it now or say skip."
-
-If photo received → upload it:
+If photo received → upload first:
 
 ```bash
 curl -X POST "$API_URL/api/projects/{PROJECT_ID}/photos/base64" \
@@ -192,13 +208,7 @@ curl -X POST "$API_URL/api/projects/{PROJECT_ID}/photos/base64" \
   }'
 ```
 
-Save returned photo `id` as `FLOOR_PLAN_PHOTO_ID`.
-
-Then for each floor:
-
-> "Rooms on floor 1? (e.g. Garage, Storage, Hall, Stairs)"
-> "Rooms on floor 2? (e.g. Master Bedroom, Bedroom 2, Bathroom, Living)"
-> *(repeat for each floor)*
+Save photo `id` as `FLOOR_PLAN_PHOTO_ID`. Then for each floor:
 
 ```bash
 curl -X POST "$API_URL/api/site-inspections/{INSPECTION_ID}/floor-plans" \
@@ -206,16 +216,13 @@ curl -X POST "$API_URL/api/site-inspections/{INSPECTION_ID}/floor-plans" \
   -H "X-API-Key: $API_SERVICE_KEY" \
   -d '{
     "floor": {1|2|3},
-    "label": "{Ground Floor|First Floor|Second Floor}",
+    "label": "{Ground Floor|First Floor|etc}",
     "rooms": ["{room1}", "{room2}", "..."],
     "photoIds": ["{FLOOR_PLAN_PHOTO_ID}"]
   }'
 ```
 
-Save each floor plan `id` as `FLOOR_PLAN_ID_{N}`. Build `ROOM_LIST` in floor order from all rooms.
-
-> "✅ Floor plan recorded. Starting inspection — **Site & Ground** first."
-
+Save each floor plan `id` as `FLOOR_PLAN_ID_{N}`. Build `ROOM_LIST` in floor order.
 ---
 
 ## 2. PPI Workflow (NZS4306:2005)
@@ -593,6 +600,7 @@ curl "$API_URL/api/site-inspections/{INSPECTION_ID}" \
 
 | Action | Method | Endpoint |
 |--------|--------|----------|
+| Get project requirements | GET | `/api/project-requirements/:reportType` |
 | Create property | POST | `/api/properties` |
 | Update property | PUT | `/api/properties/{id}` |
 | Search projects | GET | `/api/projects?address=...` |
