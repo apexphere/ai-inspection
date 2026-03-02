@@ -349,6 +349,13 @@ model Property {
   siteData             Json?
   construction         Json?
   
+  // Building Info — Issue #650
+  buildingType         String?              // e.g. "Two-Storey Residential House (New 2025)"
+  storeys              Int?
+  bedrooms             Int?
+  bathrooms            Int?
+  parking              String?              // e.g. "Single Garaging", "Garage + off street"
+
   // BRANZ Zone Data — Issue #543
   climateZone          String?
   earthquakeZone       String?
@@ -426,6 +433,7 @@ model SiteInspection {
   
   // Context
   weather           String?
+  rainfallLast3Days Float?              // mm — affects stormwater/moisture test reliability
   personsPresent    String?
   equipment         String[]            @default([])
   methodology       String?
@@ -462,6 +470,10 @@ model SiteInspection {
   reports           Report[]
   defects           Defect[]
   moistureReadings  MoistureReading[]
+  floorPlans        FloorPlan[]
+  sectionConclusions InspectionSectionConclusion[]
+  floorLevelSurveys FloorLevelSurvey[]
+  thermalImages     ThermalImagingRecord[]
   
   @@index([projectId])
   @@index([status])
@@ -526,6 +538,12 @@ model ChecklistItem {
   decision        Decision
   notes           String?
   
+  // PPI enrichment — Issue #650
+  room            String?         // for INTERIOR: must match a FloorPlan room name
+  floorPlanId     String?         // reference to FloorPlan record
+  floorPlan       FloorPlan?      @relation(fields: [floorPlanId], references: [id])
+  severity        FindingSeverity?
+
   photoIds        String[]        @default([])
   
   sortOrder       Int             @default(0)
@@ -547,6 +565,14 @@ enum Decision {
   PASS
   FAIL
   NA
+}
+
+// NZS4306:2005 PPI finding severity — Issue #650
+enum FindingSeverity {
+  IMMEDIATE_ATTENTION   // requires immediate action
+  FURTHER_INVESTIGATION // requires invasive/specialist investigation
+  MONITOR               // keep an eye on, no immediate action
+  NO_ACTION             // acceptable, no action required
 }
 
 enum InspectionType {
@@ -981,6 +1007,10 @@ model MoistureReading {
   depth           Float?              // Probe depth in mm
   result          MoistureResult      @default(PENDING)
 
+  // Trotec T660 raw reading — Issue #650 (PPI)
+  meterModel      String?             // e.g. "Trotec T660", "Trotec T610"
+  meterReading    Float?              // Raw T660 units (0-200; 0-79 = dry, 80-200 = elevated)
+
   // Optional links
   defectId        String?
   defect          Defect?             @relation(fields: [defectId], references: [id])
@@ -1091,4 +1121,72 @@ model ServiceKey {
   updatedAt   DateTime  @updatedAt
 
   @@index([keyPrefix])
+}
+
+// ============================================
+// PPI Data Model Enrichment — Issue #650
+// ============================================
+
+model FloorPlan {
+  id            String         @id @default(uuid())
+  inspectionId  String
+  inspection    SiteInspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  floor         Int            // 1-based: 1 = ground/first floor
+  label         String?        // e.g. "Ground Floor", "First Floor"
+  rooms         String[]       // canonical room list for this floor
+  photoIds      String[]       @default([])  // floor plan photo references
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  checklistItems ChecklistItem[]
+
+  @@unique([inspectionId, floor])
+  @@index([inspectionId])
+}
+
+model InspectionSectionConclusion {
+  id            String         @id @default(uuid())
+  inspectionId  String
+  inspection    SiteInspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  section       String         // SITE | EXTERIOR | INTERIOR | SERVICES
+  conclusion    String
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@unique([inspectionId, section])
+  @@index([inspectionId])
+}
+
+model FloorLevelSurvey {
+  id              String         @id @default(uuid())
+  inspectionId    String
+  inspection      SiteInspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  area            String         // e.g. "Ground Floor", "1st Floor"
+  maxDeviation    Float?         // mm
+  withinTolerance Boolean?
+  notes           String?
+  photoIds        String[]       @default([])
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([inspectionId])
+}
+
+model ThermalImagingRecord {
+  id            String         @id @default(uuid())
+  inspectionId  String
+  inspection    SiteInspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  room          String         // room name matching FloorPlan
+  floor         Int?           // floor number
+  anomalyFound  Boolean        @default(false)
+  notes         String?
+  photoIds      String[]       @default([])
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([inspectionId])
 }

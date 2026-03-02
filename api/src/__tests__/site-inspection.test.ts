@@ -26,6 +26,7 @@ const mockSiteInspection: SiteInspection = {
   date: new Date('2026-02-19'),
   status: 'DRAFT',
   weather: 'Fine',
+  rainfallLast3Days: null,
   personsPresent: 'John Builder',
   equipment: ['Moisture meter'],
   methodology: null,

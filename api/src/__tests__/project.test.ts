@@ -59,6 +59,11 @@ const mockProperty: Property = {
   rainfallRange: null,
   windRegion: null,
   windZone: null,
+  buildingType: null,
+  storeys: null,
+  bedrooms: null,
+  bathrooms: null,
+  parking: null,
   createdAt: new Date(),
   updatedAt: new Date(),
 };
