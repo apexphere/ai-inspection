@@ -8,6 +8,7 @@ import { ClauseReviewSection } from './clause-review-section';
 import { DocumentUpload } from '@/components/document-upload';
 import { DocumentList, Document } from '@/components/document-list';
 import { BranzZoneSection } from './branz-zone-section';
+import { FloorPlansSection } from './floor-plans-section';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -96,6 +97,7 @@ interface Project {
 
 interface ProjectSectionsProps {
   project: Project;
+  authToken?: string;
 }
 
 const TA_LABELS: Record<string, string> = {
@@ -140,7 +142,7 @@ function InfoRow({ label, value }: { label: string; value: string | null | undef
   );
 }
 
-export function ProjectSections({ project }: ProjectSectionsProps): React.ReactElement {
+export function ProjectSections({ project, authToken }: ProjectSectionsProps): React.ReactElement {
   const inspectionCount = project.siteInspections?.length ?? 0;
   const completedInspections = project.siteInspections?.filter(
     (i) => i.status === 'COMPLETED'
@@ -206,6 +208,12 @@ export function ProjectSections({ project }: ProjectSectionsProps): React.ReactE
           windRegion: project.property.windRegion || '',
           windZone: project.property.windZone || '',
         }}
+      />
+
+      {/* Floor Plans Section */}
+      <FloorPlansSection
+        inspections={(project.siteInspections || []).filter((i) => i.type === 'PPI').map((i) => ({ id: i.id, stage: i.stage, type: i.type }))}
+        authToken={authToken}
       />
 
       {/* Inspections Section */}
