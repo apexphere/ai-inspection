@@ -1,6 +1,6 @@
 ---
 name: building-inspection
-version: 3.4.3
+version: 3.4.4
 description: Guide building inspectors through property inspections via WhatsApp. Supports PPI, COA, CCC, and Safe & Sanitary inspection types. Always searches for existing property/project before creating new ones.
 ---
 
@@ -40,7 +40,17 @@ List them to the inspector:
 >
 > Continue one of these, or start a new project?"
 
-- If inspector picks an existing project → save as `PROJECT_ID` and its `propertyId` as `PROPERTY_ID`, skip to Step 5 (Create Site Inspection)
+- If inspector picks an existing project → save as `PROJECT_ID` and its `propertyId` as `PROPERTY_ID`, then **immediately fetch existing floor plans and inspection**:
+
+```bash
+curl "$API_URL/api/projects/{PROJECT_ID}/floor-plans" \
+  -H "X-API-Key: $API_SERVICE_KEY"
+```
+
+Save each floor plan `id` as `FLOOR_PLAN_ID_{N}`. Build `ROOM_LIST` from rooms across all floors in floor order. If floor plans exist, confirm to inspector:
+> "Got floor plans: Floor 1 ({rooms}), Floor 2 ({rooms})..."
+
+Then skip to Step 5 (Create Site Inspection) or pick up existing inspection if already created.
 - If inspector wants a new project → proceed to Step 2
 
 #### Branch B — Nothing found
