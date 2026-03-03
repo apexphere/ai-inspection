@@ -28,3 +28,9 @@ test-results/
 web/e2e/.auth/
 MEMORY.md
 workspace/MEMORY.md
+
+# Uploads
+data/uploads/
+
+# Build artifacts
+server/dist/

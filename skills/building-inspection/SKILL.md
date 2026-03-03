@@ -1,6 +1,6 @@
 ---
 name: building-inspection
-version: 3.3.1
+version: 3.5.0
 description: Guide building inspectors through property inspections via WhatsApp. Supports PPI, COA, CCC, and Safe & Sanitary inspection types. Always searches for existing property/project before creating new ones.
 ---
 
@@ -40,7 +40,45 @@ List them to the inspector:
 >
 > Continue one of these, or start a new project?"
 
-- If inspector picks an existing project → save as `PROJECT_ID` and its `propertyId` as `PROPERTY_ID`, skip to Step 5 (Create Site Inspection)
+- If inspector picks an existing project → save as `PROJECT_ID` and its `propertyId` as `PROPERTY_ID`, then **immediately load full project state** by running all of these in parallel:
+
+```bash
+# 1. Floor plans
+curl "$API_URL/api/projects/{PROJECT_ID}/floor-plans" \
+  -H "X-API-Key: $API_SERVICE_KEY"
+
+# 2. Most recent inspection
+curl "$API_URL/api/projects/{PROJECT_ID}/inspections" \
+  -H "X-API-Key: $API_SERVICE_KEY"
+
+# 3. Upfront data already collected
+curl "$API_URL/api/project-requirements/{reportType}?projectId={PROJECT_ID}" \
+  -H "X-API-Key: $API_SERVICE_KEY"
+```
+
+Then if an inspection exists, also fetch:
+```bash
+# 4. Section conclusions (what sections are done)
+curl "$API_URL/api/site-inspections/{INSPECTION_ID}/section-conclusions" \
+  -H "X-API-Key: $API_SERVICE_KEY"
+
+# 5. Checklist summary (what items are recorded per section)
+curl "$API_URL/api/site-inspections/{INSPECTION_ID}/checklist-summary" \
+  -H "X-API-Key: $API_SERVICE_KEY"
+```
+
+Save `INSPECTION_ID`, all `FLOOR_PLAN_ID_{N}`, and build `ROOM_LIST` from floor plan rooms in floor order.
+
+Present a resume summary to the inspector:
+> "📋 **Picked up Job {jobNumber}**
+>
+> 🗺 Floor plans: {N} floors — {room count} rooms
+> 📝 Upfront data: {collected items} ✅ / {missing items} ⬜
+> 🔍 Sections: {done sections} ✅ / {remaining sections} ⬜
+>
+> Where do you want to continue?"
+
+Wait for inspector to direct which section/area to resume from. Do not assume or auto-advance.
 - If inspector wants a new project → proceed to Step 2
 
 #### Branch B — Nothing found
@@ -247,20 +285,38 @@ Default when no severity given: `MONITOR`.
 
 ### Section 1 — Site & Ground (`SITE`)
 
-> "📍 **Site & Ground** — let's start outside."
+> "📍 **Site & Ground** — let's start outside.
+>
+> Categories:
+> 1️⃣ Topography & Drainage
+> 2️⃣ Boundaries & Retaining
+> 3️⃣ Fencing & Gates
+> 4️⃣ Access Paths & Driveways
+> 5️⃣ Garden & Landscaping
+>
+> Which do you want to start with?"
 
-Elements (one at a time):
+Inspector picks any order. For each category, cover the relevant elements:
 
-1. **Topography** — slope, drainage away from building, ponding
-2. **Boundaries** — fence lines, encroachments
-3. **Retaining walls** — height, condition, drainage behind
-4. **Fencing & gates** — condition, security
-5. **Access paths** — condition, slip hazard
-6. **Driveways** — surface, drainage, condition
-7. **Garden & landscaping** — proximity to cladding, vegetation contact
+- **Topography & Drainage** — slope, drainage away from building, ponding
+- **Boundaries & Retaining** — fence lines, encroachments; retaining wall height, condition, drainage behind
+- **Fencing & Gates** — condition, security
+- **Access Paths & Driveways** — condition, slip hazard, surface, drainage
+- **Garden & Landscaping** — proximity to cladding, vegetation contact
 
-For each:
-> "**{Element}** — what's the condition? (pass / [description] / skip)"
+After each category is submitted, show progress and remaining **names only** — no descriptions — then STOP:
+> "✅ {Done category 1}, {Done category 2}
+>
+> Still to go: {Remaining 1} · {Remaining 2} · {Remaining 3}
+>
+> Which next?"
+
+⛔ **STOP here. Do not ask about any specific category. Do not add any follow-up question. Wait silently for the inspector to reply.**
+
+When inspector names or picks a category, THEN prompt:
+> "**{Category}** — condition? (pass / [description] / skip)"
+
+Repeat after each category until all done or inspector says "done".
 
 ```bash
 curl -X POST "$API_URL/api/site-inspections/{INSPECTION_ID}/checklist-items" \
@@ -292,27 +348,36 @@ curl -X POST "$API_URL/api/site-inspections/{INSPECTION_ID}/section-conclusions"
 
 ### Section 2 — Exterior (`EXTERIOR`)
 
-> "🏠 **Exterior** — working around the building."
+> "🏠 **Exterior** — working around the building.
+>
+> Categories:
+> 1️⃣ Roof
+> 2️⃣ Cladding & Sealants
+> 3️⃣ Joinery
+> 4️⃣ Foundation
+>
+> Which do you want to start with?"
 
-**Roof:**
-1. Roof covering — type, condition, damage
-2. Roof structure — sagging, visible damage
-3. Flashings — ridges, hips, penetrations
-4. Gutters — rust, leaks, blockages, falls
-5. Downpipes — connected, discharging correctly
+Inspector picks any order. For each category, cover the relevant elements:
 
-**Cladding:**
-6. Cladding type & condition — cracks, gaps, weathertightness, paint
-7. Penetrations & sealants — around windows, pipes, service entries
-8. Cladding/wall junctions — sealed, flashed
+- **Roof** — covering type/condition/damage; structure sagging; flashings; gutters; downpipes
+- **Cladding & Sealants** — cladding type/condition; penetrations/sealants; wall junctions
+- **Joinery** — glazing type; hardware/operation; window restrictors
+- **Foundation** — type, condition, cracking, settlement, moisture
 
-**Joinery:**
-9. Glazing type — single/double/thermally broken
-10. Hardware & operation — latches, hinges, locks
-11. Restrictors — present on upper floor windows
+After each category, show progress **names only** — no descriptions — then STOP:
+> "✅ {Done category 1}, {Done category 2}
+>
+> Still to go: {Remaining 1} · {Remaining 2}
+>
+> Which next?"
 
-**Foundation:**
-12. Foundation type & condition — cracking, settlement, moisture
+⛔ **STOP here. Do not ask about any specific category. Wait for inspector to reply.**
+
+When inspector picks a category, THEN prompt:
+> "**{Category}** — what did you find? (pass / [description] / skip)"
+
+Repeat after each until all done or inspector says "done".
 
 Record each with `category: "EXTERIOR"` (no `room` field).
 
@@ -435,22 +500,42 @@ curl -X POST "$API_URL/api/site-inspections/{INSPECTION_ID}/section-conclusions"
 
 ### Section 4 — Services (`SERVICES`)
 
-> "🔌 **Services** — checking all building systems."
+> "🔌 **Services** — checking all building systems.
+>
+> Categories:
+> 1️⃣ Electrical (power, internet)
+> 2️⃣ Plumbing (water supply, hot water, drainage)
+> 3️⃣ Gas
+> 4️⃣ Safety (smoke alarms, security)
+> 5️⃣ Comfort (ventilation, heat pump)
+> 6️⃣ Stormwater
+>
+> Which do you want to start with?"
 
-1. Power — switchboard, RCDs, visible wiring
-2. Internet / fibre — connection type, install quality
-3. Water supply (potable) — pressure, pipe condition
-4. Water supply (non-potable) — tank, pump, treatment
-5. Hot water — type, condition, temperature relief valve
-6. Gas — meter, pipework, appliances
-7. Drainage — waste pipes, access, condition
-8. Security system — type, condition (not tested)
-9. Smoke alarms — present, location, type, tested
-10. Ventilation — bathroom/kitchen extractors, HRV/DVS
-11. Heat pump — present, type, condition
-12. Stormwater — downpipe connections, soakage, discharge
+Inspector picks any order. For each category:
 
-Note limitations (e.g. gas not testable if disconnected; stormwater impractical with <3 days rain).
+- **Electrical** — switchboard, RCDs, visible wiring; internet/fibre install quality
+- **Plumbing** — water supply pressure/condition; non-potable tank/pump; hot water type/condition/TRV; drainage waste pipes/access
+- **Gas** — meter, pipework, appliances (note if disconnected/untestable)
+- **Safety** — smoke alarms present/location/type/tested; security system type/condition
+- **Comfort** — bathroom/kitchen extractors, HRV/DVS; heat pump type/condition
+- **Stormwater** — downpipe connections, soakage, discharge (note if <3 days rain)
+
+After each category, show progress **names only** — no descriptions — then STOP:
+> "✅ {Done category 1}, {Done category 2}
+>
+> Still to go: {Remaining 1} · {Remaining 2}
+>
+> Which next?"
+
+⛔ **STOP here. Do not ask about any specific category. Wait for inspector to reply.**
+
+When inspector picks a category, THEN prompt:
+> "**{Category}** — what did you find? (pass / [description] / skip)"
+
+Repeat after each until all done or inspector says "done".
+
+Note limitations per category as applicable.
 
 **Section conclusion:**
 
@@ -594,6 +679,7 @@ curl "$API_URL/api/site-inspections/{INSPECTION_ID}" \
 4. **Track context** — Remember INSPECTION_ID, PROJECT_ID, PROPERTY_ID, FLOOR_PLAN_IDs, ROOM_LIST
 5. **Handle photos** — Convert WhatsApp images to base64 for API
 6. **Floor plan is the spine** — Walk interior in floor plan order
+9. **Category-led sections** — Present category menu at section start; inspector picks order based on site convenience. Never force a fixed sequence.
 7. **Moisture inline** — Capture readings immediately, never defer
 8. **One conclusion per section** — Always prompt before moving on
 

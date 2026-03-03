@@ -1,10 +1,8 @@
-import { getApiUrl } from '@/lib/api-url';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { auth } from '@/auth';
+import { getServerToken, serverFetch } from '@/lib/server-api';
 import { ProjectSections } from './project-sections';
 
-const API_URL = getApiUrl();
 
 interface ProjectPageProps {
   params: Promise<{ id: string }>;
@@ -79,21 +77,7 @@ interface Project {
 
 async function getProject(id: string, token?: string): Promise<Project | null> {
   try {
-    const response = await fetch(`${API_URL}/api/projects/${id}`, {
-      cache: 'no-store',
-      headers: {
-        ...(token && { Authorization: `Bearer ${token}` }),
-      },
-    });
-
-    if (!response.ok) {
-      if (response.status === 404) {
-        return null;
-      }
-      throw new Error(`Failed to fetch project: ${response.status}`);
-    }
-
-    return response.json();
+    return await serverFetch<Project>(`/api/projects/${id}`, token);
   } catch (error) {
     console.error('Error fetching project:', error);
     return null;
@@ -124,8 +108,7 @@ const REPORT_TYPE_LABELS: Record<string, string> = {
 
 export async function generateMetadata({ params }: ProjectPageProps): Promise<{ title: string }> {
   const { id } = await params;
-  const session = await auth();
-  const token = (session as { apiToken?: string } | null)?.apiToken;
+  const token = await getServerToken();
   const project = await getProject(id, token);
   
   if (!project) {
@@ -139,8 +122,7 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<{ 
 
 export default async function ProjectPage({ params }: ProjectPageProps): Promise<React.ReactElement> {
   const { id } = await params;
-  const session = await auth();
-  const token = (session as { apiToken?: string } | null)?.apiToken;
+  const token = await getServerToken();
   const project = await getProject(id, token);
 
   if (!project) {

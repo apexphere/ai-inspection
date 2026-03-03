@@ -8,6 +8,7 @@ done
 sleep 2
 
 echo "Postgres ready. Running migrations..."
+mkdir -p /app/uploads /app/data/uploads
 /workspace/node_modules/.bin/prisma migrate deploy --schema=prisma/schema.prisma
 
 echo "Seeding test data..."

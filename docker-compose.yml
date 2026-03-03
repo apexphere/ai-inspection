@@ -48,6 +48,7 @@ services:
       - ./node_modules:/workspace/node_modules
       - ./test:/workspace/test
       - api_uploads:/app/uploads
+      - ./data/uploads:/app/data/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -66,9 +67,9 @@ services:
       - "3001:3001"
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:3000
+      API_INTERNAL_URL: http://api:3000
       AUTH_SECRET: ${AUTH_SECRET:-dev-auth-secret}
       NEXTAUTH_URL: http://localhost:3001
-      API_INTERNAL_URL: http://api:3000
       NODE_ENV: development
     volumes:
       - ./web:/app/web

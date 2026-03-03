@@ -1,8 +1,7 @@
-import { getApiUrl } from '@/lib/api-url';
+import { getServerToken, serverFetch, serverFetchList } from '@/lib/server-api';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 
-const API_URL = getApiUrl();
 
 interface PageProps {
   params: Promise<{ id: string; iid: string }>;
@@ -67,38 +66,23 @@ const DECISION_COLORS: Record<string, string> = {
   NA: 'text-gray-400',
 };
 
-async function getSiteInspection(id: string): Promise<SiteInspection | null> {
-  const response = await fetch(`${API_URL}/api/site-inspections/${id}`, {
-    cache: 'no-store',
-  });
-  if (!response.ok) return null;
-  return response.json();
+async function getSiteInspection(id: string, token?: string): Promise<SiteInspection | null> {
+  return serverFetch<SiteInspection>(`/api/site-inspections/${id}`, token);
 }
 
-async function getProject(id: string): Promise<Project | null> {
-  const response = await fetch(`${API_URL}/api/projects/${id}`, {
-    cache: 'no-store',
-  });
-  if (!response.ok) return null;
-  return response.json();
+async function getProject(id: string, token?: string): Promise<Project | null> {
+  return serverFetch<Project>(`/api/projects/${id}`, token);
 }
 
-async function getChecklistItems(inspectionId: string): Promise<ChecklistItem[]> {
-  const response = await fetch(
-    `${API_URL}/api/site-inspections/${inspectionId}/checklist-items`,
-    { cache: 'no-store' }
+async function getChecklistItems(inspectionId: string, token?: string): Promise<ChecklistItem[]> {
+  return serverFetchList<ChecklistItem>(`/api/site-inspections/${inspectionId}/checklist-items`, token);
+}
+
+async function getClauseReviews(inspectionId: string, token?: string): Promise<ClauseReview[]> {
+  const data = await serverFetch<ClauseReview[] | { reviews: ClauseReview[] }>(
+    `/api/site-inspections/${inspectionId}/clause-reviews`, token
   );
-  if (!response.ok) return [];
-  return response.json();
-}
-
-async function getClauseReviews(inspectionId: string): Promise<ClauseReview[]> {
-  const response = await fetch(
-    `${API_URL}/api/site-inspections/${inspectionId}/clause-reviews`,
-    { cache: 'no-store' }
-  );
-  if (!response.ok) return [];
-  const data = await response.json();
+  if (!data) return [];
   return Array.isArray(data) ? data : data.reviews ?? [];
 }
 
@@ -121,24 +105,27 @@ function groupBy<T>(arr: T[], key: (item: T) => string): Record<string, T[]> {
 
 export async function generateMetadata({ params }: PageProps): Promise<{ title: string }> {
   const { iid } = await params;
-  const inspection = await getSiteInspection(iid);
+  const token = await getServerToken();
+  const inspection = await getSiteInspection(iid, token);
   if (!inspection) return { title: 'Inspection Not Found | AI Inspection' };
   return { title: `${inspection.stage} Inspection | AI Inspection` };
 }
 
 export default async function InspectionDetailPage({ params }: PageProps): Promise<React.ReactElement> {
   const { id, iid } = await params;
+  const token = await getServerToken();
+
   const [inspection, project] = await Promise.all([
-    getSiteInspection(iid),
-    getProject(id),
+    getSiteInspection(iid, token),
+    getProject(id, token),
   ]);
 
   if (!inspection) notFound();
 
   const isSimple = inspection.type === 'SIMPLE';
   const [checklistItems, clauseReviews] = await Promise.all([
-    isSimple ? getChecklistItems(iid) : Promise.resolve([]),
-    !isSimple ? getClauseReviews(iid) : Promise.resolve([]),
+    isSimple ? getChecklistItems(iid, token) : Promise.resolve([]),
+    !isSimple ? getClauseReviews(iid, token) : Promise.resolve([]),
   ]);
 
   const address = project?.property.streetAddress ?? id;
