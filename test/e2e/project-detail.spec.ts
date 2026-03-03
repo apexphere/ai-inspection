@@ -129,6 +129,17 @@ test.describe('Project Detail — Collapsible Sections', () => {
     await expect(page.getByRole('heading', { name: 'Site Data (BRANZ Maps)', level: 2 })).toBeVisible();
   });
 
+  test('should display Floor Plans section with thumbnails', async ({ authenticatedPage: page }) => {
+    await goToTestProject(page);
+
+    await expect(page.getByRole('heading', { name: 'Floor Plans', level: 2 })).toBeVisible();
+
+    const floorPlansSection = page.locator('#section-content-floor-plans');
+    const thumbnails = floorPlansSection.locator('img');
+    await expect(thumbnails.first()).toBeVisible();
+    await expect(thumbnails.first()).toHaveAttribute('src', /\/api\/photos\/.+\/file\?thumbnail=true/);
+  });
+
   test('should display Documents section', async ({ authenticatedPage: page }) => {
     await goToTestProject(page);
 

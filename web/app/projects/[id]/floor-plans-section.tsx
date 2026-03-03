@@ -70,9 +70,22 @@ export function FloorPlansSection({ projectId, authToken }: FloorPlansSectionPro
               <p className="text-xs text-gray-400 italic">No rooms listed</p>
             )}
             {plan.photoIds.length > 0 && (
-              <p className="mt-2 text-xs text-gray-400">
-                📎 {plan.photoIds.length} photo{plan.photoIds.length !== 1 ? 's' : ''}
-              </p>
+              <>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  {plan.photoIds.map((photoId) => (
+                    <img
+                      key={photoId}
+                      src={`${API_URL}/api/photos/${photoId}/file?thumbnail=true`}
+                      alt={plan.label || `Floor ${plan.floor}`}
+                      className="h-32 w-full rounded border border-gray-200 object-cover"
+                      loading="lazy"
+                    />
+                  ))}
+                </div>
+                <p className="mt-2 text-xs text-gray-400">
+                  📎 {plan.photoIds.length} photo{plan.photoIds.length !== 1 ? 's' : ''}
+                </p>
+              </>
             )}
           </div>
         ))}
