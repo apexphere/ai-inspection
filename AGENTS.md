@@ -87,13 +87,13 @@ bash scripts/kai-env-switch.sh railway  # point Kai at Railway test env
 - CD auto-deploys `develop` → Railway + Vercel on merge
 
 ### Workflow
-1. Pick up a GitHub Issue
+1. Pick up or create a GitHub Issue
 2. Branch off `develop`
 3. Implement + write/update tests
 4. Open PR → CI must pass
-5. Code review (Jordan, Quinn, Casey as appropriate)
-6. Merge → auto-deploy → Casey tests in staging
-7. Close issue when `tested-pass` confirmed
+5. Code review — at least one approval required
+6. Merge → auto-deploy to staging
+7. Close issue when DoD is met
 
 ---
 
@@ -102,7 +102,7 @@ bash scripts/kai-env-switch.sh railway  # point Kai at Railway test env
 A piece of work is **done** when all of the following are true:
 
 - [ ] **Code complete** — feature works as described in the issue
-- [ ] **Tests written** — unit tests for new logic; E2E test for new user-facing flows
+- [ ] **Tests written** — unit tests for new logic; E2E test for new user-facing flows; coverage must not decrease
 - [ ] **CI green** — lint, typecheck, build, and all tests pass
 - [ ] **PR reviewed** — at least one reviewer approved
 - [ ] **Deployed** — merged to `develop`, Railway + Vercel deploy succeeded
