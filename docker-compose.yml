@@ -46,6 +46,7 @@ services:
       - ./api/docker-entrypoint.sh:/app/docker-entrypoint.sh
       - ./node_modules:/workspace/node_modules
       - ./test:/workspace/test
+      - api_uploads:/app/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -77,3 +78,4 @@ services:
 
 volumes:
   pgdata:
+  api_uploads:
