@@ -67,9 +67,9 @@ services:
       - "3001:3001"
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:3000
+      API_INTERNAL_URL: http://api:3000
       AUTH_SECRET: ${AUTH_SECRET:-dev-auth-secret}
       NEXTAUTH_URL: http://localhost:3001
-      API_INTERNAL_URL: http://api:3000
       NODE_ENV: development
     volumes:
       - ./web:/app/web
