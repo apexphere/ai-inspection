@@ -1,5 +1,5 @@
 import { getApiUrl } from '@/lib/api-url';
-import { auth } from '@/auth';
+import { getServerToken } from '@/lib/server-api';
 import { ServiceKeysClient } from './service-keys-client';
 
 const API_URL = getApiUrl();
@@ -28,9 +28,7 @@ async function getServiceKeys(token: string): Promise<ServiceKey[]> {
 }
 
 export default async function ServiceKeysPage(): Promise<React.ReactElement> {
-  const session = await auth();
-  // @ts-expect-error apiToken is added via extended session
-  const token: string = session?.apiToken ?? '';
+  const token = await getServerToken() ?? '';
 
   const keys = await getServiceKeys(token);
 
