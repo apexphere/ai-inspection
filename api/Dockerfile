@@ -1,34 +1,58 @@
-# Build stage
-FROM node:22-alpine AS builder
+# Development stage — uses host node_modules via volume mount
+FROM casey-api:latest AS dev
+
 
 WORKDIR /app
 
-# Copy package files
+ENV NODE_ENV=development
+ENV PORT=3000
+
+EXPOSE 3000
+
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
+CMD ["/workspace/node_modules/.bin/tsx", "watch", "src/index.ts"]
+
+# Copy package files and prisma schema
 COPY package*.json ./
 COPY prisma ./prisma/
 
-# Install dependencies (postinstall runs prisma generate)
+# Install all deps (including devDependencies)
 RUN npm install
 
-# Copy source
-COPY . .
+# Source is volume-mounted at runtime — no COPY needed
+# Migrations + seed run via entrypoint script
 
-# Build TypeScript
-RUN npm run build
+ENV NODE_ENV=development
+ENV PORT=3000
 
-# Production stage
-FROM node:22-alpine
+EXPOSE 3000
+
+CMD ["/workspace/node_modules/.bin/tsx", "watch", "src/index.ts"]
+
+# ─── Build stage ──────────────────────────────────────────────────────────────
+FROM casey-api:latest AS builder
 
 WORKDIR /app
 
-# Copy built files
+COPY package*.json ./
+COPY prisma ./prisma/
+
+RUN npm install
+
+COPY . .
+RUN npm run build
+
+# ─── Production stage ─────────────────────────────────────────────────────────
+FROM casey-api:latest AS production
+
+WORKDIR /app
+
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
 
-# Set environment
 ENV NODE_ENV=production
 ENV PORT=3000
 

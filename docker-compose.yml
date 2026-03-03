@@ -1,83 +1,78 @@
 services:
-  api:
-    build: ./api
-    container_name: ai-inspection-api
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
+  postgres:
+    image: postgres:16-alpine
     environment:
-      - NODE_ENV=development
-      - DATABASE_URL=postgresql://inspection:inspection@db:5432/inspection
-      - REDIS_URL=redis://redis:6379
-      - PHOTO_DIR=/app/photos
+      POSTGRES_USER: ${POSTGRES_USER:-dev}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devpassword}
+      POSTGRES_DB: ${POSTGRES_DB:-ai_inspection}
+    ports:
+      - "5433:5432"
     volumes:
-      - photos:/app/photos
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/health').then(r => process.exit(r.ok ? 0 : 1))"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 15s
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-dev} -d ${POSTGRES_DB:-ai_inspection}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   redis:
     image: redis:7-alpine
-    container_name: ai-inspection-redis
-    restart: unless-stopped
     ports:
       - "6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
+      interval: 5s
       timeout: 5s
-      retries: 5
-      start_period: 5s
+      retries: 10
 
-  db:
-    image: postgres:16-alpine
-    container_name: ai-inspection-db
-    restart: unless-stopped
-    environment:
-      - POSTGRES_USER=inspection
-      - POSTGRES_PASSWORD=inspection
-      - POSTGRES_DB=inspection
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U inspection -d inspection"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-
-  mcp:
+  api:
     build:
-      context: ./mcp
-      dockerfile: Dockerfile
-    container_name: ai-inspection-mcp
-    restart: unless-stopped
+      context: ./api
+      target: dev
     ports:
-      - "${MCP_PORT:-3100}:3100"
-    volumes:
-      - ./data:/app/data
-      - ./config:/app/config:ro
+      - "3000:3000"
     environment:
-      - NODE_ENV=production
-      - DATA_DIR=/app/data
-      - CONFIG_DIR=/app/config
-    healthcheck:
-      test: ["CMD", "node", "-e", "console.log('ok')"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
+      DATABASE_URL: postgresql://${POSTGRES_USER:-dev}:${POSTGRES_PASSWORD:-devpassword}@postgres:5432/${POSTGRES_DB:-ai_inspection}
+      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret}
+      REDIS_URL: redis://redis:6379
+      NODE_ENV: development
+      PORT: 3000
+      TEST_PASSWORD: ${TEST_PASSWORD:-test123}
+    volumes:
+      - ./api/src:/app/src
+      - ./api/prisma:/app/prisma
+      - ./api/package.json:/app/package.json
+      - ./api/docker-entrypoint.sh:/app/docker-entrypoint.sh
+      - ./node_modules:/workspace/node_modules
+      - ./test:/workspace/test
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    entrypoint: ["/app/docker-entrypoint.sh"]
+    command: ["/workspace/node_modules/.bin/tsx", "watch", "src/index.ts"]
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+      target: dev
+    ports:
+      - "3001:3001"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3000
+      AUTH_SECRET: ${AUTH_SECRET:-dev-auth-secret}
+      NEXTAUTH_URL: http://localhost:3001
+      NODE_ENV: development
+    volumes:
+      - ./web:/app/web
+      - ./shared:/app/shared
+      - ./node_modules:/app/node_modules
+    depends_on:
+      - api
+    restart: unless-stopped
 
 volumes:
   pgdata:
-  photos:
