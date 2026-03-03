@@ -615,8 +615,8 @@ curl "$API_URL/api/site-inspections/{INSPECTION_ID}" \
 | Add checklist item | POST | `/api/site-inspections/{id}/checklist-items` |
 | Get checklist summary | GET | `/api/site-inspections/{id}/checklist-summary` |
 | Add moisture reading | POST | `/api/site-inspections/{id}/moisture-readings` |
-| Add floor plan | POST | `/api/site-inspections/{id}/floor-plans` |
-| Get floor plans | GET | `/api/site-inspections/{id}/floor-plans` |
+| Add floor plan | POST | `/api/projects/{PROJECT_ID}/floor-plans` |
+| Get floor plans | GET | `/api/projects/{PROJECT_ID}/floor-plans` |
 | Set section conclusion | POST | `/api/site-inspections/{id}/section-conclusions` |
 | Get section conclusions | GET | `/api/site-inspections/{id}/section-conclusions` |
 | Add floor level survey | POST | `/api/site-inspections/{id}/floor-level-surveys` |
