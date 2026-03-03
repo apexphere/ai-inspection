@@ -1,4 +1,5 @@
 import { getApiUrl } from '@/lib/api-url';
+import { auth } from '@/auth';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 
@@ -67,35 +68,37 @@ const DECISION_COLORS: Record<string, string> = {
   NA: 'text-gray-400',
 };
 
-async function getSiteInspection(id: string): Promise<SiteInspection | null> {
+async function getSiteInspection(id: string, token?: string): Promise<SiteInspection | null> {
   const response = await fetch(`${API_URL}/api/site-inspections/${id}`, {
     cache: 'no-store',
+    headers: { ...(token && { Authorization: `Bearer ${token}` }) },
   });
   if (!response.ok) return null;
   return response.json();
 }
 
-async function getProject(id: string): Promise<Project | null> {
+async function getProject(id: string, token?: string): Promise<Project | null> {
   const response = await fetch(`${API_URL}/api/projects/${id}`, {
     cache: 'no-store',
+    headers: { ...(token && { Authorization: `Bearer ${token}` }) },
   });
   if (!response.ok) return null;
   return response.json();
 }
 
-async function getChecklistItems(inspectionId: string): Promise<ChecklistItem[]> {
+async function getChecklistItems(inspectionId: string, token?: string): Promise<ChecklistItem[]> {
   const response = await fetch(
     `${API_URL}/api/site-inspections/${inspectionId}/checklist-items`,
-    { cache: 'no-store' }
+    { cache: 'no-store', headers: { ...(token && { Authorization: `Bearer ${token}` }) } }
   );
   if (!response.ok) return [];
   return response.json();
 }
 
-async function getClauseReviews(inspectionId: string): Promise<ClauseReview[]> {
+async function getClauseReviews(inspectionId: string, token?: string): Promise<ClauseReview[]> {
   const response = await fetch(
     `${API_URL}/api/site-inspections/${inspectionId}/clause-reviews`,
-    { cache: 'no-store' }
+    { cache: 'no-store', headers: { ...(token && { Authorization: `Bearer ${token}` }) } }
   );
   if (!response.ok) return [];
   const data = await response.json();
@@ -121,24 +124,29 @@ function groupBy<T>(arr: T[], key: (item: T) => string): Record<string, T[]> {
 
 export async function generateMetadata({ params }: PageProps): Promise<{ title: string }> {
   const { iid } = await params;
-  const inspection = await getSiteInspection(iid);
+  const session = await auth();
+  const token = (session as { apiToken?: string } | null)?.apiToken;
+  const inspection = await getSiteInspection(iid, token);
   if (!inspection) return { title: 'Inspection Not Found | AI Inspection' };
   return { title: `${inspection.stage} Inspection | AI Inspection` };
 }
 
 export default async function InspectionDetailPage({ params }: PageProps): Promise<React.ReactElement> {
   const { id, iid } = await params;
+  const session = await auth();
+  const token = (session as { apiToken?: string } | null)?.apiToken;
+
   const [inspection, project] = await Promise.all([
-    getSiteInspection(iid),
-    getProject(id),
+    getSiteInspection(iid, token),
+    getProject(id, token),
   ]);
 
   if (!inspection) notFound();
 
   const isSimple = inspection.type === 'SIMPLE';
   const [checklistItems, clauseReviews] = await Promise.all([
-    isSimple ? getChecklistItems(iid) : Promise.resolve([]),
-    !isSimple ? getClauseReviews(iid) : Promise.resolve([]),
+    isSimple ? getChecklistItems(iid, token) : Promise.resolve([]),
+    !isSimple ? getClauseReviews(iid, token) : Promise.resolve([]),
   ]);
 
   const address = project?.property.streetAddress ?? id;
