@@ -3,22 +3,21 @@ FROM node:22-alpine AS dev
 
 WORKDIR /app
 
-# Copy package files and prisma schema
+# Install deps from monorepo root
 COPY package*.json ./
-COPY prisma ./prisma/
+COPY shared ./shared/
+COPY web/package*.json ./web/
 
-# Install all deps (including devDependencies)
 RUN npm install
 
-# Source is volume-mounted at runtime — no COPY needed
-# Migrations + seed run via entrypoint script
-
+# Source is volume-mounted at runtime
 ENV NODE_ENV=development
-ENV PORT=3000
+ENV PORT=3001
 
-EXPOSE 3000
+EXPOSE 3001
 
-CMD ["npx", "tsx", "watch", "src/index.ts"]
+WORKDIR /app/web
+CMD ["npm", "run", "dev", "--", "-p", "3001"]
 
 # ─── Build stage ──────────────────────────────────────────────────────────────
 FROM node:22-alpine AS builder
@@ -26,27 +25,26 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 
 COPY package*.json ./
-COPY prisma ./prisma/
+COPY shared ./shared/
+COPY web ./web/
 
 RUN npm install
-
-COPY . .
-RUN npm run build
+RUN npm run build --workspace=shared
+RUN npm run build --workspace=web
 
 # ─── Production stage ─────────────────────────────────────────────────────────
 FROM node:22-alpine AS production
 
-WORKDIR /app
+WORKDIR /app/web
 
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/tsconfig.json ./tsconfig.json
+COPY --from=builder /app/web/.next ./.next
+COPY --from=builder /app/web/public ./public
+COPY --from=builder /app/web/package*.json ./
+COPY --from=builder /app/web/node_modules ./node_modules
 
 ENV NODE_ENV=production
-ENV PORT=3000
+ENV PORT=3001
 
-EXPOSE 3000
+EXPOSE 3001
 
-CMD ["node", "dist/index.js"]
+CMD ["npm", "start"]
