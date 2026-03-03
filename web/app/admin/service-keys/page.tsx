@@ -1,7 +1,8 @@
+import { getApiUrl } from '@/lib/api-url';
 import { auth } from '@/auth';
 import { ServiceKeysClient } from './service-keys-client';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const API_URL = getApiUrl();
 
 interface ServiceKey {
   id: string;
