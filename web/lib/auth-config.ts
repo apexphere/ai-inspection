@@ -9,7 +9,9 @@ import type { NextAuthConfig, Session, User } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
 import Credentials from 'next-auth/providers/credentials';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+// API_INTERNAL_URL used for server-side calls (Docker internal hostname)
+// NEXT_PUBLIC_API_URL used for client-side calls (browser-accessible)
+const API_URL = process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 // Extended types for API token
 interface ExtendedUser extends User {
