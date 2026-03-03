@@ -1,6 +1,6 @@
 ---
 name: building-inspection
-version: 3.4.1
+version: 3.4.2
 description: Guide building inspectors through property inspections via WhatsApp. Supports PPI, COA, CCC, and Safe & Sanitary inspection types. Always searches for existing property/project before creating new ones.
 ---
 
@@ -266,13 +266,22 @@ Inspector picks any order. For each category, cover the relevant elements:
 - **Access Paths & Driveways** — condition, slip hazard, surface, drainage
 - **Garden & Landscaping** — proximity to cladding, vegetation contact
 
-After each category is submitted, show the remaining categories and ask what's next:
-> "Got it. Remaining: 2️⃣ Boundaries & Retaining, 3️⃣ Fencing & Gates, 4️⃣ Access Paths & Driveways, 5️⃣ Garden & Landscaping — which next?"
+After each category is submitted, show what's covered and what's remaining — then stop and wait:
+> "✅ Covered: {done list}
+>
+> Still to go:
+> • {Remaining category 1}
+> • {Remaining category 2}
+> ...
+>
+> Which next? (or 'done' to wrap up)"
 
-When inspector picks a category:
+**Do NOT ask about a specific category.** Wait for the inspector to choose.
+
+When inspector names or picks a category:
 > "**{Category}** — what's the condition? (pass / [description] / skip)"
 
-Keep presenting the remaining menu after each until all are covered. Inspector can say "done" to skip remaining categories and move to section conclusion.
+Keep presenting the remaining menu after each until all are covered or inspector says "done".
 
 ```bash
 curl -X POST "$API_URL/api/site-inspections/{INSPECTION_ID}/checklist-items" \
@@ -321,13 +330,21 @@ Inspector picks any order. For each category, cover the relevant elements:
 - **Joinery** — glazing type; hardware/operation; window restrictors
 - **Foundation** — type, condition, cracking, settlement, moisture
 
-After each category, show remaining and ask what's next:
-> "Got it. Remaining: [list remaining categories] — which next?"
+After each category, show covered/remaining and wait:
+> "✅ Covered: {done list}
+>
+> Still to go:
+> • {Remaining category 1}
+> ...
+>
+> Which next? (or 'done' to wrap up)"
+
+**Do NOT ask about a specific category.** Wait for the inspector to choose.
 
 When inspector picks a category:
 > "**{Category}** — what did you find? (pass / [description] / skip)"
 
-Keep presenting remaining menu after each until all covered. Inspector can say "done" to skip to section conclusion.
+Keep presenting remaining menu after each until all covered or inspector says "done".
 
 Record each with `category: "EXTERIOR"` (no `room` field).
 
@@ -471,13 +488,21 @@ Inspector picks any order. For each category:
 - **Comfort** — bathroom/kitchen extractors, HRV/DVS; heat pump type/condition
 - **Stormwater** — downpipe connections, soakage, discharge (note if <3 days rain)
 
-After each category, show remaining and ask what's next:
-> "Got it. Remaining: [list remaining categories] — which next?"
+After each category, show covered/remaining and wait:
+> "✅ Covered: {done list}
+>
+> Still to go:
+> • {Remaining category 1}
+> ...
+>
+> Which next? (or 'done' to wrap up)"
+
+**Do NOT ask about a specific category.** Wait for the inspector to choose.
 
 When inspector picks a category:
 > "**{Category}** — what did you find? (pass / [description] / skip)"
 
-Keep presenting remaining menu after each until all covered. Inspector can say "done" to skip to section conclusion.
+Keep presenting remaining menu after each until all covered or inspector says "done".
 
 Note limitations per category as applicable.
 
