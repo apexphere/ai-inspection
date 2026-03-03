@@ -92,6 +92,24 @@ app.use(PinoHttp({
   },
   customSuccessMessage: (req, res) => `${req.method} ${req.url} ${res.statusCode}`,
   customErrorMessage: (req, res) => `${req.method} ${req.url} ${res.statusCode}`,
+  // In development: log request bodies and actor for easier debugging
+  ...(process.env.NODE_ENV === 'development' && {
+    serializers: {
+      req(req) {
+        return {
+          method: req.method,
+          url: req.url,
+          actor: req.headers['x-api-key'] ? `svc:${String(req.headers['x-api-key']).slice(0, 10)}` : 'user',
+          body: req.raw?.body,
+        };
+      },
+      res(res) {
+        return {
+          statusCode: res.statusCode,
+        };
+      },
+    },
+  }),
 }));
 
 // Public routes (no auth required)

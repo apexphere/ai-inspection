@@ -38,6 +38,7 @@ services:
       ADMIN_USER_IDS: 85e7d6fb-d22a-4204-9997-8a398e2aadf9
       NODE_ENV: development
       PORT: 3000
+      LOG_LEVEL: debug
       TEST_PASSWORD: ${TEST_PASSWORD:-test123}
     volumes:
       - ./api/src:/app/src
