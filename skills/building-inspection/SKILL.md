@@ -1,6 +1,6 @@
 ---
 name: building-inspection
-version: 3.3.0
+version: 3.3.1
 description: Guide building inspectors through property inspections via WhatsApp. Supports PPI, COA, CCC, and Safe & Sanitary inspection types. Always searches for existing property/project before creating new ones.
 ---
 
