@@ -6,11 +6,21 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devpassword}
       POSTGRES_DB: ${POSTGRES_DB:-ai_inspection}
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-dev}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-dev} -d ${POSTGRES_DB:-ai_inspection}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -24,19 +34,24 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-dev}:${POSTGRES_PASSWORD:-devpassword}@postgres:5432/${POSTGRES_DB:-ai_inspection}
       JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret}
+      REDIS_URL: redis://redis:6379
       NODE_ENV: development
       PORT: 3000
       TEST_PASSWORD: ${TEST_PASSWORD:-test123}
     volumes:
       - ./api/src:/app/src
       - ./api/prisma:/app/prisma
+      - ./api/package.json:/app/package.json
+      - ./api/docker-entrypoint.sh:/app/docker-entrypoint.sh
+      - ./node_modules:/workspace/node_modules
       - ./test:/workspace/test
-      - /app/node_modules
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     entrypoint: ["/app/docker-entrypoint.sh"]
-    command: ["npx", "tsx", "watch", "src/index.ts"]
+    command: ["/workspace/node_modules/.bin/tsx", "watch", "src/index.ts"]
     restart: unless-stopped
 
   web:

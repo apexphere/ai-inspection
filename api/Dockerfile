@@ -1,7 +1,16 @@
-# ─── Development stage ────────────────────────────────────────────────────────
-FROM node:22-alpine AS dev
+# Development stage — uses host node_modules via volume mount
+FROM casey-api:latest AS dev
+
 
 WORKDIR /app
+
+ENV NODE_ENV=development
+ENV PORT=3000
+
+EXPOSE 3000
+
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
+CMD ["/workspace/node_modules/.bin/tsx", "watch", "src/index.ts"]
 
 # Copy package files and prisma schema
 COPY package*.json ./
@@ -18,10 +27,10 @@ ENV PORT=3000
 
 EXPOSE 3000
 
-CMD ["npx", "tsx", "watch", "src/index.ts"]
+CMD ["/workspace/node_modules/.bin/tsx", "watch", "src/index.ts"]
 
 # ─── Build stage ──────────────────────────────────────────────────────────────
-FROM node:22-alpine AS builder
+FROM casey-api:latest AS builder
 
 WORKDIR /app
 
@@ -34,7 +43,7 @@ COPY . .
 RUN npm run build
 
 # ─── Production stage ─────────────────────────────────────────────────────────
-FROM node:22-alpine AS production
+FROM casey-api:latest AS production
 
 WORKDIR /app
 

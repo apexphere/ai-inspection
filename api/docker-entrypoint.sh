@@ -8,10 +8,10 @@ done
 sleep 2
 
 echo "Postgres ready. Running migrations..."
-npx prisma migrate deploy --schema=prisma/schema.prisma
+/workspace/node_modules/.bin/prisma migrate deploy --schema=prisma/schema.prisma
 
 echo "Seeding test data..."
-cd /workspace/test && DATABASE_URL="$DATABASE_URL" TEST_PASSWORD="${TEST_PASSWORD:-test123}" npx tsx scripts/seed-test-env.ts 2>/dev/null || true
+cd /workspace/test && DATABASE_URL="$DATABASE_URL" TEST_PASSWORD="${TEST_PASSWORD:-test123}" /workspace/node_modules/.bin/tsx scripts/seed-test-env.ts 2>/dev/null || true
 cd /app
 
 echo "Starting API..."
