@@ -25,9 +25,12 @@ async function seedTestUser(): Promise<void> {
   const password = process.env.TEST_PASSWORD || DEFAULT_TEST_PASSWORD;
   const passwordHash = await bcrypt.hash(password, 12);
 
+  // Fixed UUID so ADMIN_USER_IDS in docker-compose always matches
+  const TEST_USER_ID = '00000000-0000-0000-0000-000000000001';
   const user = await prisma.user.upsert({
     where: { email: TEST_EMAIL },
     create: {
+      id: TEST_USER_ID,
       email: TEST_EMAIL,
       passwordHash,
     },
