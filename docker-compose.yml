@@ -69,7 +69,6 @@ services:
     volumes:
       - ./web:/app/web
       - ./shared:/app/shared
-      - ./node_modules:/app/node_modules
     depends_on:
       - api
     restart: unless-stopped
