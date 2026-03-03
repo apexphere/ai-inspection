@@ -81,4 +81,3 @@ services:
 volumes:
   pgdata:
   api_uploads:
-  api_data_uploads:
