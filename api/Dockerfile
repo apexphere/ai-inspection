@@ -1,5 +1,5 @@
 # Development stage — uses host node_modules via volume mount
-FROM casey-api:latest AS dev
+FROM node:20-alpine AS dev
 
 
 WORKDIR /app
@@ -30,7 +30,7 @@ EXPOSE 3000
 CMD ["/workspace/node_modules/.bin/tsx", "watch", "src/index.ts"]
 
 # ─── Build stage ──────────────────────────────────────────────────────────────
-FROM casey-api:latest AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
@@ -43,7 +43,7 @@ COPY . .
 RUN npm run build
 
 # ─── Production stage ─────────────────────────────────────────────────────────
-FROM casey-api:latest AS production
+FROM node:20-alpine AS production
 
 WORKDIR /app
 

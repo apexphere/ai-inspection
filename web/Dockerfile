@@ -1,5 +1,5 @@
 # Development stage
-FROM casey-api:latest AS dev
+FROM node:20-alpine AS dev
 
 WORKDIR /app
 
