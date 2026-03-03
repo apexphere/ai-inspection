@@ -1,6 +1,6 @@
 ---
 name: building-inspection
-version: 3.5.0
+version: 3.4.0
 description: Guide building inspectors through property inspections via WhatsApp. Supports PPI, COA, CCC, and Safe & Sanitary inspection types. Always searches for existing property/project before creating new ones.
 ---
 
@@ -40,45 +40,7 @@ List them to the inspector:
 >
 > Continue one of these, or start a new project?"
 
-- If inspector picks an existing project → save as `PROJECT_ID` and its `propertyId` as `PROPERTY_ID`, then **immediately load full project state** by running all of these in parallel:
-
-```bash
-# 1. Floor plans
-curl "$API_URL/api/projects/{PROJECT_ID}/floor-plans" \
-  -H "X-API-Key: $API_SERVICE_KEY"
-
-# 2. Most recent inspection
-curl "$API_URL/api/projects/{PROJECT_ID}/inspections" \
-  -H "X-API-Key: $API_SERVICE_KEY"
-
-# 3. Upfront data already collected
-curl "$API_URL/api/project-requirements/{reportType}?projectId={PROJECT_ID}" \
-  -H "X-API-Key: $API_SERVICE_KEY"
-```
-
-Then if an inspection exists, also fetch:
-```bash
-# 4. Section conclusions (what sections are done)
-curl "$API_URL/api/site-inspections/{INSPECTION_ID}/section-conclusions" \
-  -H "X-API-Key: $API_SERVICE_KEY"
-
-# 5. Checklist summary (what items are recorded per section)
-curl "$API_URL/api/site-inspections/{INSPECTION_ID}/checklist-summary" \
-  -H "X-API-Key: $API_SERVICE_KEY"
-```
-
-Save `INSPECTION_ID`, all `FLOOR_PLAN_ID_{N}`, and build `ROOM_LIST` from floor plan rooms in floor order.
-
-Present a resume summary to the inspector:
-> "📋 **Picked up Job {jobNumber}**
->
-> 🗺 Floor plans: {N} floors — {room count} rooms
-> 📝 Upfront data: {collected items} ✅ / {missing items} ⬜
-> 🔍 Sections: {done sections} ✅ / {remaining sections} ⬜
->
-> Where do you want to continue?"
-
-Wait for inspector to direct which section/area to resume from. Do not assume or auto-advance.
+- If inspector picks an existing project → save as `PROJECT_ID` and its `propertyId` as `PROPERTY_ID`, skip to Step 5 (Create Site Inspection)
 - If inspector wants a new project → proceed to Step 2
 
 #### Branch B — Nothing found
@@ -304,19 +266,10 @@ Inspector picks any order. For each category, cover the relevant elements:
 - **Access Paths & Driveways** — condition, slip hazard, surface, drainage
 - **Garden & Landscaping** — proximity to cladding, vegetation contact
 
-After each category is submitted, show progress and remaining **names only** — no descriptions — then STOP:
-> "✅ {Done category 1}, {Done category 2}
->
-> Still to go: {Remaining 1} · {Remaining 2} · {Remaining 3}
->
-> Which next?"
+When inspector picks a category, prompt only for that category:
+> "**{Category}** — what's the condition? (pass / [description] / skip)"
 
-⛔ **STOP here. Do not ask about any specific category. Do not add any follow-up question. Wait silently for the inspector to reply.**
-
-When inspector names or picks a category, THEN prompt:
-> "**{Category}** — condition? (pass / [description] / skip)"
-
-Repeat after each category until all done or inspector says "done".
+Once all categories are done (inspector says "done" or Kai detects all covered), move to section conclusion.
 
 ```bash
 curl -X POST "$API_URL/api/site-inspections/{INSPECTION_ID}/checklist-items" \
@@ -365,19 +318,8 @@ Inspector picks any order. For each category, cover the relevant elements:
 - **Joinery** — glazing type; hardware/operation; window restrictors
 - **Foundation** — type, condition, cracking, settlement, moisture
 
-After each category, show progress **names only** — no descriptions — then STOP:
-> "✅ {Done category 1}, {Done category 2}
->
-> Still to go: {Remaining 1} · {Remaining 2}
->
-> Which next?"
-
-⛔ **STOP here. Do not ask about any specific category. Wait for inspector to reply.**
-
-When inspector picks a category, THEN prompt:
+When inspector picks a category:
 > "**{Category}** — what did you find? (pass / [description] / skip)"
-
-Repeat after each until all done or inspector says "done".
 
 Record each with `category: "EXTERIOR"` (no `room` field).
 
@@ -521,19 +463,8 @@ Inspector picks any order. For each category:
 - **Comfort** — bathroom/kitchen extractors, HRV/DVS; heat pump type/condition
 - **Stormwater** — downpipe connections, soakage, discharge (note if <3 days rain)
 
-After each category, show progress **names only** — no descriptions — then STOP:
-> "✅ {Done category 1}, {Done category 2}
->
-> Still to go: {Remaining 1} · {Remaining 2}
->
-> Which next?"
-
-⛔ **STOP here. Do not ask about any specific category. Wait for inspector to reply.**
-
-When inspector picks a category, THEN prompt:
+When inspector picks a category:
 > "**{Category}** — what did you find? (pass / [description] / skip)"
-
-Repeat after each until all done or inspector says "done".
 
 Note limitations per category as applicable.
 
