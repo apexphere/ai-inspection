@@ -121,7 +121,8 @@ test.describe('Projects Search & Filter', () => {
 
     // Clear the filter
     await statusSelect.selectOption('');
-    await page.waitForLoadState('networkidle');
+    // Wait for router.push to update the URL
+    await page.waitForURL(url => !url.toString().includes('status='), { timeout: 10000 });
 
     // URL should not have status param
     expect(page.url()).not.toContain('status=');

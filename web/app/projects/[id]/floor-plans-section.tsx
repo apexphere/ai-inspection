@@ -1,5 +1,5 @@
-import { getApiUrl } from '@/lib/api-url';
 'use client';
+import { getApiUrl } from '@/lib/api-url';
 
 import { useEffect, useState } from 'react';
 import { CollapsibleSection } from '@/components/collapsible-section';

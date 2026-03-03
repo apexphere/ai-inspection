@@ -147,7 +147,7 @@ test.describe('Project Detail — 404 Handling', () => {
     await page.goto('/projects/00000000-0000-0000-0000-000000000000');
     await page.waitForLoadState('networkidle');
 
-    // Next.js notFound() renders a 404 page
-    await expect(page.getByText(/not found/i)).toBeVisible({ timeout: 20000 });
+    // Next.js notFound() renders a 404 page — heading split across h1/h2 so match the 404 heading
+    await expect(page.getByRole('heading', { name: '404' })).toBeVisible({ timeout: 20000 });
   });
 });
