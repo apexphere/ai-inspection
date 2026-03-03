@@ -18,10 +18,12 @@ export function ProjectFilters(): React.ReactElement {
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const status = searchParams.get('status') || '';
 
-  // Debounce search input
+  // Debounce search input — only depend on search value, not searchParams,
+  // to avoid an infinite loop (push → searchParams change → push → ...)
   useEffect(() => {
     const timer = setTimeout(() => {
-      const params = new URLSearchParams(searchParams.toString());
+      // Read searchParams inside the timer to get current value without it being a dep
+      const params = new URLSearchParams(window.location.search);
       if (search) {
         params.set('search', search);
       } else {
@@ -31,7 +33,8 @@ export function ProjectFilters(): React.ReactElement {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [search, searchParams, router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
 
   const handleStatusChange = (newStatus: string): void => {
     const params = new URLSearchParams(searchParams.toString());

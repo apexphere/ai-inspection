@@ -1,7 +1,8 @@
+import { getApiUrl } from '@/lib/api-url';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const API_URL = getApiUrl();
 
 interface PageProps {
   params: Promise<{ id: string; iid: string }>;

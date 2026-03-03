@@ -1,3 +1,4 @@
+import { getApiUrl } from '@/lib/api-url';
 'use client';
 
 import { useState, useCallback } from 'react';
@@ -10,7 +11,7 @@ import { DocumentList, Document } from '@/components/document-list';
 import { BranzZoneSection } from './branz-zone-section';
 import { FloorPlansSection } from './floor-plans-section';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const API_URL = getApiUrl();
 
 interface Project {
   id: string;

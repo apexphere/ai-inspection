@@ -1,3 +1,4 @@
+import { getApiUrl } from '@/lib/api-url';
 'use client';
 
 import { useState, useCallback } from 'react';
@@ -5,7 +6,7 @@ import { CollapsibleSection } from '@/components/collapsible-section';
 import { SaveIndicator } from '@/components/save-indicator';
 import { useAutoSave } from '@/hooks/use-auto-save';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const API_URL = getApiUrl();
 
 interface BranzZoneData {
   climateZone: string;
