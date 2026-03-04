@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getServerToken, serverFetch, serverFetchList } from '@/lib/server-api';
 import { ProjectSections } from './project-sections';
+import { ReportActions } from './report-actions';
 
 
 interface ProjectPageProps {
