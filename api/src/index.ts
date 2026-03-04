@@ -6,13 +6,8 @@ import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { healthRouter } from './routes/health.js';
 import { authRouter } from './routes/auth.js';
-import { inspectionsRouter } from './routes/inspections.js';
-import { findingsRouter } from './routes/findings.js';
-import { photosRouter } from './routes/photos.js';
 import { photosPublicRouter } from './routes/photos-public.js';
-import { reportsRouter } from './routes/reports.js';
 import { reportManagementRouter } from './routes/report-management.js';
-import { navigationRouter } from './routes/navigation.js';
 import { projectsRouter } from './routes/projects.js';
 import { propertiesRouter } from './routes/properties.js';
 import { clientsRouter } from './routes/clients.js';
@@ -127,9 +122,6 @@ app.use('/api', serviceAuthMiddleware, requireScope('checklist:read'), checklist
 app.use('/api/building-code', serviceAuthMiddleware, requireScope('building-code:read'), buildingCodeRouter);
 app.use('/api', serviceAuthMiddleware, requireScope('clause-reviews:read'), clauseReviewsRouter);
 app.use('/api', serviceAuthMiddleware, requireScope('photos:read'), projectPhotosRouter);
-app.use('/api', serviceAuthMiddleware, requireScope('photos:read'), photosRouter);
-app.use('/api/inspections', serviceAuthMiddleware, requireScope('inspections:read'), inspectionsRouter);
-app.use('/api', serviceAuthMiddleware, requireScope('inspections:read'), findingsRouter);
 app.use('/api', serviceAuthMiddleware, requireScope('inspections:read'), defectsRouter);
 app.use('/api', serviceAuthMiddleware, requireScope('inspections:read'), buildingHistoryRouter);
 app.use('/api', serviceAuthMiddleware, requireScope('inspections:read'), siteMeasurementsRouter);
@@ -152,8 +144,6 @@ app.use('/api', authMiddleware, reportAuditLogRouter);
 app.use('/api', authMiddleware, reviewCommentsRouter);
 
 // Authenticated routes — JWT or any service key (no specific scope)
-app.use('/api', serviceAuthMiddleware, reportsRouter);
-app.use('/api', serviceAuthMiddleware, navigationRouter);
 app.use('/api', serviceAuthMiddleware, documentsRouter);
 app.use('/api/na-reason-templates', serviceAuthMiddleware, naReasonTemplatesRouter);
 app.use('/api', serviceAuthMiddleware, costEstimatesRouter);

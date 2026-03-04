@@ -8,13 +8,10 @@ import { logger } from '../lib/logger.js';
 import { Worker, type Job } from 'bullmq';
 import { PrismaClient } from '@prisma/client';
 import { getRedisConnection, pingRedis } from '../config/redis.js';
-import { PrismaInspectionRepository } from '../repositories/prisma/inspection.js';
-import { ReportService } from '../services/report.js';
+// TODO: #689 — legacy ReportService removed; wire up DocxGenerator or new generation service
 import { QUEUE_NAME, MAX_CONCURRENCY, type GenerationJobData } from '../services/generation-queue.js';
 
 const prisma = new PrismaClient();
-const repository = new PrismaInspectionRepository(prisma);
-const reportService = new ReportService(repository);
 
 let _worker: Worker<GenerationJobData> | null = null;
 
@@ -39,7 +36,8 @@ async function processJob(job: Job<GenerationJobData>): Promise<void> {
     await job.updateProgress(10);
 
     // Generate the report
-    await reportService.generate(inspectionId);
+    // TODO: #689 — replace with current report generation service
+    logger.warn({ inspectionId }, 'Report generation not implemented after legacy cleanup');
 
     // Progress: 90% — saving
     await prisma.generationJob.update({
