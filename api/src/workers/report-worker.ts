@@ -60,10 +60,35 @@ async function processJob(job: Job<GenerationJobData>): Promise<void> {
       reportTitle: 'Pre-Purchase Inspection Report',
     });
 
-    await prisma.report.updateMany({
+    const existingReport = await prisma.report.findFirst({
       where: { siteInspectionId: inspectionId },
-      data: { pdfPath: outputPath, pdfSize: result.fileSize, generatedAt: new Date() },
+      orderBy: { createdAt: 'desc' },
     });
+
+    if (existingReport) {
+      await prisma.report.update({
+        where: { id: existingReport.id },
+        data: {
+          pdfPath: outputPath,
+          pdfSize: result.fileSize,
+          generatedAt: new Date(),
+          status: 'FINALIZED',
+          format: 'pdf',
+        },
+      });
+    } else {
+      await prisma.report.create({
+        data: {
+          siteInspectionId: inspectionId,
+          type: 'PPI',
+          status: 'FINALIZED',
+          format: 'pdf',
+          pdfPath: outputPath,
+          pdfSize: result.fileSize,
+          generatedAt: new Date(),
+        },
+      });
+    }
 
     // Progress: 90% — saving
     await prisma.generationJob.update({

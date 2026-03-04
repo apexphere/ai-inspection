@@ -36,7 +36,7 @@ export function ReportActions({ projectId }: { projectId: string }) {
       const data = await res.json();
       setStatus(data.status || 'PENDING');
       if (data.status === 'COMPLETED') {
-        const reportId = data.reportId || data.jobId || null;
+        const reportId = data.reportId || null;
         if (reportId) {
           setDownloadUrl(`/api/reports/${reportId}/download`);
         }

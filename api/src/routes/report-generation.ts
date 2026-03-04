@@ -86,7 +86,12 @@ reportGenerationRouter.get(
         return;
       }
 
-      res.json({ ...job, projectId });
+      const report = await prisma.report.findFirst({
+        where: { siteInspectionId: inspectionId, pdfPath: { not: null } },
+        orderBy: { updatedAt: 'desc' },
+      });
+
+      res.json({ ...job, projectId, reportId: report?.id ?? null });
     } catch (error) {
       next(error);
     }
@@ -255,7 +260,12 @@ reportGenerationRouter.get(
         return;
       }
 
-      res.json({ ...job, projectId });
+      const report = await prisma.report.findFirst({
+        where: { siteInspectionId: inspectionId, pdfPath: { not: null } },
+        orderBy: { updatedAt: 'desc' },
+      });
+
+      res.json({ ...job, projectId, reportId: report?.id ?? null });
     } catch (error) {
       next(error);
     }
