@@ -176,6 +176,7 @@ export default async function ProjectPage({ params }: ProjectPageProps): Promise
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <ReportActions projectId={project.id} />
           <span
             className={`px-3 py-1 rounded-full text-sm font-medium ${
               STATUS_COLORS[project.status] || 'bg-gray-100 text-gray-700'
