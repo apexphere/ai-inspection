@@ -125,3 +125,16 @@ A piece of work is **done** when all of the following are true:
 | Local Web | http://localhost:3001 |
 | Local API | http://localhost:3000 |
 | Full Docs | `docs/INDEX.md` |
+
+## Versioning
+
+Monorepo-level versioning — one version covers API, web, DB, and skills.
+See `CHANGELOG.md` for full convention and history.
+
+**Quick reference:**
+- PATCH (0.1.x) — bug fixes, no schema changes
+- MINOR (0.x.0) — new features, backward-compatible DB migrations
+- MAJOR (x.0.0) — breaking changes
+
+**Before any breaking change:** tag current develop as a release first.
+**After shipping a feature:** update CHANGELOG.md `[Unreleased]` section.
