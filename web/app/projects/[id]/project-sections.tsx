@@ -5,11 +5,11 @@ import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { CollapsibleSection } from '@/components/collapsible-section';
 import { PhotoGrid, Photo } from '@/components/photo-grid';
-import { ClauseReviewSection } from './clause-review-section';
 import { DocumentUpload } from '@/components/document-upload';
 import { DocumentList, Document } from '@/components/document-list';
 import { BranzZoneSection } from './branz-zone-section';
 import { FloorPlansSection } from './floor-plans-section';
+import { FindingsSections } from './findings-section';
 
 const API_URL = getApiUrl();
 
@@ -58,21 +58,21 @@ interface Project {
     status: string;
     inspectorName: string;
     outcome: string | null;
-    clauseReviews?: Array<{
+    checklistItems?: Array<{
       id: string;
-      clauseId: string;
-      applicability: 'APPLICABLE' | 'NA';
-      naReason: string | null;
-      observations: string | null;
+      category: string;
+      item: string;
+      decision: string;
+      notes: string | null;
+      room: string | null;
+      floorPlanId: string | null;
+      severity: string | null;
       photoIds: string[];
-      docIds: string[];
-      docsRequired: string | null;
-      remedialWorks: string | null;
-      clause: {
-        code: string;
-        title: string;
-        description: string | null;
-      };
+      sortOrder: number;
+    }>;
+    sectionConclusions?: Array<{
+      section: string;
+      conclusion: string;
     }>;
   }>;
   documents?: Array<{
@@ -118,13 +118,6 @@ const TA_LABELS: Record<string, string> = {
   OTHER: 'Other',
 };
 
-const INSPECTION_STATUS_COLORS: Record<string, string> = {
-  DRAFT: 'bg-gray-100 text-gray-800',
-  IN_PROGRESS: 'bg-blue-100 text-blue-800',
-  REVIEW: 'bg-yellow-100 text-yellow-800',
-  COMPLETED: 'bg-green-100 text-green-800',
-};
-
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString('en-NZ', {
     day: 'numeric',
@@ -144,11 +137,6 @@ function InfoRow({ label, value }: { label: string; value: string | null | undef
 }
 
 export function ProjectSections({ project, authToken }: ProjectSectionsProps): React.ReactElement {
-  const inspectionCount = project.siteInspections?.length ?? 0;
-  const completedInspections = project.siteInspections?.filter(
-    (i) => i.status === 'COMPLETED'
-  ).length ?? 0;
-
   const photoCount = project.photos?.length ?? 0;
 
   return (
@@ -214,69 +202,10 @@ export function ProjectSections({ project, authToken }: ProjectSectionsProps): R
       {/* Floor Plans Section */}
       <FloorPlansSection projectId={project.id} authToken={authToken} />
 
-      {/* Inspections Section */}
-      <CollapsibleSection
-        id="inspections"
-        title="Inspections"
-        completionStatus={inspectionCount > 0 ? `${completedInspections}/${inspectionCount} complete` : undefined}
-      >
-        {inspectionCount === 0 ? (
-          <p className="text-sm text-gray-500 italic">No inspections recorded</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead>
-                <tr className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <th className="py-2 pr-4">Stage</th>
-                  <th className="py-2 pr-4">Type</th>
-                  <th className="py-2 pr-4">Date</th>
-                  <th className="py-2 pr-4">Inspector</th>
-                  <th className="py-2 pr-4">Status</th>
-                  <th className="py-2">Outcome</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {project.siteInspections?.map((inspection) => (
-                  <tr
-                    key={inspection.id}
-                    className="text-sm cursor-pointer hover:bg-gray-50 transition-colors"
-                    onClick={() => { window.location.href = `/projects/${project.id}/inspections/${inspection.id}`; }}
-                  >
-                    <td className="py-2 pr-4 font-medium">
-                      <Link
-                        href={`/projects/${project.id}/inspections/${inspection.id}`}
-                        className="hover:text-blue-600"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {inspection.stage}
-                      </Link>
-                    </td>
-                    <td className="py-2 pr-4">{inspection.type}</td>
-                    <td className="py-2 pr-4">{formatDate(inspection.date)}</td>
-                    <td className="py-2 pr-4">{inspection.inspectorName}</td>
-                    <td className="py-2 pr-4">
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                          INSPECTION_STATUS_COLORS[inspection.status] || 'bg-gray-100'
-                        }`}
-                      >
-                        {inspection.status}
-                      </span>
-                    </td>
-                    <td className="py-2">{inspection.outcome || '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </CollapsibleSection>
-
-      {/* Clause Reviews Section */}
-      <ClauseReviewSection
-        inspections={project.siteInspections || []}
-        photos={project.photos}
-        documents={project.documents}
+      {/* Findings Sections — Site, Exterior, Interior, Services */}
+      <FindingsSections
+        checklistItems={project.siteInspections?.[0]?.checklistItems ?? []}
+        sectionConclusions={project.siteInspections?.[0]?.sectionConclusions ?? []}
       />
 
       {/* Documents Section */}

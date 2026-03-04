@@ -35,6 +35,15 @@ export class PrismaProjectRepository implements IProjectRepository {
         client: true,
         siteInspections: {
           orderBy: { date: 'asc' },
+          take: 1,
+          include: {
+            checklistItems: {
+              orderBy: [{ category: 'asc' }, { sortOrder: 'asc' }],
+            },
+            sectionConclusions: {
+              orderBy: { section: 'asc' },
+            },
+          },
         },
       },
     });
