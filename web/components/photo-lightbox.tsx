@@ -84,9 +84,7 @@ export function PhotoLightbox({
 
   if (!photo) return null;
 
-  const imageUrl = photo.filePath.startsWith('http')
-    ? photo.filePath
-    : `${API_URL}${photo.filePath}`;
+  const imageUrl = `${API_URL}/api/photos/${photo.id}/file`;
 
   return (
     <div
