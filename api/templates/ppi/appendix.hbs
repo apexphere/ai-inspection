@@ -1,0 +1,26 @@
+<section class="appendix" id="appendix-photos">
+  <h2>Appendix A: Photographs</h2>
+
+  {{#if photos.length}}
+  <div class="photo-grid">
+    {{#each photos}}
+    <figure class="photo-item">
+      <div class="photo-number">Photo {{number}}</div>
+      {{#if dataUri}}
+      <img src="{{dataUri}}" alt="Photo {{number}}: {{caption}}" />
+      {{else}}
+      <div class="photo-placeholder">Image not available</div>
+      {{/if}}
+      <figcaption>
+        {{caption}}
+        {{#if location}}
+        <div class="photo-location">{{location}}</div>
+        {{/if}}
+      </figcaption>
+    </figure>
+    {{/each}}
+  </div>
+  {{else}}
+  <p>No photographs included in this report.</p>
+  {{/if}}
+</section>

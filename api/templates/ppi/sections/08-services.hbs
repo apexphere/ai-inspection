@@ -1,34 +1,30 @@
 <section class="report-section" id="section-8">
   <h2>8. Service Systems</h2>
 
-  {{#if services}}
+  {{#if sections.services.items.length}}
   <table class="inspection-table">
     <thead>
       <tr>
         <th>Item</th>
-        <th>Condition</th>
-        <th>Observations</th>
-        <th>Photos</th>
+        <th>Decision</th>
+        <th>Notes</th>
       </tr>
     </thead>
     <tbody>
-      {{#each services.items}}
-      <tr class="{{#if issue}}has-issue{{/if}}">
+      {{#each sections.services.items}}
+      <tr>
         <td>{{name}}</td>
-        <td class="condition-{{lowercase condition}}">{{condition}}</td>
-        <td>{{observations}}</td>
-        <td>{{photoRef photoRefs}}</td>
+        <td>{{{decisionBadge decision}}}</td>
+        <td>{{notes}} {{{photoRefs photoNumbers}}}</td>
       </tr>
       {{/each}}
     </tbody>
   </table>
-
-  {{#if services.notes}}
-  <h3>Additional Notes</h3>
-  <p>{{services.notes}}</p>
-  {{/if}}
-
   {{else}}
   <p>No service system observations recorded.</p>
+  {{/if}}
+
+  {{#if sections.services.conclusion}}
+  <div class="section-conclusion services">{{sections.services.conclusion}}</div>
   {{/if}}
 </section>
