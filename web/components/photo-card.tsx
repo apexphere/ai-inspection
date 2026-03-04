@@ -93,11 +93,7 @@ export function PhotoCard({
     }
   };
 
-  const thumbnailUrl = photo.thumbnailPath
-    ? photo.thumbnailPath.startsWith('http')
-      ? photo.thumbnailPath
-      : `${API_URL}${photo.thumbnailPath}`
-    : null;
+  const thumbnailUrl = `${API_URL}/api/photos/${photo.id}/file?thumbnail=true`;
 
   return (
     <div
