@@ -1,6 +1,6 @@
 ---
 name: building-inspection
-version: 3.5.0
+version: 3.6.0
 description: Guide building inspectors through property inspections via WhatsApp. Supports PPI, COA, CCC, and Safe & Sanitary inspection types. Always searches for existing property/project before creating new ones.
 ---
 
@@ -325,7 +325,7 @@ curl -X POST "$API_URL/api/site-inspections/{INSPECTION_ID}/checklist-items" \
   -d '{
     "category": "SITE",
     "item": "{element name}",
-    "decision": "{PASS|FAIL|NA}",
+    "decision": "{SATISFACTORY|MAINTENANCE_REQUIRED|MONITOR|FURTHER_INVESTIGATION|IMMEDIATE_ATTENTION|NA}",
     "notes": "{inspector note}",
     "severity": "{IMMEDIATE_ATTENTION|FURTHER_INVESTIGATION|MONITOR|NO_ACTION}"
   }'
@@ -416,7 +416,7 @@ curl -X POST "$API_URL/api/site-inspections/{INSPECTION_ID}/checklist-items" \
   -d '{
     "category": "INTERIOR",
     "item": "{element}",
-    "decision": "{PASS|FAIL|NA}",
+    "decision": "{SATISFACTORY|MAINTENANCE_REQUIRED|MONITOR|FURTHER_INVESTIGATION|IMMEDIATE_ATTENTION|NA}",
     "notes": "{note}",
     "severity": "{IMMEDIATE_ATTENTION|FURTHER_INVESTIGATION|MONITOR|NO_ACTION}",
     "room": "{room name}",
@@ -617,7 +617,7 @@ curl "$API_URL/api/site-inspections/{INSPECTION_ID}/clause-review-summary" \
 Same flow as PPI but framed as defect analysis against consented plans.
 
 - **Categories:** SITE, EXTERIOR, INTERIOR, DECKS, SERVICES
-- **Results:** PASS (no defect) / FAIL (defect found) / NA
+- **Results:** SATISFACTORY / MAINTENANCE_REQUIRED / MONITOR / FURTHER_INVESTIGATION / IMMEDIATE_ATTENTION / NA
 - **Prompt prefix:** "Any defects against consented plans for {category}?"
 
 ---
@@ -627,7 +627,7 @@ Same flow as PPI but framed as defect analysis against consented plans.
 Simplified inspection under Building Act 1991 s.64.
 
 - **Categories:** EXTERIOR, INTERIOR, SERVICES
-- **Results:** PASS (safe) / FAIL (insanitary) / NA
+- **Results:** SATISFACTORY / MAINTENANCE_REQUIRED / MONITOR / FURTHER_INVESTIGATION / IMMEDIATE_ATTENTION / NA
 - **Prompt prefix:** "Safe & sanitary assessment for {category}:"
 
 ---

@@ -3,10 +3,12 @@
 import { CollapsibleSection } from '@/components/collapsible-section';
 
 const DECISION_STYLES: Record<string, string> = {
-  PASS: 'bg-green-100 text-green-800',
-  FAIL: 'bg-red-100 text-red-800',
+  SATISFACTORY: 'bg-green-100 text-green-800',
+  MAINTENANCE_REQUIRED: 'bg-yellow-100 text-yellow-800',
+  MONITOR: 'bg-blue-100 text-blue-800',
+  FURTHER_INVESTIGATION: 'bg-orange-100 text-orange-800',
+  IMMEDIATE_ATTENTION: 'bg-red-100 text-red-800',
   NA: 'bg-gray-100 text-gray-500',
-  MONITOR: 'bg-yellow-100 text-yellow-800',
 };
 
 const SEVERITY_STYLES: Record<string, string> = {
@@ -17,10 +19,12 @@ const SEVERITY_STYLES: Record<string, string> = {
 };
 
 const DECISION_LABEL: Record<string, string> = {
-  PASS: 'Pass',
-  FAIL: 'Fail',
-  NA: 'N/A',
+  SATISFACTORY: 'Satisfactory',
+  MAINTENANCE_REQUIRED: 'Maintenance Required',
   MONITOR: 'Monitor',
+  FURTHER_INVESTIGATION: 'Further Investigation',
+  IMMEDIATE_ATTENTION: 'Immediate Attention',
+  NA: 'N/A',
 };
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
@@ -90,7 +94,7 @@ interface SectionFindingsProps {
 function SectionFindings({ id, title, items, conclusion, groupByRoom }: SectionFindingsProps) {
   if (items.length === 0) return null;
 
-  const failCount = items.filter((i) => i.decision === 'FAIL').length;
+  const failCount = items.filter((i) => i.decision === 'IMMEDIATE_ATTENTION').length;
   const completionStatus = failCount > 0
     ? `${failCount} issue${failCount !== 1 ? 's' : ''}`
     : `${items.length} item${items.length !== 1 ? 's' : ''}`;
