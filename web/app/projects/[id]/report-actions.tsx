@@ -1,14 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useSession } from 'next-auth/react';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export function ReportActions({ projectId }: { projectId: string }) {
-  const { data: session } = useSession();
-  const token = (session as { apiToken?: string } | null)?.apiToken;
-
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
@@ -19,11 +13,8 @@ export function ReportActions({ projectId }: { projectId: string }) {
     setError(null);
     setDownloadUrl(null);
     try {
-      const res = await fetch(`${API_URL}/api/projects/${projectId}/report/generate`, {
+      const res = await fetch(`/api/projects/${projectId}/report/generate`, {
         method: 'POST',
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -40,18 +31,14 @@ export function ReportActions({ projectId }: { projectId: string }) {
 
   async function pollStatus() {
     try {
-      const res = await fetch(`${API_URL}/api/projects/${projectId}/report/status`, {
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
+      const res = await fetch(`/api/projects/${projectId}/report/status`);
       if (!res.ok) return;
       const data = await res.json();
       setStatus(data.status || 'PENDING');
       if (data.status === 'COMPLETED') {
         const reportId = data.reportId || data.jobId || null;
         if (reportId) {
-          setDownloadUrl(`${API_URL}/api/reports/${reportId}/download`);
+          setDownloadUrl(`/api/reports/${reportId}/download`);
         }
         return;
       }
