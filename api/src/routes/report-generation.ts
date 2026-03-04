@@ -9,6 +9,7 @@
 
 import { Router, type Request, type Response, type NextFunction, type Router as RouterType } from 'express';
 import { PrismaClient } from '@prisma/client';
+import path from 'node:path';
 import {
   GenerationQueueService,
   JobNotFoundError,
@@ -95,6 +96,36 @@ reportGenerationRouter.delete(
         res.status(409).json({ error: error.message });
         return;
       }
+      next(error);
+    }
+  }
+);
+
+
+/**
+ * GET /api/reports/:reportId/download
+ * Download generated PDF for a report.
+ */
+reportGenerationRouter.get(
+  '/reports/:id/download',
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const reportId = req.params.id as string;
+      const report = await prisma.report.findUnique({ where: { id: reportId } });
+
+      if (!report || !report.pdfPath) {
+        res.status(404).json({ error: 'Report PDF not found' });
+        return;
+      }
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `inline; filename="${reportId}.pdf"`);
+      res.sendFile(path.resolve(report.pdfPath), (err) => {
+        if (err) {
+          res.status(404).json({ error: 'File not found' });
+        }
+      });
+    } catch (error) {
       next(error);
     }
   }

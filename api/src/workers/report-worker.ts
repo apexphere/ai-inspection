@@ -7,11 +7,17 @@ import { logger } from '../lib/logger.js';
 
 import { Worker, type Job } from 'bullmq';
 import { PrismaClient } from '@prisma/client';
+import { mkdir } from 'node:fs/promises';
+import path from 'node:path';
+import { PpiReportBuilder } from '../services/ppi-report-builder.js';
+import { ReportCompiler } from '../services/report-compiler.js';
+import { PdfRendererService } from '../services/pdf-renderer.js';
 import { getRedisConnection, pingRedis } from '../config/redis.js';
 // TODO: #689 — legacy ReportService removed; wire up DocxGenerator or new generation service
 import { QUEUE_NAME, MAX_CONCURRENCY, type GenerationJobData } from '../services/generation-queue.js';
 
 const prisma = new PrismaClient();
+const UPLOAD_DIR = process.env.UPLOAD_DIR || './data/uploads';
 
 let _worker: Worker<GenerationJobData> | null = null;
 
@@ -36,8 +42,28 @@ async function processJob(job: Job<GenerationJobData>): Promise<void> {
     await job.updateProgress(10);
 
     // Generate the report
-    // TODO: #689 — replace with current report generation service
-    logger.warn({ inspectionId }, 'Report generation not implemented after legacy cleanup');
+    const builder = new PpiReportBuilder(prisma);
+    const compiler = new ReportCompiler();
+    const renderer = new PdfRendererService();
+
+    const reportData = await builder.build(inspectionId);
+    const html = await compiler.compile(reportData);
+
+    const reportsDir = path.join(UPLOAD_DIR, 'reports');
+    await mkdir(reportsDir, { recursive: true });
+    const outputPath = path.join(reportsDir, `${dbJobId}.pdf`);
+
+    const result = await renderer.renderPdf({
+      html,
+      outputPath,
+      jobNumber: reportData.project.jobNumber,
+      reportTitle: 'Pre-Purchase Inspection Report',
+    });
+
+    await prisma.report.updateMany({
+      where: { siteInspectionId: inspectionId },
+      data: { pdfPath: outputPath, pdfSize: result.fileSize, generatedAt: new Date() },
+    });
 
     // Progress: 90% — saving
     await prisma.generationJob.update({
