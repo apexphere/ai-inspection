@@ -2,7 +2,6 @@
 import { getApiUrl } from '@/lib/api-url';
 
 import { useState, useCallback } from 'react';
-import Link from 'next/link';
 import { CollapsibleSection } from '@/components/collapsible-section';
 import { PhotoGrid, Photo } from '@/components/photo-grid';
 import { DocumentUpload } from '@/components/document-upload';
