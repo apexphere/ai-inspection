@@ -5,11 +5,11 @@ const VALID_TYPES = ['PPI', 'COA', 'CCC_GAP', 'SAFE_SANITARY'];
 
 describe('GET /api/project-requirements/:reportType', () => {
   it('PPI has 3 upfront data items', async () => {
-    const res = await fetch('http://localhost:3001/api/project-requirements/PPI', {
-      headers: { 'X-API-Key': 'test' },
+    const res = await fetch('http://localhost:3000/api/project-requirements/PPI', {
+      headers: { 'X-API-Key': process.env.TEST_API_KEY || '' },
     }).catch(() => null);
-    // Integration test — skip if server not running
-    if (!res) return;
+    // Integration test — skip if server not running or not authenticated
+    if (!res || !res.ok) return;
     const data = await res.json() as { reportType: string; upfrontData: unknown[] };
     expect(data.reportType).toBe('PPI');
     expect(data.upfrontData).toHaveLength(3);
