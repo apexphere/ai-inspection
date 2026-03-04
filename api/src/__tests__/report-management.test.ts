@@ -11,8 +11,7 @@ import type { Report } from '@prisma/client';
 function createMockReport(overrides: Partial<Report> = {}): Report {
   return {
     id: 'report-1',
-    inspectionId: null,
-    siteInspectionId: 'inspection-1',
+    siteInspectionId: null,
     type: 'COA',
     status: 'DRAFT',
     version: 1,

@@ -62,55 +62,10 @@ model WhatsAppVerificationCode {
   @@index([phoneNumber, code])
 }
 
-model Inspection {
-  id            String    @id @default(uuid())
-  address       String
-  clientName    String
-  inspectorName String?
-  checklistId   String
-  status        Status    @default(STARTED)
-  currentSection String
-  metadata      Json?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  completedAt   DateTime?
-  
-  findings      Finding[]
-  reports       Report[]
-}
-
-model Finding {
-  id            String    @id @default(uuid())
-  inspectionId  String
-  inspection    Inspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
-  section       String
-  text          String
-  severity      Severity  @default(INFO)
-  matchedComment String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  photos        Photo[]
-}
-
-model Photo {
-  id          String   @id @default(uuid())
-  findingId   String
-  finding     Finding  @relation(fields: [findingId], references: [id], onDelete: Cascade)
-  filename    String
-  path        String
-  mimeType    String
-  createdAt   DateTime @default(now())
-}
-
 model Report {
   id              String        @id @default(uuid())
   
-  // Legacy inspection link (old system)
-  inspectionId    String?
-  inspection      Inspection?   @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
-  
-  // New inspection link (SiteInspection system)
+  // Inspection link
   siteInspectionId String?
   siteInspection   SiteInspection? @relation(fields: [siteInspectionId], references: [id])
   
@@ -146,7 +101,6 @@ model Report {
   reviewComments  ReviewComment[]
   costEstimate    CostEstimate?
   
-  @@index([inspectionId])
   @@index([siteInspectionId])
   @@index([status])
   @@index([preparedById])
@@ -236,12 +190,6 @@ enum ReviewCommentPriority {
 enum ReviewCommentStatus {
   OPEN
   RESOLVED
-}
-
-enum Status {
-  STARTED
-  IN_PROGRESS
-  COMPLETED
 }
 
 enum Severity {
