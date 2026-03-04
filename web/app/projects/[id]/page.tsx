@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { getServerToken, serverFetch } from '@/lib/server-api';
+import { getServerToken, serverFetch, serverFetchList } from '@/lib/server-api';
 import { ProjectSections } from './project-sections';
 
 
@@ -84,6 +84,18 @@ async function getProject(id: string, token?: string): Promise<Project | null> {
   }
 }
 
+async function getProjectPhotos(id: string, token?: string) {
+  return serverFetchList<{
+    id: string;
+    reportNumber: number;
+    caption: string;
+    filePath: string;
+    thumbnailPath: string | null;
+    source: string;
+    linkedClauses: string[];
+  }>(`/api/projects/${id}/photos`, token);
+}
+
 const STATUS_COLORS: Record<string, string> = {
   DRAFT: 'bg-gray-100 text-gray-700',
   IN_PROGRESS: 'bg-blue-100 text-blue-700',
@@ -123,7 +135,10 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<{ 
 export default async function ProjectPage({ params }: ProjectPageProps): Promise<React.ReactElement> {
   const { id } = await params;
   const token = await getServerToken();
-  const project = await getProject(id, token);
+  const [project, photos] = await Promise.all([
+    getProject(id, token),
+    getProjectPhotos(id, token),
+  ]);
 
   if (!project) {
     notFound();
@@ -171,7 +186,7 @@ export default async function ProjectPage({ params }: ProjectPageProps): Promise
       </div>
 
       {/* Sections */}
-      <ProjectSections project={project} authToken={token} />
+      <ProjectSections project={{ ...project, photos }} authToken={token} />
     </div>
   );
 }
