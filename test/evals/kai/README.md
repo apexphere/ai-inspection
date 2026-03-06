@@ -77,3 +77,21 @@ Create a new file in `adapters/` that exports a function matching:
 ```
 
 Then register it in `runner.ts` in the `ADAPTERS` map.
+
+### OpenClaw Session Bridge (Kai)
+
+Bridge script: `scripts/kai-eval-bridge.js`
+
+```bash
+# Uses agent:kai:main by default
+KAI_EVAL_COMMAND='node scripts/kai-eval-bridge.js' npx tsx test/evals/kai/runner.ts command
+
+# Optional overrides
+KAI_EVAL_AGENT_ID=kai \
+KAI_EVAL_SESSION_KEY=agent:kai:main \
+KAI_EVAL_TIMEOUT_SECONDS=120 \
+KAI_EVAL_COMMAND='node scripts/kai-eval-bridge.js' \
+npx tsx test/evals/kai/runner.ts command
+```
+
+This route avoids WhatsApp contamination by targeting Kai's OpenClaw session key (`agent:kai:main`).
