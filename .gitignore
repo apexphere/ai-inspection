@@ -34,3 +34,4 @@ data/uploads/
 
 # Build artifacts
 server/dist/
+test/evals/kai/reports/
