@@ -5,12 +5,14 @@ import { validateEvalCase } from './case-validator';
 import { gradeCase } from './grader';
 import { runWithMockAdapter } from './adapters/mock-adapter';
 import { runWithHttpAdapter } from './adapters/http-adapter';
+import { runWithCommandAdapter } from './adapters/command-adapter';
 
 type Adapter = (evalCase: EvalCase) => Promise<KaiResponse>;
 
 const ADAPTERS: Record<string, Adapter> = {
   mock: runWithMockAdapter,
   http: runWithHttpAdapter,
+  command: runWithCommandAdapter,
 };
 
 function loadCases(casesDir: string): EvalCase[] {
