@@ -19,6 +19,7 @@ KAI_EVAL_BASE_URL=http://localhost:3000 npx tsx test/evals/kai/runner.ts http
 
 # Preferred: out-of-process command adapter (no API test endpoint needed)
 # Command must read JSON from stdin and print KaiResponse JSON to stdout
+KAI_EVAL_FEWSHOT_PATH='test/evals/kai/fewshot/examples.json' \
 KAI_EVAL_COMMAND='node scripts/kai-eval-bridge.js' npx tsx test/evals/kai/runner.ts command
 ```
 
@@ -84,6 +85,7 @@ Bridge script: `scripts/kai-eval-bridge.js`
 
 ```bash
 # Uses agent:kai:main by default
+KAI_EVAL_FEWSHOT_PATH='test/evals/kai/fewshot/examples.json' \
 KAI_EVAL_COMMAND='node scripts/kai-eval-bridge.js' npx tsx test/evals/kai/runner.ts command
 
 # Optional overrides
@@ -95,3 +97,10 @@ npx tsx test/evals/kai/runner.ts command
 ```
 
 This route avoids WhatsApp contamination by targeting Kai's OpenClaw session key (`agent:kai:main`).
+
+
+Bridge improvements in place:
+- strict JSON extraction
+- schema normalization to allowed checklist/section sets
+- one-pass auto-repair when required fields are missing
+- optional few-shot injection via KAI_EVAL_FEWSHOT_PATH

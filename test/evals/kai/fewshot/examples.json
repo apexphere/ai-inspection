@@ -1,0 +1,35 @@
+[
+  {
+    "input": {
+      "scenario": "Exterior wall with crack below window and failed sealant",
+      "inspectorMessage": "2mm crack below bedroom window and old sealant perished"
+    },
+    "output": {
+      "checklist": [
+        { "id": "ext-cladding-cracks", "status": "defect", "notes": "2mm crack below window" },
+        { "id": "ext-joinery-seals", "status": "defect", "notes": "Sealant deteriorated" }
+      ],
+      "defects": [],
+      "report": {
+        "summary": "Cracking and sealant deterioration around window joinery observed.",
+        "sections": ["Exterior", "Cladding", "Joinery", "Recommendations"]
+      }
+    }
+  },
+  {
+    "input": {
+      "scenario": "Site drainage toward house",
+      "inspectorMessage": "Ground falls toward east wall, puddling by foundation"
+    },
+    "output": {
+      "checklist": [
+        { "id": "site-drainage", "status": "defect", "notes": "Ground falls toward house" }
+      ],
+      "defects": [],
+      "report": {
+        "summary": "Drainage falls toward the dwelling with ponding near the foundation.",
+        "sections": ["Site & Ground", "Drainage", "Recommendations"]
+      }
+    }
+  }
+]
