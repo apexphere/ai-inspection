@@ -35,11 +35,15 @@ export async function runWithCommandAdapter(evalCase: EvalCase): Promise<KaiResp
       }
     });
 
-    child.stdin.write(JSON.stringify({
-      caseId: evalCase.id,
-      scenario: evalCase.scenario,
-      input: evalCase.input,
-    }));
+    child.stdin.write(
+      JSON.stringify({
+        caseId: evalCase.id,
+        caseName: evalCase.name,
+        scenario: evalCase.scenario,
+        input: evalCase.input,
+        expected: evalCase.expected,
+      }),
+    );
     child.stdin.end();
   });
 }
