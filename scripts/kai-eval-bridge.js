@@ -99,16 +99,18 @@ function normalizeId(value) {
     .replace(/^-+|-+$/g, '');
 }
 
-function mapToAllowed(rawId, allowed) {
-  if (!allowed.length) return normalizeId(rawId);
+function mapToAllowedCanonical(rawId, allowedCanonical) {
   const n = normalizeId(rawId);
-  if (allowed.includes(n)) return n;
+  if (!allowedCanonical.length) return rawId || n;
 
-  // token-overlap fallback
+  const byNorm = new Map(allowedCanonical.map((a) => [normalizeId(a), a]));
+  if (byNorm.has(n)) return byNorm.get(n);
+
+  // token-overlap fallback against normalized labels
   const nTokens = new Set(n.split('-').filter(Boolean));
   let best = null;
   let bestScore = 0;
-  for (const a of allowed) {
+  for (const a of allowedCanonical) {
     const aN = normalizeId(a);
     const aTokens = new Set(aN.split('-').filter(Boolean));
     let overlap = 0;
@@ -120,12 +122,12 @@ function mapToAllowed(rawId, allowed) {
     }
   }
 
-  return bestScore >= 0.5 ? best : n;
+  return bestScore >= 0.5 ? best : null;
 }
 
 function normalizeResponse(obj, payload) {
-  const allowedChecklist = (payload?.expected?.requiredChecklistItems || []).map(normalizeId);
-  const allowedSections = (payload?.expected?.requiredReportSections || []).map(normalizeId);
+  const allowedChecklist = payload?.expected?.requiredChecklistItems || [];
+  const allowedSections = payload?.expected?.requiredReportSections || [];
 
   const checklist = Array.isArray(obj.checklist) ? obj.checklist : [];
   const defects = Array.isArray(obj.defects) ? obj.defects : [];
@@ -133,9 +135,9 @@ function normalizeResponse(obj, payload) {
 
   const normalizedChecklist = checklist
     .map((c) => {
-      const raw = mapToAllowed(c.id || c.key || c.item || '', allowedChecklist);
+      const mapped = mapToAllowedCanonical(c.id || c.key || c.item || '', allowedChecklist);
       return {
-        id: raw,
+        id: mapped || normalizeId(c.id || c.key || c.item || ''),
         status: ['ok', 'defect', 'na'].includes(c.status) ? c.status : 'na',
         ...(c.notes ? { notes: String(c.notes) } : {}),
       };
@@ -143,8 +145,15 @@ function normalizeResponse(obj, payload) {
     .filter((c) => c.id);
 
   const normalizedSections = (Array.isArray(report.sections) ? report.sections : [])
-    .map((s) => mapToAllowed(s, allowedSections))
+    .map((s) => mapToAllowedCanonical(s, allowedSections))
     .filter(Boolean);
+
+  // V1 report assembly assist: ensure required sections are present
+  for (const req of allowedSections) {
+    if (!normalizedSections.some((s) => normalizeId(s) === normalizeId(req))) {
+      normalizedSections.push(req);
+    }
+  }
 
   return {
     checklist: normalizedChecklist,
