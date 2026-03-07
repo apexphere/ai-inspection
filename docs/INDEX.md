@@ -44,6 +44,7 @@
 | [Architecture Overview](developer/architecture.md) | High-level system design | ⚠️ Needs review |
 | [API Reference](developer/api/README.md) | REST API (auto-generated via OpenAPI) | ✅ Current |
 | [Testing](developer/testing.md) | E2E test plan | ✅ Current |
+| [Agent Production Process](developer/agent-production-process.md) | Reusable process for building/evaluating agents | ✅ Current |
 
 ### Design Docs
 
