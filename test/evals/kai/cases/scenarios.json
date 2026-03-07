@@ -1,0 +1,284 @@
+[
+  {
+    "id": "ext-01",
+    "name": "Exterior cladding damage",
+    "scenario": "Inspector examines exterior cladding on a 1990s plaster monolithic home. Finds cracking around window joinery and moisture staining below windowsills.",
+    "input": {
+      "inspectorMessage": "Looking at the north-facing exterior wall. There's a horizontal crack about 2mm wide running along the bottom of the upstairs bedroom window. Staining visible below the sill, looks like it's been leaking for a while. Sealant around the window frame has deteriorated. I can see some swelling in the cladding below.",
+      "photosProvided": 3,
+      "section": "Exterior"
+    },
+    "expected": {
+      "requiredChecklistItems": ["ext-cladding-condition", "ext-joinery-seals", "ext-moisture-signs", "ext-cladding-cracks"],
+      "expectedDefects": [
+        { "key": "ext-crack-window", "category": "Cladding", "severity": "high" },
+        { "key": "ext-sealant-fail", "category": "Joinery", "severity": "medium" },
+        { "key": "ext-moisture-stain", "category": "Moisture", "severity": "high" }
+      ],
+      "requiredReportSections": ["Exterior", "Cladding", "Joinery", "Recommendations"],
+      "maxSummaryWords": 150
+    },
+    "mockResponse": {
+      "checklist": [
+        { "id": "ext-cladding-condition", "status": "defect", "notes": "Cracking and swelling observed" },
+        { "id": "ext-joinery-seals", "status": "defect", "notes": "Sealant deteriorated around window frame" },
+        { "id": "ext-moisture-signs", "status": "defect", "notes": "Staining below windowsill" },
+        { "id": "ext-cladding-cracks", "status": "defect", "notes": "2mm horizontal crack at window" }
+      ],
+      "defects": [
+        { "key": "ext-crack-window", "category": "Cladding", "severity": "high", "recommendation": "Invasive moisture testing recommended" },
+        { "key": "ext-sealant-fail", "category": "Joinery", "severity": "medium", "recommendation": "Reseal all window joinery" },
+        { "key": "ext-moisture-stain", "category": "Moisture", "severity": "high", "recommendation": "Further investigation for concealed damage" }
+      ],
+      "report": {
+        "summary": "North-facing exterior wall shows significant moisture-related damage. Horizontal cracking at window, deteriorated sealant, and moisture staining indicate likely water ingress. Invasive testing recommended.",
+        "sections": ["Exterior", "Cladding", "Joinery", "Recommendations"]
+      }
+    }
+  },
+  {
+    "id": "ext-02",
+    "name": "Exterior clean bill of health",
+    "scenario": "Inspector examines exterior of a well-maintained 2018 brick and tile home. No defects found.",
+    "input": {
+      "inspectorMessage": "Exterior looks great. Brick veneer in good condition, no cracks. Joinery seals intact. Gutters clean, downpipes connected. No moisture signs anywhere.",
+      "photosProvided": 2,
+      "section": "Exterior"
+    },
+    "expected": {
+      "requiredChecklistItems": ["ext-cladding-condition", "ext-joinery-seals", "ext-moisture-signs", "ext-gutters"],
+      "expectedDefects": [],
+      "requiredReportSections": ["Exterior", "Summary"],
+      "maxSummaryWords": 80
+    },
+    "mockResponse": {
+      "checklist": [
+        { "id": "ext-cladding-condition", "status": "ok", "notes": "Brick veneer in good condition" },
+        { "id": "ext-joinery-seals", "status": "ok", "notes": "Seals intact" },
+        { "id": "ext-moisture-signs", "status": "ok", "notes": "No moisture signs" },
+        { "id": "ext-gutters", "status": "ok", "notes": "Clean and connected" }
+      ],
+      "defects": [],
+      "report": {
+        "summary": "Exterior in excellent condition. No defects identified. Brick veneer, joinery, and drainage all satisfactory.",
+        "sections": ["Exterior", "Summary"]
+      }
+    }
+  },
+  {
+    "id": "roof-01",
+    "name": "Roof tile damage with leak",
+    "scenario": "Inspector on roof of a 1980s concrete tile home. Finds cracked tiles and evidence of previous patch repairs.",
+    "input": {
+      "inspectorMessage": "On the roof now. I can see three cracked tiles on the south side near the ridge. Someone has done a patch job with sealant but it's failing. Flashing at the chimney looks lifted. There's moss buildup on the south face too.",
+      "photosProvided": 4,
+      "section": "Roof"
+    },
+    "expected": {
+      "requiredChecklistItems": ["roof-tiles", "roof-flashing", "roof-ridge", "roof-moss"],
+      "expectedDefects": [
+        { "key": "roof-cracked-tiles", "category": "Roofing", "severity": "high" },
+        { "key": "roof-flashing-lifted", "category": "Roofing", "severity": "high" },
+        { "key": "roof-moss", "category": "Roofing", "severity": "low" }
+      ],
+      "requiredReportSections": ["Roof", "Roofing", "Recommendations"],
+      "maxSummaryWords": 120
+    },
+    "mockResponse": {
+      "checklist": [
+        { "id": "roof-tiles", "status": "defect", "notes": "3 cracked tiles, failed patch repair" },
+        { "id": "roof-flashing", "status": "defect", "notes": "Chimney flashing lifted" },
+        { "id": "roof-ridge", "status": "ok" },
+        { "id": "roof-moss", "status": "defect", "notes": "Moss on south face" }
+      ],
+      "defects": [
+        { "key": "roof-cracked-tiles", "category": "Roofing", "severity": "high", "recommendation": "Replace cracked tiles" },
+        { "key": "roof-flashing-lifted", "category": "Roofing", "severity": "high", "recommendation": "Re-bed chimney flashing" },
+        { "key": "roof-moss", "category": "Roofing", "severity": "low", "recommendation": "Moss treatment recommended" }
+      ],
+      "report": {
+        "summary": "Roof has cracked tiles and lifted chimney flashing requiring urgent repair. Moss buildup is cosmetic but should be treated. Previous patch repairs are failing.",
+        "sections": ["Roof", "Roofing", "Recommendations"]
+      }
+    }
+  },
+  {
+    "id": "int-01",
+    "name": "Interior moisture in bathroom",
+    "scenario": "Inspector checking interior bathroom. Finds moisture damage around shower and inadequate ventilation.",
+    "input": {
+      "inspectorMessage": "Main bathroom. The shower has no tray, tile grout is cracked in multiple places. I can see black mould at the ceiling junction. Extractor fan isn't working. Paint is bubbling above the shower on the ceiling. Moisture meter reads 28% in the wall adjacent to shower.",
+      "photosProvided": 3,
+      "section": "Interior"
+    },
+    "expected": {
+      "requiredChecklistItems": ["int-moisture-readings", "int-ventilation", "int-bathroom-condition", "int-mould"],
+      "expectedDefects": [
+        { "key": "int-shower-grout", "category": "Moisture", "severity": "high" },
+        { "key": "int-mould", "category": "Moisture", "severity": "medium" },
+        { "key": "int-extractor-fail", "category": "Services", "severity": "medium" },
+        { "key": "int-elevated-moisture", "category": "Moisture", "severity": "high" }
+      ],
+      "requiredReportSections": ["Interior", "Moisture", "Services", "Recommendations"],
+      "maxSummaryWords": 150
+    },
+    "mockResponse": {
+      "checklist": [
+        { "id": "int-moisture-readings", "status": "defect", "notes": "28% in wall adjacent to shower" },
+        { "id": "int-ventilation", "status": "defect", "notes": "Extractor fan not working" },
+        { "id": "int-bathroom-condition", "status": "defect", "notes": "Grout cracked, paint bubbling" },
+        { "id": "int-mould", "status": "defect", "notes": "Black mould at ceiling junction" }
+      ],
+      "defects": [
+        { "key": "int-shower-grout", "category": "Moisture", "severity": "high", "recommendation": "Re-grout shower tiles, consider shower tray" },
+        { "key": "int-mould", "category": "Moisture", "severity": "medium", "recommendation": "Treat mould, improve ventilation" },
+        { "key": "int-extractor-fail", "category": "Services", "severity": "medium", "recommendation": "Replace extractor fan" },
+        { "key": "int-elevated-moisture", "category": "Moisture", "severity": "high", "recommendation": "Investigate concealed damage in wall framing" }
+      ],
+      "report": {
+        "summary": "Bathroom has significant moisture issues. Elevated moisture reading (28%) in wall, cracked grout, failed extractor fan, and mould present. Immediate remediation needed.",
+        "sections": ["Interior", "Moisture", "Services", "Recommendations"]
+      }
+    }
+  },
+  {
+    "id": "int-02",
+    "name": "Interior room with minor cosmetic issues",
+    "scenario": "Inspector checking a bedroom. Only minor cosmetic issues, no structural concerns.",
+    "input": {
+      "inspectorMessage": "Master bedroom. Small hairline crack in the plasterboard above the door, looks like normal settlement. Paint scuffing on walls. Windows open and close fine. No moisture, no mould. Carpet is worn but functional.",
+      "photosProvided": 1,
+      "section": "Interior"
+    },
+    "expected": {
+      "requiredChecklistItems": ["int-walls-ceiling", "int-windows-doors", "int-flooring"],
+      "expectedDefects": [
+        { "key": "int-settlement-crack", "category": "Cosmetic", "severity": "low" }
+      ],
+      "requiredReportSections": ["Interior", "Summary"],
+      "maxSummaryWords": 80
+    },
+    "mockResponse": {
+      "checklist": [
+        { "id": "int-walls-ceiling", "status": "ok", "notes": "Minor hairline crack — settlement, cosmetic only" },
+        { "id": "int-windows-doors", "status": "ok", "notes": "Operating correctly" },
+        { "id": "int-flooring", "status": "ok", "notes": "Worn but functional carpet" }
+      ],
+      "defects": [
+        { "key": "int-settlement-crack", "category": "Cosmetic", "severity": "low", "recommendation": "Fill and repaint if desired" }
+      ],
+      "report": {
+        "summary": "Master bedroom in good condition with minor cosmetic settlement crack. No structural or moisture concerns.",
+        "sections": ["Interior", "Summary"]
+      }
+    }
+  },
+  {
+    "id": "svc-01",
+    "name": "Electrical safety concerns",
+    "scenario": "Inspector checking services. Finds outdated switchboard and unsafe wiring.",
+    "input": {
+      "inspectorMessage": "Switchboard is the old ceramic fuse type, no RCDs. Some wiring in the ceiling space is the old TPS with cloth sheathing. A couple of power points in the kitchen have no earth. Hot water cylinder is gas, looks about 15 years old.",
+      "photosProvided": 2,
+      "section": "Services"
+    },
+    "expected": {
+      "requiredChecklistItems": ["svc-switchboard", "svc-wiring", "svc-earthing", "svc-hot-water"],
+      "expectedDefects": [
+        { "key": "svc-no-rcd", "category": "Electrical", "severity": "critical" },
+        { "key": "svc-old-wiring", "category": "Electrical", "severity": "high" },
+        { "key": "svc-no-earth", "category": "Electrical", "severity": "critical" }
+      ],
+      "requiredReportSections": ["Services", "Electrical", "Recommendations"],
+      "maxSummaryWords": 120
+    },
+    "mockResponse": {
+      "checklist": [
+        { "id": "svc-switchboard", "status": "defect", "notes": "Ceramic fuses, no RCDs" },
+        { "id": "svc-wiring", "status": "defect", "notes": "Old cloth-sheathed TPS" },
+        { "id": "svc-earthing", "status": "defect", "notes": "Kitchen power points unearthed" },
+        { "id": "svc-hot-water", "status": "ok", "notes": "Gas HWC approx 15 years, functional" }
+      ],
+      "defects": [
+        { "key": "svc-no-rcd", "category": "Electrical", "severity": "critical", "recommendation": "Switchboard upgrade with RCDs required" },
+        { "key": "svc-old-wiring", "category": "Electrical", "severity": "high", "recommendation": "Rewiring recommended for safety" },
+        { "key": "svc-no-earth", "category": "Electrical", "severity": "critical", "recommendation": "Immediate electrician required" }
+      ],
+      "report": {
+        "summary": "Significant electrical safety concerns. No RCDs, unearthed power points, and aging wiring. Switchboard upgrade and partial rewire recommended as priority.",
+        "sections": ["Services", "Electrical", "Recommendations"]
+      }
+    }
+  },
+  {
+    "id": "site-01",
+    "name": "Site drainage and ground issues",
+    "scenario": "Inspector assessing site and ground conditions. Finds poor drainage and ground settlement near foundations.",
+    "input": {
+      "inspectorMessage": "Ground slopes toward the house on the east side. Puddles visible near the foundation. Subfloor vents are partially blocked by garden beds. I can see some cracking in the concrete path along the east wall. Retaining wall at the rear is leaning about 30mm.",
+      "photosProvided": 3,
+      "section": "Site & Ground"
+    },
+    "expected": {
+      "requiredChecklistItems": ["site-drainage", "site-subfloor-vents", "site-paths", "site-retaining"],
+      "expectedDefects": [
+        { "key": "site-drainage-toward", "category": "Drainage", "severity": "high" },
+        { "key": "site-vents-blocked", "category": "Ventilation", "severity": "medium" },
+        { "key": "site-retaining-lean", "category": "Structural", "severity": "medium" }
+      ],
+      "requiredReportSections": ["Site & Ground", "Drainage", "Recommendations"],
+      "maxSummaryWords": 120
+    },
+    "mockResponse": {
+      "checklist": [
+        { "id": "site-drainage", "status": "defect", "notes": "Ground slopes toward house on east" },
+        { "id": "site-subfloor-vents", "status": "defect", "notes": "Partially blocked by garden beds" },
+        { "id": "site-paths", "status": "defect", "notes": "Cracking in concrete path" },
+        { "id": "site-retaining", "status": "defect", "notes": "30mm lean in rear retaining wall" }
+      ],
+      "defects": [
+        { "key": "site-drainage-toward", "category": "Drainage", "severity": "high", "recommendation": "Regrade or install drainage channel" },
+        { "key": "site-vents-blocked", "category": "Ventilation", "severity": "medium", "recommendation": "Clear garden beds from vents" },
+        { "key": "site-retaining-lean", "category": "Structural", "severity": "medium", "recommendation": "Engineer assessment for retaining wall" }
+      ],
+      "report": {
+        "summary": "Site drainage directs water toward the house. Subfloor vents blocked and retaining wall showing lean. Drainage remediation and vent clearance recommended.",
+        "sections": ["Site & Ground", "Drainage", "Recommendations"]
+      }
+    }
+  },
+  {
+    "id": "partial-01",
+    "name": "Partial response — missing defect classifications",
+    "scenario": "Tests scoring when Kai returns incomplete defect data. Inspector reports roof issues but Kai misclassifies severity.",
+    "input": {
+      "inspectorMessage": "Roof has a few cracked tiles and the ridge cap mortar is crumbling. Flashing looks ok though.",
+      "photosProvided": 2,
+      "section": "Roof"
+    },
+    "expected": {
+      "requiredChecklistItems": ["roof-tiles", "roof-ridge", "roof-flashing"],
+      "expectedDefects": [
+        { "key": "roof-cracked-tiles", "category": "Roofing", "severity": "medium" },
+        { "key": "roof-ridge-mortar", "category": "Roofing", "severity": "medium" }
+      ],
+      "requiredReportSections": ["Roof", "Recommendations"],
+      "maxSummaryWords": 100
+    },
+    "mockResponse": {
+      "checklist": [
+        { "id": "roof-tiles", "status": "defect", "notes": "Cracked tiles" },
+        { "id": "roof-ridge", "status": "defect", "notes": "Mortar crumbling" },
+        { "id": "roof-flashing", "status": "ok" }
+      ],
+      "defects": [
+        { "key": "roof-cracked-tiles", "category": "Roofing", "severity": "low" },
+        { "key": "roof-ridge-mortar", "category": "Roofing", "severity": "high" }
+      ],
+      "report": {
+        "summary": "Roof tiles cracked and ridge mortar failing. Repairs needed.",
+        "sections": ["Roof", "Recommendations"]
+      }
+    }
+  }
+]
