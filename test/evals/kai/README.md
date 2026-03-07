@@ -1,12 +1,12 @@
 # Kai Eval Harness
 
-Measures Kai's inspection output quality across three metrics:
+Measures Kai's inspection output quality for **V1 goals** (data capture + report assembly):
 
 | Metric | Weight | What it measures |
 |--------|--------|-----------------|
-| Checklist completeness | 40% | Are all expected checklist items present? |
-| Defect accuracy | 40% | Are defects correctly classified (category + severity)? |
-| Report format compliance | 20% | Required sections present + summary conciseness |
+| Checklist completeness (data capture proxy) | 70% | Are expected inspection data points captured? |
+| Report format compliance (PDF assembly proxy) | 30% | Required sections present + summary conciseness |
+| Defect accuracy | 0% (tracked only) | Kept for future phases when Kai performs full analysis |
 
 ## Quick Start
 
@@ -53,9 +53,9 @@ Add JSON files to `cases/`. Each file is an array of `EvalCase` objects (or a si
 
 ## Scoring
 
-Defect accuracy gives 0.5 points for matching category and 0.5 for matching severity, per expected defect.
+Defect accuracy gives 0.5 points for matching category and 0.5 for matching severity, per expected defect, but is currently **non-gating** in V1 (weight = 0).
 
-The mock adapter baseline should score 100% (it returns the expected response). Real adapter scores show where Kai diverges from expected output.
+The mock adapter baseline should score high (except intentionally imperfect scenarios). Real adapter scores show where Kai diverges from expected V1 behavior.
 
 ## Command Adapter (Preferred for real Kai)
 

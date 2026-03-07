@@ -1,9 +1,10 @@
 import { CaseScore, EvalCase, KaiResponse, MetricScore } from './types';
 
 const WEIGHTS = {
-  checklistCompleteness: 0.4,
-  defectAccuracy: 0.4,
-  reportFormatCompliance: 0.2,
+  // V1 target: capture inspection data + assemble report format
+  checklistCompleteness: 0.7,
+  defectAccuracy: 0.0,
+  reportFormatCompliance: 0.3,
 };
 
 function wordCount(text: string): number {
@@ -76,7 +77,7 @@ export function gradeCase(caseData: EvalCase, response: KaiResponse): CaseScore 
   const reportFormatCompliance = scoreReportFormat(caseData, response);
 
   const normalizedChecklist = checklistCompleteness.score / checklistCompleteness.maxScore;
-  const normalizedDefects = defectAccuracy.score / defectAccuracy.maxScore;
+  const normalizedDefects = defectAccuracy.maxScore ? defectAccuracy.score / defectAccuracy.maxScore : 0;
   const normalizedFormat = reportFormatCompliance.score / reportFormatCompliance.maxScore;
 
   const weightedScore =

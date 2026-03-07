@@ -109,10 +109,10 @@ npx tsx test/evals/kai/runner.ts mock
 KAI_EVAL_COMMAND='node scripts/kai-eval-bridge.js' npx tsx test/evals/kai/runner.ts command
 ```
 
-**Scoring weights**
-- Checklist completeness: 40%
-- Defect classification accuracy: 40%
-- Report format compliance: 20%
+**Scoring weights (V1 target)**
+- Checklist/data capture completeness: 70%
+- Report format compliance (PDF assembly proxy): 30%
+- Defect classification accuracy: 0% (tracked, non-gating in v1)
 
 Artifacts are written to `test/evals/kai/reports/` (JSON + markdown).
 
