@@ -9,6 +9,13 @@ import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'development-secret-min-32-chars!!';
 
+// Warn at startup if ADMIN_USER_IDS is not configured — admin endpoints will deny everyone.
+if (!process.env.ADMIN_USER_IDS && process.env.NODE_ENV === 'production') {
+  console.warn(
+    '[auth] WARNING: ADMIN_USER_IDS is not set. All requests to admin-protected endpoints will be denied.'
+  );
+}
+
 export interface AuthRequest extends Request {
   userId?: string;
 }
@@ -105,13 +112,19 @@ export function requireAdmin(
   // For MVP: Check if user ID is in admin list (env var)
   // In production: Look up user's personnel role
   const adminUsers = (process.env.ADMIN_USER_IDS || '').split(',').filter(Boolean);
-  
-  if (adminUsers.length > 0 && !adminUsers.includes(req.userId)) {
+
+  // Deny by default — if no admin list is configured, nobody gets admin access.
+  // This prevents a misconfiguration from silently granting all users admin rights.
+  if (adminUsers.length === 0) {
     res.status(403).json({ error: 'Admin access required' });
     return;
   }
 
-  // If no admin list configured, allow access (development mode)
+  if (!adminUsers.includes(req.userId)) {
+    res.status(403).json({ error: 'Admin access required' });
+    return;
+  }
+
   next();
 }
 
