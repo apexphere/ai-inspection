@@ -1,0 +1,10 @@
+{
+  "version": "1.0.0",
+  "name": "ai-inspection",
+  "description": "AI-powered building inspection assistant skill",
+  "files": [
+    "SKILL.md",
+    "mcp.json"
+  ],
+  "updatedAt": "2026-03-09T00:00:00Z"
+}
