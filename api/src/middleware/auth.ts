@@ -7,7 +7,23 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'development-secret-min-32-chars!!';
+const DEV_FALLBACK_SECRET = 'development-secret-min-32-chars!!';
+
+function resolveJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (process.env.NODE_ENV === 'production') {
+    if (!secret || secret === DEV_FALLBACK_SECRET) {
+      throw new Error(
+        'JWT_SECRET must be set to a secure value in production. ' +
+        'Refusing to start with missing or default secret.'
+      );
+    }
+    return secret;
+  }
+  return secret || DEV_FALLBACK_SECRET;
+}
+
+const JWT_SECRET = resolveJwtSecret();
 
 export interface AuthRequest extends Request {
   userId?: string;
