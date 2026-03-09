@@ -60,15 +60,19 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json({ limit: '10mb' })); // Increased limit for base64 photos
 
-// Public routes (no auth required)
+// ─── Public routes (no auth) ──────────────────────────────────────────────────
 app.use('/health', healthRouter);
-app.use('/api', openApiRouter);  // OpenAPI docs (no auth required)
+app.use('/api', openApiRouter);
 app.use('/api/auth', authRouter);
-
-// Service routes (JWT or API key auth)
+// ─── Service-to-service routes (serviceAuthMiddleware) ────────────────────────
+// These routes are called by the OpenClaw agent or internal services.
+// They accept X-API-Key (service identity) or JWT (user identity).
+// See auth middleware module for the full selection rule.
 app.use('/api/inspectors', serviceAuthMiddleware, inspectorsRouter);
 
-// Protected routes (auth required)
+// ─── User-facing routes (authMiddleware — JWT only) ───────────────────────────
+// These routes are called by the web UI. JWT required.
+// Do not use serviceAuthMiddleware here — API keys should not access user data.
 app.use('/api/inspections', authMiddleware, inspectionsRouter);
 app.use('/api', authMiddleware, findingsRouter);
 app.use('/api', authMiddleware, photosRouter);

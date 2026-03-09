@@ -1,7 +1,24 @@
 /**
  * Auth Middleware — Issue #41
  *
- * JWT-based authentication middleware.
+ * ## Middleware selection rule
+ *
+ * Use `authMiddleware` for user-facing routes (web UI).
+ *   - Accepts: JWT token (cookie or Authorization header)
+ *   - Caller: browser / web UI
+ *   - Sets: req.userId = <user id from JWT>
+ *
+ * Use `serviceAuthMiddleware` for service-to-service routes (agent / OpenClaw).
+ *   - Accepts: X-API-Key header (preferred) OR JWT token (fallback)
+ *   - Caller: OpenClaw agent, MCP server, internal services
+ *   - Sets: req.userId = 'service' (API key path) or <user id> (JWT path)
+ *   - Note: JWT callers via this middleware bypass API-key scope checks —
+ *     there are currently no scoped permissions, but keep this in mind
+ *     when scoped auth is added (see issue #577).
+ *
+ * Do not mix them on the same route. If unsure, prefer `authMiddleware`
+ * for user routes and only use `serviceAuthMiddleware` where an agent
+ * or automated service explicitly needs API-key access.
  */
 
 import { Request, Response, NextFunction } from 'express';
@@ -14,7 +31,9 @@ export interface AuthRequest extends Request {
 }
 
 /**
- * Verify JWT token from cookie or Authorization header
+ * User-facing auth middleware.
+ * Use on routes called by the web UI. Accepts JWT only.
+ * See module-level comment for selection rule.
  */
 export function authMiddleware(
   req: AuthRequest,
@@ -48,9 +67,10 @@ export function generateToken(userId: string): string {
 }
 
 /**
- * Service authentication middleware — Issue #351
- * Allows either JWT token OR X-API-Key header for service-to-service auth.
- * Used for endpoints that OpenClaw agent needs to call.
+ * Service-to-service auth middleware.
+ * Use on routes called by the OpenClaw agent or internal services.
+ * Accepts X-API-Key (sets userId='service') or JWT (sets userId from token).
+ * See module-level comment for selection rule and JWT bypass note.
  */
 export function serviceAuthMiddleware(
   req: AuthRequest,
