@@ -1,35 +1,88 @@
 <section class="report-section" id="section-7">
   <h2>7. Interior of Building</h2>
 
-  {{#if sections.interior.length}}
-  {{#each sections.interior}}
-  <h3>{{room}}</h3>
+  {{#if interior}}
 
-  {{#if items.length}}
+  {{#if interior.living}}
+  <h3>Living Areas</h3>
+
+  {{#if interior.living.items.length}}
   <table class="inspection-table">
     <thead>
       <tr>
         <th>Item</th>
-        <th>Decision</th>
-        <th>Notes</th>
+        <th>Condition</th>
+        <th>Observations</th>
       </tr>
     </thead>
     <tbody>
-      {{#each items}}
+      {{#each interior.living.items}}
       <tr>
         <td>{{name}}</td>
-        <td>{{{decisionBadge decision}}}</td>
-        <td>{{notes}} {{{photoRefs photoNumbers}}}</td>
+        <td>{{condition}}</td>
+        <td>{{observations}} {{photoRef photoRefs}}</td>
       </tr>
       {{/each}}
     </tbody>
   </table>
   {{/if}}
 
-  {{#if conclusion}}
-  <div class="section-conclusion interior">{{conclusion}}</div>
+  {{#if interior.living.conclusion}}
+  <div class="section-conclusion interior">{{interior.living.conclusion}}</div>
   {{/if}}
-  {{/each}}
+  {{/if}}
+
+  {{#if interior.bathrooms}}
+  <h3>Bathrooms</h3>
+
+  {{#if interior.bathrooms.items.length}}
+  <table class="inspection-table">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Condition</th>
+        <th>Observations</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each interior.bathrooms.items}}
+      <tr>
+        <td>{{name}}</td>
+        <td>{{condition}}</td>
+        <td>{{observations}} {{photoRef photoRefs}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+  {{/if}}
+
+  {{#if interior.bathrooms.moistureReadings.length}}
+  <h4>Moisture Readings</h4>
+  <table class="inspection-table">
+    <thead>
+      <tr>
+        <th>Location</th>
+        <th>Reading (%)</th>
+        <th>Result</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each interior.bathrooms.moistureReadings}}
+      <tr>
+        <td>{{location}}</td>
+        <td>{{reading}}</td>
+        <td>{{result}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+  {{/if}}
+
+  {{#if interior.bathrooms.conclusion}}
+  <div class="section-conclusion interior">{{interior.bathrooms.conclusion}}</div>
+  {{/if}}
+  {{/if}}
+
   {{else}}
   <p>No interior observations recorded.</p>
   {{/if}}
