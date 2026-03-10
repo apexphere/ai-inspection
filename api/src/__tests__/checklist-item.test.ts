@@ -23,7 +23,7 @@ const mockChecklistItem: ChecklistItem = {
   inspectionId: 'insp-1',
   category: 'EXTERIOR',
   item: 'Roof cladding / flashings',
-  decision: 'PASS',
+  decision: 'SATISFACTORY',
   notes: null,
   photoIds: [],
   room: null,
@@ -51,7 +51,7 @@ describe('ChecklistItemService', () => {
         inspectionId: 'insp-1',
         category: 'EXTERIOR',
         item: 'Roof cladding / flashings',
-        decision: 'PASS',
+        decision: 'SATISFACTORY',
       });
 
       expect(repository.create).toHaveBeenCalled();
@@ -87,12 +87,12 @@ describe('ChecklistItemService', () => {
 
   describe('update', () => {
     it('should update checklist item', async () => {
-      const updatedItem = { ...mockChecklistItem, decision: 'FAIL' as const, notes: 'Damage found' };
+      const updatedItem = { ...mockChecklistItem, decision: 'IMMEDIATE_ATTENTION' as const, notes: 'Damage found' };
       vi.mocked(repository.findById).mockResolvedValue(mockChecklistItem);
       vi.mocked(repository.update).mockResolvedValue(updatedItem);
 
-      const result = await service.update('item-1', { decision: 'FAIL', notes: 'Damage found' });
-      expect(result.decision).toBe('FAIL');
+      const result = await service.update('item-1', { decision: 'IMMEDIATE_ATTENTION', notes: 'Damage found' });
+      expect(result.decision).toBe('IMMEDIATE_ATTENTION');
       expect(result.notes).toBe('Damage found');
     });
 
@@ -100,7 +100,7 @@ describe('ChecklistItemService', () => {
       vi.mocked(repository.findById).mockResolvedValue(null);
 
       await expect(
-        service.update('non-existent', { decision: 'FAIL' })
+        service.update('non-existent', { decision: 'IMMEDIATE_ATTENTION' })
       ).rejects.toThrow(ChecklistItemNotFoundError);
     });
   });
@@ -129,8 +129,8 @@ describe('ChecklistItemService', () => {
       vi.mocked(repository.bulkCreate).mockResolvedValue(items);
 
       const result = await service.bulkCreate([
-        { inspectionId: 'insp-1', category: 'EXTERIOR', item: 'Roof cladding', decision: 'PASS' },
-        { inspectionId: 'insp-1', category: 'EXTERIOR', item: 'Wall cladding', decision: 'PASS' },
+        { inspectionId: 'insp-1', category: 'EXTERIOR', item: 'Roof cladding', decision: 'SATISFACTORY' },
+        { inspectionId: 'insp-1', category: 'EXTERIOR', item: 'Wall cladding', decision: 'SATISFACTORY' },
       ]);
 
       expect(result).toHaveLength(2);
@@ -140,9 +140,9 @@ describe('ChecklistItemService', () => {
   describe('getSummary', () => {
     it('should calculate summary correctly', async () => {
       const items: ChecklistItem[] = [
-        { ...mockChecklistItem, id: 'item-1', decision: 'PASS' },
-        { ...mockChecklistItem, id: 'item-2', decision: 'PASS' },
-        { ...mockChecklistItem, id: 'item-3', decision: 'FAIL', notes: 'Issue found' },
+        { ...mockChecklistItem, id: 'item-1', decision: 'SATISFACTORY' },
+        { ...mockChecklistItem, id: 'item-2', decision: 'SATISFACTORY' },
+        { ...mockChecklistItem, id: 'item-3', decision: 'IMMEDIATE_ATTENTION', notes: 'Issue found' },
         { ...mockChecklistItem, id: 'item-4', decision: 'NA' },
       ];
       vi.mocked(repository.findByInspectionId).mockResolvedValue(items);
@@ -157,10 +157,10 @@ describe('ChecklistItemService', () => {
       expect(summary.failedItemsWithoutNotes).toHaveLength(0);
     });
 
-    it('should return PASS when all items pass or NA', async () => {
+    it('should return PASS when all items are satisfactory or NA', async () => {
       const items: ChecklistItem[] = [
-        { ...mockChecklistItem, id: 'item-1', decision: 'PASS' },
-        { ...mockChecklistItem, id: 'item-2', decision: 'PASS' },
+        { ...mockChecklistItem, id: 'item-1', decision: 'SATISFACTORY' },
+        { ...mockChecklistItem, id: 'item-2', decision: 'SATISFACTORY' },
         { ...mockChecklistItem, id: 'item-3', decision: 'NA' },
       ];
       vi.mocked(repository.findByInspectionId).mockResolvedValue(items);
@@ -170,11 +170,11 @@ describe('ChecklistItemService', () => {
       expect(summary.overallResult).toBe('PASS');
     });
 
-    it('should track failed items without notes', async () => {
+    it('should track finding items without notes', async () => {
       const items: ChecklistItem[] = [
-        { ...mockChecklistItem, id: 'item-1', decision: 'FAIL', notes: null },
-        { ...mockChecklistItem, id: 'item-2', decision: 'FAIL', notes: '' },
-        { ...mockChecklistItem, id: 'item-3', decision: 'FAIL', notes: 'Has notes' },
+        { ...mockChecklistItem, id: 'item-1', decision: 'IMMEDIATE_ATTENTION', notes: null },
+        { ...mockChecklistItem, id: 'item-2', decision: 'MAINTENANCE_REQUIRED', notes: '' },
+        { ...mockChecklistItem, id: 'item-3', decision: 'MONITOR', notes: 'Has notes' },
       ];
       vi.mocked(repository.findByInspectionId).mockResolvedValue(items);
 
@@ -195,9 +195,9 @@ describe('ChecklistItemService', () => {
 
     it('should group by category', async () => {
       const items: ChecklistItem[] = [
-        { ...mockChecklistItem, id: 'item-1', category: 'EXTERIOR', decision: 'PASS' },
-        { ...mockChecklistItem, id: 'item-2', category: 'EXTERIOR', decision: 'FAIL', notes: 'Issue' },
-        { ...mockChecklistItem, id: 'item-3', category: 'INTERIOR', decision: 'PASS' },
+        { ...mockChecklistItem, id: 'item-1', category: 'EXTERIOR', decision: 'SATISFACTORY' },
+        { ...mockChecklistItem, id: 'item-2', category: 'EXTERIOR', decision: 'IMMEDIATE_ATTENTION', notes: 'Issue' },
+        { ...mockChecklistItem, id: 'item-3', category: 'INTERIOR', decision: 'SATISFACTORY' },
       ];
       vi.mocked(repository.findByInspectionId).mockResolvedValue(items);
 
