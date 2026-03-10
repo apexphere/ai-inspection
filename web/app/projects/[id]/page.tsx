@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { getServerToken, serverFetch, serverFetchList } from '@/lib/server-api';
 import { ProjectSections } from './project-sections';
 import { ReportActions } from './report-actions';
+import type { BuildingHistoryEntry } from './building-history-section';
 
 
 interface ProjectPageProps {
@@ -97,6 +98,14 @@ async function getProjectPhotos(id: string, token?: string) {
   }>(`/api/projects/${id}/photos`, token);
 }
 
+async function getBuildingHistory(propertyId: string, token?: string): Promise<BuildingHistoryEntry[]> {
+  try {
+    return await serverFetchList<BuildingHistoryEntry>(`/api/properties/${propertyId}/history`, token);
+  } catch {
+    return [];
+  }
+}
+
 const STATUS_COLORS: Record<string, string> = {
   DRAFT: 'bg-gray-100 text-gray-700',
   IN_PROGRESS: 'bg-blue-100 text-blue-700',
@@ -145,6 +154,8 @@ export default async function ProjectPage({ params }: ProjectPageProps): Promise
     notFound();
   }
 
+  const buildingHistory = await getBuildingHistory(project.property.id, token);
+
   return (
     <div>
       {/* Breadcrumb */}
@@ -188,7 +199,11 @@ export default async function ProjectPage({ params }: ProjectPageProps): Promise
       </div>
 
       {/* Sections */}
-      <ProjectSections project={{ ...project, photos }} authToken={token} />
+      <ProjectSections
+        project={{ ...project, photos }}
+        buildingHistory={buildingHistory}
+        authToken={token}
+      />
     </div>
   );
 }
