@@ -7,6 +7,7 @@ import { PhotoGrid, Photo } from '@/components/photo-grid';
 import { DocumentUpload } from '@/components/document-upload';
 import { DocumentList, Document } from '@/components/document-list';
 import { BranzZoneSection } from './branz-zone-section';
+import { BuildingHistorySection, type BuildingHistoryEntry } from './building-history-section';
 import { FloorPlansSection } from './floor-plans-section';
 import { FindingsSections } from './findings-section';
 
@@ -97,6 +98,7 @@ interface Project {
 
 interface ProjectSectionsProps {
   project: Project;
+  buildingHistory?: BuildingHistoryEntry[];
   authToken?: string;
 }
 
@@ -135,7 +137,7 @@ function InfoRow({ label, value }: { label: string; value: string | null | undef
   );
 }
 
-export function ProjectSections({ project, authToken }: ProjectSectionsProps): React.ReactElement {
+export function ProjectSections({ project, buildingHistory = [], authToken }: ProjectSectionsProps): React.ReactElement {
   const photoCount = project.photos?.length ?? 0;
 
   return (
@@ -196,6 +198,12 @@ export function ProjectSections({ project, authToken }: ProjectSectionsProps): R
           windRegion: project.property.windRegion || '',
           windZone: project.property.windZone || '',
         }}
+      />
+
+      {/* Building History Section — Issue #555 */}
+      <BuildingHistorySection
+        propertyId={project.property.id}
+        initialEntries={buildingHistory}
       />
 
       {/* Floor Plans Section */}
