@@ -1,34 +1,30 @@
 <section class="report-section" id="section-5">
   <h2>5. Site and Ground Condition</h2>
 
-  {{#if siteGround}}
+  {{#if sections.site.items.length}}
   <table class="inspection-table">
     <thead>
       <tr>
         <th>Item</th>
-        <th>Condition</th>
-        <th>Observations</th>
-        <th>Photos</th>
+        <th>Decision</th>
+        <th>Notes</th>
       </tr>
     </thead>
     <tbody>
-      {{#each siteGround.items}}
-      <tr class="{{#if issue}}has-issue{{/if}}">
+      {{#each sections.site.items}}
+      <tr>
         <td>{{name}}</td>
-        <td class="condition-{{lowercase condition}}">{{condition}}</td>
-        <td>{{observations}}</td>
-        <td>{{photoRef photoRefs}}</td>
+        <td>{{{decisionBadge decision}}}</td>
+        <td>{{notes}} {{{photoRefs photoNumbers}}}</td>
       </tr>
       {{/each}}
     </tbody>
   </table>
-
-  {{#if siteGround.notes}}
-  <h3>Additional Notes</h3>
-  <p>{{siteGround.notes}}</p>
-  {{/if}}
-
   {{else}}
   <p>No site and ground observations recorded.</p>
+  {{/if}}
+
+  {{#if sections.site.conclusion}}
+  <div class="section-conclusion site">{{sections.site.conclusion}}</div>
   {{/if}}
 </section>

@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getServerToken, serverFetch, serverFetchList } from '@/lib/server-api';
 import { ProjectSections } from './project-sections';
+import { ReportActions } from './report-actions';
 
 
 interface ProjectPageProps {
@@ -175,6 +176,7 @@ export default async function ProjectPage({ params }: ProjectPageProps): Promise
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <ReportActions projectId={project.id} />
           <span
             className={`px-3 py-1 rounded-full text-sm font-medium ${
               STATUS_COLORS[project.status] || 'bg-gray-100 text-gray-700'

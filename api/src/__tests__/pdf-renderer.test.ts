@@ -41,6 +41,7 @@ vi.mock('node:fs/promises', () => ({
 }));
 
 vi.mock('node:fs', () => ({
+  existsSync: vi.fn().mockReturnValue(false),
   readFileSync: vi.fn().mockReturnValue(
     '%PDF-1.4\n/Type /Page\n/Type /Page\n/Type /Page\n%%EOF',
   ),

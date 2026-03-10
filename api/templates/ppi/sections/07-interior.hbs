@@ -4,103 +4,61 @@
   {{#if interior}}
 
   {{#if interior.living}}
-  <h3>5.1 Living Areas</h3>
+  <h3>Living Areas</h3>
+
+  {{#if interior.living.items.length}}
   <table class="inspection-table">
     <thead>
       <tr>
         <th>Item</th>
         <th>Condition</th>
         <th>Observations</th>
-        <th>Photos</th>
       </tr>
     </thead>
     <tbody>
       {{#each interior.living.items}}
-      <tr class="{{#if issue}}has-issue{{/if}}">
+      <tr>
         <td>{{name}}</td>
-        <td class="condition-{{lowercase condition}}">{{condition}}</td>
-        <td>{{observations}}</td>
-        <td>{{photoRef photoRefs}}</td>
+        <td>{{condition}}</td>
+        <td>{{observations}} {{photoRef photoRefs}}</td>
       </tr>
       {{/each}}
     </tbody>
   </table>
   {{/if}}
 
-  {{#if interior.kitchen}}
-  <h3>5.2 Kitchen</h3>
-  <table class="inspection-table">
-    <thead>
-      <tr>
-        <th>Item</th>
-        <th>Condition</th>
-        <th>Observations</th>
-        <th>Photos</th>
-      </tr>
-    </thead>
-    <tbody>
-      {{#each interior.kitchen.items}}
-      <tr class="{{#if issue}}has-issue{{/if}}">
-        <td>{{name}}</td>
-        <td class="condition-{{lowercase condition}}">{{condition}}</td>
-        <td>{{observations}}</td>
-        <td>{{photoRef photoRefs}}</td>
-      </tr>
-      {{/each}}
-    </tbody>
-  </table>
+  {{#if interior.living.conclusion}}
+  <div class="section-conclusion interior">{{interior.living.conclusion}}</div>
   {{/if}}
-
-  {{#if interior.bedrooms}}
-  <h3>5.3 Bedrooms</h3>
-  <table class="inspection-table">
-    <thead>
-      <tr>
-        <th>Item</th>
-        <th>Condition</th>
-        <th>Observations</th>
-        <th>Photos</th>
-      </tr>
-    </thead>
-    <tbody>
-      {{#each interior.bedrooms.items}}
-      <tr class="{{#if issue}}has-issue{{/if}}">
-        <td>{{name}}</td>
-        <td class="condition-{{lowercase condition}}">{{condition}}</td>
-        <td>{{observations}}</td>
-        <td>{{photoRef photoRefs}}</td>
-      </tr>
-      {{/each}}
-    </tbody>
-  </table>
   {{/if}}
 
   {{#if interior.bathrooms}}
-  <h3>5.4 Bathrooms</h3>
+  <h3>Bathrooms</h3>
+
+  {{#if interior.bathrooms.items.length}}
   <table class="inspection-table">
     <thead>
       <tr>
         <th>Item</th>
         <th>Condition</th>
         <th>Observations</th>
-        <th>Photos</th>
       </tr>
     </thead>
     <tbody>
       {{#each interior.bathrooms.items}}
-      <tr class="{{#if issue}}has-issue{{/if}}">
+      <tr>
         <td>{{name}}</td>
-        <td class="condition-{{lowercase condition}}">{{condition}}</td>
-        <td>{{observations}}</td>
-        <td>{{photoRef photoRefs}}</td>
+        <td>{{condition}}</td>
+        <td>{{observations}} {{photoRef photoRefs}}</td>
       </tr>
       {{/each}}
     </tbody>
   </table>
+  {{/if}}
 
-  {{#if interior.bathrooms.moistureReadings}}
+  {{#if interior.bathrooms.moistureReadings.length}}
   <h4>Moisture Readings</h4>
-  <table class="moisture-table">
+  <table class="inspection-table">
     <thead>
       <tr>
         <th>Location</th>
@@ -110,92 +68,19 @@
     </thead>
     <tbody>
       {{#each interior.bathrooms.moistureReadings}}
-      <tr class="moisture-{{lowercase result}}">
+      <tr>
         <td>{{location}}</td>
         <td>{{reading}}</td>
-        <td class="result-{{lowercase result}}">{{result}}</td>
-      </tr>
-      {{/each}}
-    </tbody>
-  </table>
-  {{/if}}
-  {{/if}}
-
-  {{#if interior.laundry}}
-  <h3>5.5 Laundry</h3>
-  <table class="inspection-table">
-    <thead>
-      <tr>
-        <th>Item</th>
-        <th>Condition</th>
-        <th>Observations</th>
-        <th>Photos</th>
-      </tr>
-    </thead>
-    <tbody>
-      {{#each interior.laundry.items}}
-      <tr class="{{#if issue}}has-issue{{/if}}">
-        <td>{{name}}</td>
-        <td class="condition-{{lowercase condition}}">{{condition}}</td>
-        <td>{{observations}}</td>
-        <td>{{photoRef photoRefs}}</td>
+        <td>{{result}}</td>
       </tr>
       {{/each}}
     </tbody>
   </table>
   {{/if}}
 
-  {{#if interior.garage}}
-  <h3>5.6 Garage</h3>
-  <table class="inspection-table">
-    <thead>
-      <tr>
-        <th>Item</th>
-        <th>Condition</th>
-        <th>Observations</th>
-        <th>Photos</th>
-      </tr>
-    </thead>
-    <tbody>
-      {{#each interior.garage.items}}
-      <tr class="{{#if issue}}has-issue{{/if}}">
-        <td>{{name}}</td>
-        <td class="condition-{{lowercase condition}}">{{condition}}</td>
-        <td>{{observations}}</td>
-        <td>{{photoRef photoRefs}}</td>
-      </tr>
-      {{/each}}
-    </tbody>
-  </table>
+  {{#if interior.bathrooms.conclusion}}
+  <div class="section-conclusion interior">{{interior.bathrooms.conclusion}}</div>
   {{/if}}
-
-  {{#if interior.attic}}
-  <h3>5.7 Roof Space / Attic</h3>
-  <table class="inspection-table">
-    <thead>
-      <tr>
-        <th>Item</th>
-        <th>Condition</th>
-        <th>Observations</th>
-        <th>Photos</th>
-      </tr>
-    </thead>
-    <tbody>
-      {{#each interior.attic.items}}
-      <tr class="{{#if issue}}has-issue{{/if}}">
-        <td>{{name}}</td>
-        <td class="condition-{{lowercase condition}}">{{condition}}</td>
-        <td>{{observations}}</td>
-        <td>{{photoRef photoRefs}}</td>
-      </tr>
-      {{/each}}
-    </tbody>
-  </table>
-  {{/if}}
-
-  {{#if interior.notes}}
-  <h3>Additional Notes</h3>
-  <p>{{interior.notes}}</p>
   {{/if}}
 
   {{else}}

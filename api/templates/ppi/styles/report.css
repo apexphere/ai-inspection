@@ -1,4 +1,4 @@
-/* PPI Report — Print-Optimized Styles (NZS 4306:2005) */
+/* PPI Report — Professional A4 Print Styles */
 
 /* ─── Page Setup ─── */
 @page {
@@ -12,11 +12,13 @@
   .appendix { page-break-before: always; }
   .signatures { page-break-before: always; }
   .photo-item { page-break-inside: avoid; }
+  .cover-page { page-break-after: always; }
+  .table-of-contents { page-break-after: always; }
 }
 
-/* ─── Base ─── */
+/* ─── Base Typography ─── */
 body {
-  font-family: 'Arial', 'Helvetica Neue', sans-serif;
+  font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
   font-size: 11pt;
   line-height: 1.5;
   color: #1a1a1a;
@@ -24,18 +26,94 @@ body {
   margin: 0 auto;
 }
 
-h1 { font-size: 20pt; margin-bottom: 4mm; color: #003366; }
-h2 { font-size: 14pt; margin-top: 8mm; margin-bottom: 4mm; color: #003366; border-bottom: 1px solid #003366; padding-bottom: 2mm; }
-h3 { font-size: 12pt; margin-top: 6mm; margin-bottom: 3mm; color: #333; }
-h4 { font-size: 11pt; margin-top: 4mm; margin-bottom: 2mm; color: #333; }
+h1 {
+  font-size: 20pt;
+  margin-bottom: 4mm;
+  color: #1E3A5F;
+}
+
+h2 {
+  font-size: 14pt;
+  margin-top: 8mm;
+  margin-bottom: 4mm;
+  color: #1E3A5F;
+  border-left: 4px solid #1E3A5F;
+  padding-left: 8px;
+  border-bottom: none;
+}
+
+h3 {
+  font-size: 12pt;
+  margin-top: 6mm;
+  margin-bottom: 3mm;
+  color: #333;
+}
+
+h4 {
+  font-size: 11pt;
+  margin-top: 4mm;
+  margin-bottom: 2mm;
+  color: #333;
+}
 
 p { margin: 3mm 0; }
 ul { margin: 2mm 0; padding-left: 6mm; }
 li { margin: 1mm 0; }
 
+/* ─── Decision Badges ─── */
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 9pt;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.badge-satisfactory {
+  background: #d4edda;
+  color: #155724;
+}
+
+.badge-maintenance-required {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.badge-monitor {
+  background: #cce5ff;
+  color: #004085;
+}
+
+.badge-further-investigation {
+  background: #ffe8cc;
+  color: #854200;
+}
+
+.badge-immediate-attention {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.badge-na {
+  background: #e9ecef;
+  color: #6c757d;
+}
+
+/* ─── Photo Reference Tags ─── */
+.photo-ref {
+  display: inline-block;
+  background: #e9ecef;
+  color: #495057;
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-size: 8pt;
+  margin-right: 2px;
+}
+
 /* ─── Header / Footer ─── */
 .report-header {
-  border-bottom: 2px solid #003366;
+  border-bottom: 2px solid #1E3A5F;
   padding-bottom: 4mm;
   margin-bottom: 8mm;
 }
@@ -53,9 +131,13 @@ li { margin: 1mm 0; }
   text-align: center;
 }
 
-.confidential { font-weight: bold; text-transform: uppercase; letter-spacing: 0.5mm; }
+.confidential {
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5mm;
+}
 
-/* ─── Tables ─── */
+/* ─── Inspection Tables ─── */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -73,29 +155,60 @@ th, td {
 th {
   background: #f0f4f8;
   font-weight: bold;
-  color: #003366;
+  color: #1E3A5F;
+}
+
+/* 3-column inspection table widths */
+.inspection-table th:nth-child(1),
+.inspection-table td:nth-child(1) { width: 40%; }
+.inspection-table th:nth-child(2),
+.inspection-table td:nth-child(2) { width: 20%; }
+.inspection-table th:nth-child(3),
+.inspection-table td:nth-child(3) { width: 40%; }
+
+/* Alternating row backgrounds */
+.inspection-table tbody tr:nth-child(even) {
+  background: #f8f9fa;
 }
 
 .summary-table th { width: 35%; }
 .property-table th { width: 35%; }
 .personnel-table th { width: 25%; }
 
-/* ─── Inspection Tables ─── */
-.inspection-table th:nth-child(1) { width: 25%; }
-.inspection-table th:nth-child(2) { width: 15%; }
-.inspection-table th:nth-child(3) { width: 45%; }
-.inspection-table th:nth-child(4) { width: 15%; }
+/* ─── Section Conclusion Block ─── */
+.section-conclusion {
+  border-left: 4px solid #1E3A5F;
+  padding: 8px 12px;
+  margin: 8px 0;
+  background: #f0f4f8;
+}
 
-.has-issue { background: #fff8f8; }
+.section-conclusion.site {
+  border-left-color: #27ae60;
+  background: #f0fdf4;
+}
 
-/* Condition Styling */
-.condition-good { color: #27ae60; font-weight: bold; }
-.condition-fair { color: #f39c12; font-weight: bold; }
-.condition-poor { color: #e74c3c; font-weight: bold; }
-.condition-na { color: #7f8c8d; font-style: italic; }
+.section-conclusion.exterior {
+  border-left-color: #3498db;
+  background: #f0f8ff;
+}
+
+.section-conclusion.interior {
+  border-left-color: #9b59b6;
+  background: #faf5ff;
+}
+
+.section-conclusion.services {
+  border-left-color: #e67e22;
+  background: #fffaf0;
+}
 
 /* ─── Moisture Readings Table ─── */
-.moisture-table th { background: #003366; color: white; font-size: 9pt; }
+.moisture-table th {
+  background: #1E3A5F;
+  color: white;
+  font-size: 9pt;
+}
 .moisture-table td { text-align: center; }
 .moisture-table td:first-child { text-align: left; }
 
@@ -103,29 +216,25 @@ th {
 .result-marginal { background: #fff3cd; color: #856404; font-weight: bold; }
 .result-unacceptable { background: #f8d7da; color: #721c24; font-weight: bold; }
 
-.moisture-acceptable { background: #f8fff8; }
-.moisture-marginal { background: #fffef8; }
-.moisture-unacceptable { background: #fff8f8; }
-
 /* ─── Conclusions ─── */
-.conclusion-good { 
-  color: #27ae60; 
+.conclusion-good {
+  color: #27ae60;
   font-size: 14pt;
   padding: 4mm;
   background: #d4edda;
   border-radius: 2mm;
 }
 
-.conclusion-fair { 
-  color: #f39c12; 
+.conclusion-fair {
+  color: #f39c12;
   font-size: 14pt;
   padding: 4mm;
   background: #fff3cd;
   border-radius: 2mm;
 }
 
-.conclusion-poor { 
-  color: #e74c3c; 
+.conclusion-poor {
+  color: #e74c3c;
   font-size: 14pt;
   padding: 4mm;
   background: #f8d7da;
@@ -152,9 +261,7 @@ th {
   margin-top: 10mm;
 }
 
-.signature-block {
-  flex: 1;
-}
+.signature-block { flex: 1; }
 
 .signature-line {
   border-bottom: 1px solid #333;
@@ -165,33 +272,6 @@ th {
 .sig-name { font-weight: bold; margin: 1mm 0; }
 .sig-credentials { font-size: 10pt; color: #666; margin: 1mm 0; }
 .sig-date { font-size: 10pt; color: #666; margin: 1mm 0; }
-
-/* ─── Photo Grid ─── */
-.photo-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6mm;
-  margin: 4mm 0;
-}
-
-.photo-item {
-  border: 1px solid #ddd;
-  padding: 2mm;
-}
-
-.photo-item img {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-.photo-item figcaption {
-  font-size: 9pt;
-  padding: 2mm 0;
-  text-align: center;
-}
-
-.photo-location { color: #666; font-style: italic; }
 
 /* ─── Cover Page ─── */
 .cover-page {
@@ -212,9 +292,7 @@ th {
   max-width: 160mm;
 }
 
-.cover-header {
-  margin-bottom: 10mm;
-}
+.cover-header { margin-bottom: 10mm; }
 
 .cover-logo {
   max-width: 80mm;
@@ -225,17 +303,18 @@ th {
 .cover-logo-placeholder {
   font-size: 18pt;
   font-weight: bold;
-  color: #003366;
+  color: #1E3A5F;
   padding: 10mm 20mm;
-  border: 2px solid #003366;
+  border: 2px solid #1E3A5F;
 }
 
 .cover-title h1 {
   font-size: 24pt;
-  color: #003366;
+  color: #1E3A5F;
   margin: 0;
   border-bottom: none;
-  padding-bottom: 0;
+  border-left: none;
+  padding-left: 0;
 }
 
 .cover-standard {
@@ -245,9 +324,7 @@ th {
   margin-top: 2mm;
 }
 
-.cover-details {
-  margin: 10mm 0;
-}
+.cover-details { margin: 10mm 0; }
 
 .cover-address {
   font-size: 16pt;
@@ -267,7 +344,7 @@ th {
 .cover-details .label,
 .cover-footer .label {
   font-weight: bold;
-  color: #003366;
+  color: #1E3A5F;
 }
 
 .cover-footer {
@@ -295,19 +372,79 @@ th {
 
 .table-of-contents h2 {
   font-size: 14pt;
-  color: #003366;
+  color: #1E3A5F;
   margin-bottom: 6mm;
-  border-bottom: 1px solid #003366;
-  padding-bottom: 2mm;
+  border-left: 4px solid #1E3A5F;
+  padding-left: 8px;
 }
 
-/* ─── Print: Cover & TOC Pages ─── */
-@media print {
-  .cover-page {
-    page-break-after: always;
-  }
+.toc-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
 
-  .table-of-contents {
-    page-break-after: always;
-  }
+.toc-entry {
+  padding: 2mm 0;
+  border-bottom: 1px dotted #ccc;
+}
+
+.toc-link {
+  color: #1E3A5F;
+  text-decoration: none;
+}
+
+.toc-number {
+  font-weight: bold;
+  margin-right: 4px;
+}
+
+/* ─── Photo Appendix ─── */
+.appendix {
+  margin-top: 10mm;
+}
+
+.appendix h2 {
+  font-size: 14pt;
+  color: #1E3A5F;
+  border-left: 4px solid #1E3A5F;
+  padding-left: 8px;
+  margin-bottom: 6mm;
+}
+
+.photo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6mm;
+  margin: 4mm 0;
+}
+
+.photo-item {
+  border: 1px solid #ddd;
+  padding: 2mm;
+}
+
+.photo-item img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.photo-number {
+  font-weight: bold;
+  font-size: 10pt;
+  color: #1E3A5F;
+  padding: 2mm 0;
+}
+
+.photo-item figcaption {
+  font-size: 9pt;
+  padding: 2mm 0;
+  text-align: center;
+}
+
+.photo-location {
+  color: #666;
+  font-style: italic;
+  font-size: 8pt;
 }

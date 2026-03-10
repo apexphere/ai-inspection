@@ -7,7 +7,7 @@
 
 import puppeteer, { Browser } from 'puppeteer';
 import { stat } from 'node:fs/promises';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Types
@@ -212,8 +212,13 @@ export class PdfRendererService {
    */
   private async getBrowser(): Promise<Browser> {
     if (!this.browser) {
+      const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH
+        || (existsSync('/usr/bin/chromium-browser') ? '/usr/bin/chromium-browser' : undefined)
+        || (existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : undefined);
+
       this.browser = await puppeteer.launch({
         headless: true,
+        executablePath,
         args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
       });
     }
