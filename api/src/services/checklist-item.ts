@@ -13,11 +13,16 @@ export class ChecklistItemNotFoundError extends Error {
   }
 }
 
+// Decisions that represent an acceptable condition
+const SATISFACTORY_DECISIONS = ['SATISFACTORY'] as const;
+// Decisions that represent a finding requiring attention
+const FINDING_DECISIONS = ['MAINTENANCE_REQUIRED', 'MONITOR', 'FURTHER_INVESTIGATION', 'IMMEDIATE_ATTENTION'] as const;
+
 export interface ChecklistSummary {
   total: number;
-  passed: number;
-  failed: number;
-  na: number;
+  passed: number;   // SATISFACTORY items
+  failed: number;   // items with any finding (MAINTENANCE_REQUIRED, MONITOR, FURTHER_INVESTIGATION, IMMEDIATE_ATTENTION)
+  na: number;       // NA items
   byCategory: Record<string, { passed: number; failed: number; na: number }>;
   failedItemsWithoutNotes: string[];
   overallResult: 'PASS' | 'FAIL' | 'INCOMPLETE';
@@ -78,16 +83,20 @@ export class ChecklistItemService {
     };
 
     for (const item of items) {
+      const isSatisfactory = (SATISFACTORY_DECISIONS as readonly string[]).includes(item.decision);
+      const isFinding = (FINDING_DECISIONS as readonly string[]).includes(item.decision);
+      const isNa = item.decision === 'NA';
+
       // Count by decision
-      if (item.decision === 'PASS') {
+      if (isSatisfactory) {
         summary.passed++;
-      } else if (item.decision === 'FAIL') {
+      } else if (isFinding) {
         summary.failed++;
-        // Track failed items without notes
+        // Track finding items without notes
         if (!item.notes || item.notes.trim() === '') {
           summary.failedItemsWithoutNotes.push(item.id);
         }
-      } else if (item.decision === 'NA') {
+      } else if (isNa) {
         summary.na++;
       }
 
@@ -96,11 +105,11 @@ export class ChecklistItemService {
       if (!summary.byCategory[category]) {
         summary.byCategory[category] = { passed: 0, failed: 0, na: 0 };
       }
-      if (item.decision === 'PASS') {
+      if (isSatisfactory) {
         summary.byCategory[category].passed++;
-      } else if (item.decision === 'FAIL') {
+      } else if (isFinding) {
         summary.byCategory[category].failed++;
-      } else if (item.decision === 'NA') {
+      } else if (isNa) {
         summary.byCategory[category].na++;
       }
     }

@@ -12,7 +12,7 @@ export const checklistItemsRouter: RouterType = Router();
 
 // Enums
 const checklistCategories = ['EXTERIOR', 'INTERIOR', 'DECKS', 'SERVICES', 'SITE'] as const;
-const decisions = ['PASS', 'FAIL', 'NA'] as const;
+const decisions = ['SATISFACTORY', 'MAINTENANCE_REQUIRED', 'MONITOR', 'FURTHER_INVESTIGATION', 'IMMEDIATE_ATTENTION', 'NA'] as const;
 const findingSeverities = ['IMMEDIATE_ATTENTION', 'FURTHER_INVESTIGATION', 'MONITOR', 'NO_ACTION'] as const;
 
 // Validation schemas
