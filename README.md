@@ -97,6 +97,25 @@ npm test            # Run all tests (27 tests)
 npm run test:watch  # Watch mode
 ```
 
+### Kai Quality Eval (Main Dev Workflow)
+
+Use the eval harness before/after Kai prompt/skill changes to measure quality regression or improvement.
+
+```bash
+# Deterministic baseline (no external calls)
+npx tsx test/evals/kai/runner.ts mock
+
+# Live eval via OpenClaw session messaging (no WhatsApp contamination)
+KAI_EVAL_COMMAND='node scripts/kai-eval-bridge.js' npx tsx test/evals/kai/runner.ts command
+```
+
+**Scoring weights (V1 target)**
+- Checklist/data capture completeness: 70%
+- Report format compliance (PDF assembly proxy): 30%
+- Defect classification accuracy: 0% (tracked, non-gating in v1)
+
+Artifacts are written to `test/evals/kai/reports/` (JSON + markdown).
+
 ### Local Development
 
 Run the server directly for debugging:
